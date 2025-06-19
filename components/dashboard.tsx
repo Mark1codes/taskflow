@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Clock, AlertCircle, TrendingUp, Calendar, Users, Loader2 } from "lucide-react"
+import { CheckCircle, Clock, AlertCircle, TrendingUp, Calendar, Users } from "lucide-react"
 
 interface Task {
   id: string
@@ -27,11 +27,103 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
   if (isLoading) {
     return (
       <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto max-h-screen">
-        <div className="flex items-center justify-center h-64">
-          <div className="flex items-center space-x-2">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="text-muted-foreground">Loading dashboard...</span>
+        <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="h-8 w-48 bg-muted animate-pulse rounded"></div>
+            <div className="h-6 w-24 bg-muted animate-pulse rounded"></div>
           </div>
+
+          {/* KPI Cards Skeleton */}
+          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, index) => (
+              <Card key={index}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+                  <div className="h-4 w-4 bg-muted animate-pulse rounded-full"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
+                  <div className="h-3 w-24 mt-2 bg-muted animate-pulse rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Task Status and Upcoming Tasks Skeleton */}
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <div className="h-6 w-40 bg-muted animate-pulse rounded"></div>
+                <div className="h-4 w-64 mt-2 bg-muted animate-pulse rounded"></div>
+              </CardHeader>
+              <CardContent className="space-y-3 sm:space-y-4">
+                {[...Array(3)].map((_, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-muted animate-pulse rounded-full"></div>
+                      <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+                    </div>
+                    <div className="h-4 w-12 bg-muted animate-pulse rounded"></div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="h-5 w-5 bg-muted animate-pulse rounded"></div>
+                  <div className="h-6 w-36 bg-muted animate-pulse rounded"></div>
+                </div>
+                <div className="h-4 w-48 mt-2 bg-muted animate-pulse rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50">
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="h-4 w-48 bg-muted animate-pulse rounded"></div>
+                        <div className="h-3 w-32 bg-muted animate-pulse rounded"></div>
+                      </div>
+                      <div className="h-4 w-16 bg-muted animate-pulse rounded ml-2"></div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Tasks Skeleton */}
+          <Card>
+            <CardHeader>
+              <div className="h-6 w-36 bg-muted animate-pulse rounded"></div>
+              <div className="h-4 w-48 mt-2 bg-muted animate-pulse rounded"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 sm:space-y-4">
+                {[...Array(5)].map((_, index) => (
+                  <div key={index} className="flex items-center space-x-3 sm:space-x-4 p-2 sm:p-3 rounded-lg border">
+                    <div className="w-2 h-2 bg-muted animate-pulse rounded-full"></div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="h-4 w-48 bg-muted animate-pulse rounded"></div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
+                        <div className="flex items-center space-x-1">
+                          <div className="h-3 w-3 bg-muted animate-pulse rounded"></div>
+                          <div className="h-3 w-24 bg-muted animate-pulse rounded"></div>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <div className="h-3 w-3 bg-muted animate-pulse rounded"></div>
+                          <div className="h-3 w-24 bg-muted animate-pulse rounded"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )

@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Calendar, MapPin, Phone, Camera, Save, Lock, Eye, EyeOff, Shield, Bell, Globe, Loader2 } from "lucide-react"
+import { User, Mail, Calendar, MapPin, Phone, Camera, Save, Lock, Eye, EyeOff, Shield, Bell, Globe } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ProfilePageProps {
@@ -284,11 +284,71 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
   if (isInitialLoading) {
     return (
       <div className="flex-1 p-6 overflow-y-auto max-h-screen">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading profile...</p>
+        <div className="space-y-6 max-w-4xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="flex items-center justify-between">
+            <div className="h-8 w-48 bg-muted animate-pulse rounded"></div>
+            <div className="h-6 w-32 bg-muted animate-pulse rounded"></div>
           </div>
+
+          {/* Profile Header Skeleton */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-6">
+                <div className="h-24 w-24 bg-muted animate-pulse rounded-full"></div>
+                <div className="flex-1 space-y-3">
+                  <div className="h-6 w-40 bg-muted animate-pulse rounded"></div>
+                  <div className="h-4 w-64 bg-muted animate-pulse rounded"></div>
+                  <div className="flex items-center space-x-4">
+                    <div className="h-3 w-32 bg-muted animate-pulse rounded"></div>
+                    <div className="h-3 w-40 bg-muted animate-pulse rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tabs Skeleton */}
+          <div className="flex space-x-1 bg-muted p-1 rounded-lg">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="flex-1 h-10 bg-muted animate-pulse rounded-md"></div>
+            ))}
+          </div>
+
+          {/* Profile Tab Content Skeleton */}
+          <Card>
+            <CardHeader>
+              <div className="h-6 w-40 bg-muted animate-pulse rounded"></div>
+              <div className="h-4 w-64 bg-muted animate-pulse rounded"></div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(2)].map((_, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+                    <div className="h-10 w-full bg-muted animate-pulse rounded"></div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(2)].map((_, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+                    <div className="h-10 w-full bg-muted animate-pulse rounded"></div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+                <div className="h-10 w-full bg-muted animate-pulse rounded"></div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+                <div className="h-24 w-full bg-muted animate-pulse rounded"></div>
+              </div>
+              <div className="h-10 w-32 bg-muted animate-pulse rounded"></div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )

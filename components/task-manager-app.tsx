@@ -87,7 +87,12 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
           switch (payload.eventType) {
             case 'INSERT':
               if (payload.new) {
-                setTasks(prev => [payload.new as Task, ...prev])
+                setTasks(prev => {
+                  // Avoid duplicates
+                  const exists = prev.some(task => task.id === payload.new.id)
+                  if (exists) return prev
+                  return [payload.new as Task, ...prev]
+                })
               }
               break
             case 'UPDATE':
@@ -140,7 +145,12 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   }
 
   const addTask = (newTask: Task) => {
-    setTasks(prevTasks => [newTask, ...prevTasks])
+    setTasks(prevTasks => {
+      // Avoid duplicates - check if task already exists
+      const exists = prevTasks.some(task => task.id === newTask.id)
+      if (exists) return prevTasks
+      return [newTask, ...prevTasks]
+    })
   }
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
@@ -159,6 +169,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
         .from('task')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', taskId)
+        .eq('user_id', currentUser.id) // Ensure user can only update their own tasks
 
       if (error) {
         console.error("Error updating task:", error)
@@ -183,6 +194,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
         .from('task')
         .delete()
         .eq('id', taskId)
+        .eq('user_id', currentUser.id) // Ensure user can only delete their own tasks
 
       if (error) {
         console.error("Error deleting task:", error)
@@ -219,6 +231,11 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     }
   }
 
+  // Filter tasks with valid due dates for calendar
+  const getCalendarTasks = () => {
+    return tasks.filter(task => task.due_date && task.due_date.trim() !== '')
+  }
+
   const renderContent = () => {
     switch (activeView) {
       case "dashboard":
@@ -228,7 +245,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       case "tasks":
         return <TaskList tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} />
       case "calendar":
-        return <Calendar tasks={tasks} onUpdateTask={updateTask} />
+        return <Calendar tasks={getCalendarTasks()} onUpdateTask={updateTask} />
       case "kanban":
         return <KanbanBoard tasks={tasks} onUpdateTask={updateTask} />
       case "settings":
@@ -292,6 +309,12 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
             <h2 className="text-sm sm:text-lg font-semibold capitalize truncate">
               {activeView === "add-task" ? "Add Task" : activeView.replace("-", " ")}
             </h2>
+            {activeView === "calendar" && (
+              <div className="hidden sm:flex items-center space-x-2 text-xs text-muted-foreground">
+                <span>|</span>
+                <span>{getCalendarTasks().length} scheduled tasks</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">

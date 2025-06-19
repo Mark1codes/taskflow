@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useTheme } from "next-themes"
-import { SettingsIcon, Moon, Sun, Bell, User, Palette, Save } from "lucide-react"
+import { SettingsIcon, Moon, Sun, Bell, User, Palette, Save, Mail, UserIcon } from "lucide-react"
 
 interface SettingsProps {
   user: {
@@ -18,35 +18,39 @@ interface SettingsProps {
     email: string
     avatar?: string
   }
+  profileData?: {
+    name: string
+    email: string
+  }
 }
 
-export function Settings({ user }: SettingsProps) {
+export function Settings({ user, profileData }: SettingsProps) {
   const { theme, setTheme } = useTheme()
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
     desktop: true,
   })
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
+  const [preferences, setPreferences] = useState({
     timezone: "UTC-5",
+    defaultPriority: "medium",
+    defaultAssignee: "",
+    autoAssignDueDates: false,
   })
 
-  // Initialize profile state with user data
+  // Initialize preferences with user data
   useEffect(() => {
-    if (user) {
-      setProfile({
-        name: user.name || "",
-        email: user.email || "",
-        timezone: "UTC-5",
-      })
+    if (user || profileData) {
+      setPreferences(prev => ({
+        ...prev,
+        defaultAssignee: profileData?.name || user?.name || "",
+      }))
     }
-  }, [user])
+  }, [user, profileData])
 
   const handleSave = () => {
     // Here you would typically save settings to a backend
-    console.log("Settings saved:", { theme, notifications, profile })
+    console.log("Settings saved:", { theme, notifications, preferences })
   }
 
   return (
@@ -73,7 +77,7 @@ export function Settings({ user }: SettingsProps) {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-base">Theme</Label>
-                <div className="text-sm text-muted-foreground">Choose between light and dim mode</div>
+                <div className="text-sm text-muted-foreground">Choose between light and dark mode</div>
               </div>
               <div className="flex items-center space-x-2">
                 <Sun className="h-4 w-4" />
@@ -149,52 +153,51 @@ export function Settings({ user }: SettingsProps) {
           </CardContent>
         </Card>
 
-        {/* Profile Settings */}
+        {/* User Preferences */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <span>Profile</span>
+              <SettingsIcon className="h-5 w-5" />
+              <span>General Preferences</span>
             </CardTitle>
-            <CardDescription>Manage your personal information and preferences</CardDescription>
+            <CardDescription>Configure your timezone and other general settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={profile.name}
-                  onChange={(e) => setProfile((prev) => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profile.email}
-                  onChange={(e) => setProfile((prev) => ({ ...prev, email: e.target.value }))}
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="timezone">Timezone</Label>
               <Select
-                value={profile.timezone}
-                onValueChange={(value) => setProfile((prev) => ({ ...prev, timezone: value }))}
+                value={preferences.timezone}
+                onValueChange={(value) => setPreferences((prev) => ({ ...prev, timezone: value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select your timezone" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="UTC-8">Pacific Time (UTC-8)</SelectItem>
-                  <SelectItem value="UTC-7">Mountain Time (UTC-7)</SelectItem>
-                  <SelectItem value="UTC-6">Central Time (UTC-6)</SelectItem>
-                  <SelectItem value="UTC-5">Eastern Time (UTC-5)</SelectItem>
+                  <SelectItem value="UTC-12">Baker Island Time (UTC-12)</SelectItem>
+                  <SelectItem value="UTC-11">Niue Time (UTC-11)</SelectItem>
+                  <SelectItem value="UTC-10">Hawaii-Aleutian Standard Time (UTC-10)</SelectItem>
+                  <SelectItem value="UTC-9">Alaska Standard Time (UTC-9)</SelectItem>
+                  <SelectItem value="UTC-8">Pacific Standard Time (UTC-8)</SelectItem>
+                  <SelectItem value="UTC-7">Mountain Standard Time (UTC-7)</SelectItem>
+                  <SelectItem value="UTC-6">Central Standard Time (UTC-6)</SelectItem>
+                  <SelectItem value="UTC-5">Eastern Standard Time (UTC-5)</SelectItem>
+                  <SelectItem value="UTC-4">Atlantic Standard Time (UTC-4)</SelectItem>
+                  <SelectItem value="UTC-3">Argentina Time (UTC-3)</SelectItem>
+                  <SelectItem value="UTC-2">South Georgia Time (UTC-2)</SelectItem>
+                  <SelectItem value="UTC-1">Azores Time (UTC-1)</SelectItem>
                   <SelectItem value="UTC+0">Greenwich Mean Time (UTC+0)</SelectItem>
                   <SelectItem value="UTC+1">Central European Time (UTC+1)</SelectItem>
+                  <SelectItem value="UTC+2">Eastern European Time (UTC+2)</SelectItem>
+                  <SelectItem value="UTC+3">Moscow Time (UTC+3)</SelectItem>
+                  <SelectItem value="UTC+4">Gulf Standard Time (UTC+4)</SelectItem>
+                  <SelectItem value="UTC+5">Pakistan Standard Time (UTC+5)</SelectItem>
+                  <SelectItem value="UTC+6">Bangladesh Standard Time (UTC+6)</SelectItem>
+                  <SelectItem value="UTC+7">Indochina Time (UTC+7)</SelectItem>
+                  <SelectItem value="UTC+8">China Standard Time (UTC+8)</SelectItem>
+                  <SelectItem value="UTC+9">Japan Standard Time (UTC+9)</SelectItem>
+                  <SelectItem value="UTC+10">Australian Eastern Standard Time (UTC+10)</SelectItem>
+                  <SelectItem value="UTC+11">Solomon Islands Time (UTC+11)</SelectItem>
+                  <SelectItem value="UTC+12">Fiji Time (UTC+12)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -214,7 +217,10 @@ export function Settings({ user }: SettingsProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="default-priority">Default Priority</Label>
-                <Select defaultValue="medium">
+                <Select 
+                  value={preferences.defaultPriority}
+                  onValueChange={(value) => setPreferences((prev) => ({ ...prev, defaultPriority: value }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select default priority" />
                   </SelectTrigger>
@@ -227,7 +233,12 @@ export function Settings({ user }: SettingsProps) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="default-assignee">Default Assignee</Label>
-                <Input id="default-assignee" placeholder="Enter default assignee" defaultValue={profile.name} />
+                <Input 
+                  id="default-assignee" 
+                  placeholder="Enter default assignee" 
+                  value={preferences.defaultAssignee}
+                  onChange={(e) => setPreferences((prev) => ({ ...prev, defaultAssignee: e.target.value }))}
+                />
               </div>
             </div>
 
@@ -236,7 +247,10 @@ export function Settings({ user }: SettingsProps) {
                 <Label className="text-base">Auto-assign due dates</Label>
                 <div className="text-sm text-muted-foreground">Automatically set due dates for new tasks</div>
               </div>
-              <Switch defaultChecked={false} />
+              <Switch 
+                checked={preferences.autoAssignDueDates}
+                onCheckedChange={(checked) => setPreferences((prev) => ({ ...prev, autoAssignDueDates: checked }))}
+              />
             </div>
           </CardContent>
         </Card>
