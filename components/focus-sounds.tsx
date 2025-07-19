@@ -1,94 +1,82 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { Play, Pause, Volume2, Cloud, Waves, TreePine, Coffee, Flame, Zap, Moon, Radio, Timer } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Play, Pause, Volume2, Cloud, Waves, TreePine, Coffee, Flame, Zap, Moon, Radio, Timer, Search } from "lucide-react"
+import  supabase  from "../utils/supabase"
+import { Howl } from "howler"
+import { v4 as uuidv4 } from "uuid"
+
+interface AmbientSound {
+  id: string
+  name: string
+  description: string
+  icon_name: string
+  color_gradient: string
+  category: string
+  file_url: string
+}
+
+interface FocusSession {
+  id: string
+  duration_minutes: number
+  ambient_sounds: string[]
+}
 
 export function FocusSounds() {
-  const [activeSounds, setActiveSounds] = useState<number[]>([])
-  const [volumes, setVolumes] = useState<{ [key: number]: number }>({})
-  const [focusTimer, setFocusTimer] = useState(25) // Pomodoro default
-
-  const sounds = [
-    {
-      id: 1,
-      name: "Rain",
-      description: "Gentle rainfall for deep focus",
-      icon: Cloud,
-      color: "from-blue-600 to-cyan-600",
-      category: "Nature",
-    },
-    {
-      id: 2,
-      name: "Ocean Waves",
-      description: "Calming ocean sounds",
-      icon: Waves,
-      color: "from-teal-600 to-blue-600",
-      category: "Nature",
-    },
-    {
-      id: 3,
-      name: "Forest",
-      description: "Birds chirping in the forest",
-      icon: TreePine,
-      color: "from-green-600 to-emerald-600",
-      category: "Nature",
-    },
-    {
-      id: 4,
-      name: "Coffee Shop",
-      description: "Ambient coffee shop chatter",
-      icon: Coffee,
-      color: "from-amber-600 to-orange-600",
-      category: "Ambient",
-    },
-    {
-      id: 5,
-      name: "Fireplace",
-      description: "Crackling fireplace sounds",
-      icon: Flame,
-      color: "from-red-600 to-orange-600",
-      category: "Ambient",
-    },
-    {
-      id: 6,
-      name: "White Noise",
-      description: "Pure white noise for concentration",
-      icon: Radio,
-      color: "from-gray-600 to-slate-600",
-      category: "Noise",
-    },
-    {
-      id: 7,
-      name: "Thunder",
-      description: "Distant thunder and rain",
-      icon: Zap,
-      color: "from-purple-600 to-indigo-600",
-      category: "Nature",
-    },
-    {
-      id: 8,
-      name: "Night Sounds",
-      description: "Peaceful nighttime ambience",
-      icon: Moon,
-      color: "from-indigo-600 to-purple-600",
-      category: "Ambient",
-    },
-  ]
-
-  const categories = ["All", "Nature", "Ambient", "Noise"]
+  const [activeSounds, setActiveSounds] = useState<string[]>([])
+  const [volumes, setVolumes] = useState<{ [key: string]: number }>({})
+  const [focusTimer, setFocusTimer] = useState(25)
+  const [sounds, setSounds] = useState<AmbientSound[]>([])
+  const [soundInstances, setSoundInstances] = useState<{ [key: string]: Howl }>({})
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [categories, setCategories] = useState<string[]>(["All"])
   const [selectedCategory, setSelectedCategory] = useState("All")
+  const [searchTerm, setSearchTerm] = useState("")
 
-  const filteredSounds = sounds.filter((sound) => selectedCategory === "All" || sound.category === selectedCategory)
+  useEffect(() => {
+    fetchSounds()
+    return () => {
+      Object.values(soundInstances).forEach((sound) => sound.unload())
+    }
+  }, [])
 
-  const toggleSound = (soundId: number) => {
+  const fetchSounds = async () => {
+    const { data, error } = await supabase
+      .from("ambient_sounds")
+      .select("*")
+      .eq("is_active", true)
+
+    if (error) {
+      console.error("Error fetching ambient sounds:", error)
+      return
+    }
+
+    setSounds(data || [])
+    const uniqueCategories = ["All", ...new Set(data.map((sound: AmbientSound) => sound.category))]
+    setCategories(uniqueCategories)
+  }
+
+  const toggleSound = (soundId: string) => {
+    const sound = sounds.find((s) => s.id === soundId)
+    if (!sound) return
+
     setActiveSounds((prev) => {
       if (prev.includes(soundId)) {
+        soundInstances[soundId]?.stop()
         return prev.filter((id) => id !== soundId)
       } else {
+        const howl = new Howl({
+          src: [sound.file_url],
+          loop: true,
+          volume: (volumes[soundId] || 50) / 100,
+        })
+        howl.play()
+        setSoundInstances((prev) => ({ ...prev, [soundId]: howl }))
         return [...prev, soundId]
       }
     })
@@ -98,12 +86,59 @@ export function FocusSounds() {
     }
   }
 
-  const updateVolume = (soundId: number, volume: number) => {
+  const updateVolume = (soundId: string, volume: number) => {
     setVolumes((prev) => ({ ...prev, [soundId]: volume }))
+    if (soundInstances[soundId]) {
+      soundInstances[soundId].volume(volume / 100)
+    }
   }
 
   const stopAllSounds = () => {
+    activeSounds.forEach((soundId) => {
+      soundInstances[soundId]?.stop()
+    })
     setActiveSounds([])
+  }
+
+  const startFocusSession = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from("focus_sessions")
+      .insert({
+        user_id: user.id,
+        duration_minutes: focusTimer,
+        ambient_sounds: activeSounds,
+        session_type: "focus",
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Error starting focus session:", error)
+      return
+    }
+
+    setSessionId(data.id)
+  }
+
+  const filteredSounds = sounds.filter(
+    (sound) =>
+      (selectedCategory === "All" || sound.category === selectedCategory) &&
+      (sound.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       sound.description?.toLowerCase().includes(searchTerm.toLowerCase()))
+  )
+
+  const iconMap: { [key: string]: React.ComponentType<any> } = {
+    Cloud,
+    Waves,
+    TreePine,
+    Coffee,
+    Flame,
+    Radio,
+    Zap,
+    Moon,
   }
 
   return (
@@ -130,6 +165,21 @@ export function FocusSounds() {
             )}
           </div>
         </div>
+
+        {/* Search Bar */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search ambient sounds..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Focus Timer */}
         <Card>
@@ -179,7 +229,10 @@ export function FocusSounds() {
                   60m
                 </Button>
               </div>
-              <Button className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700">
+              <Button
+                className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+                onClick={startFocusSession}
+              >
                 Start Timer
               </Button>
             </div>
@@ -204,7 +257,7 @@ export function FocusSounds() {
         {/* Sounds Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {filteredSounds.map((sound) => {
-            const Icon = sound.icon
+            const Icon = iconMap[sound.icon_name] || Radio
             const isActive = activeSounds.includes(sound.id)
             const volume = volumes[sound.id] || 50
 
@@ -216,14 +269,11 @@ export function FocusSounds() {
                 }`}
               >
                 <CardContent className="p-0">
-                  {/* Sound Visual */}
-                  <div className={`relative h-32 bg-gradient-to-br ${sound.color} rounded-t-lg overflow-hidden`}>
+                  <div className={`relative h-32 bg-gradient-to-br ${sound.color_gradient} rounded-t-lg overflow-hidden`}>
                     <div className="absolute inset-0 bg-black/10"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Icon className="h-12 w-12 text-white/90" />
                     </div>
-
-                    {/* Play/Pause Overlay */}
                     <div
                       className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       onClick={() => toggleSound(sound.id)}
@@ -239,15 +289,11 @@ export function FocusSounds() {
                         )}
                       </Button>
                     </div>
-
-                    {/* Active Indicator */}
                     {isActive && (
                       <div className="absolute top-2 right-2">
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                       </div>
                     )}
-
-                    {/* Category Badge */}
                     <div className="absolute top-2 left-2">
                       <Badge
                         variant="secondary"
@@ -257,15 +303,11 @@ export function FocusSounds() {
                       </Badge>
                     </div>
                   </div>
-
-                  {/* Sound Info */}
                   <div className="p-4 space-y-3">
                     <div>
                       <h3 className="font-semibold">{sound.name}</h3>
                       <p className="text-sm text-muted-foreground">{sound.description}</p>
                     </div>
-
-                    {/* Volume Control */}
                     {isActive && (
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
@@ -281,7 +323,6 @@ export function FocusSounds() {
                         </div>
                       </div>
                     )}
-
                     <Button
                       className={`w-full ${
                         isActive
@@ -321,14 +362,13 @@ export function FocusSounds() {
                 {activeSounds.map((soundId) => {
                   const sound = sounds.find((s) => s.id === soundId)
                   if (!sound) return null
-
-                  const Icon = sound.icon
+                  const Icon = iconMap[sound.icon_name] || Radio
                   const volume = volumes[soundId] || 50
 
                   return (
                     <div key={soundId} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
                       <div
-                        className={`w-10 h-10 bg-gradient-to-br ${sound.color} rounded-lg flex items-center justify-center`}
+                        className={`w-10 h-10 bg-gradient-to-br ${sound.color_gradient} rounded-lg flex items-center justify-center`}
                       >
                         <Icon className="h-5 w-5 text-white" />
                       </div>

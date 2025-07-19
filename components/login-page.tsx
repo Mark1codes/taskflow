@@ -44,14 +44,14 @@ export function LoginPage({ onLogin, onSignUp, onBack }: LoginPageProps) {
       }
 
       if (data.user) {
-        // Fetch user data from the users table
+        
         const { data: profileData, error: profileError } = await supabase
           .from('users')
           .select('full_name, email')
           .eq('id', data.user.id)
           .single()
 
-        // If user doesn't exist in our users table, create them
+       
         if (profileError && profileError.code === 'PGRST116') {
           const { error: insertError } = await supabase
             .from('users')

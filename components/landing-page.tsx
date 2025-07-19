@@ -544,7 +544,7 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
             }`}
             style={{ transitionDelay: "4100ms" }}
           >
-            <p>&copy; 2024 TaskFlow. All rights reserved.</p>
+            <p>&copy; 2025 TaskFlow. All rights reserved.</p>
           </div>
         </div>
       </footer>
