@@ -16,6 +16,7 @@ import {
   PlayCircle,
   ListMusic,
   Radio,
+  CheckCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -61,7 +62,16 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
     >
       <div className="flex h-full flex-col">
         <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 border-b border-border shrink-0">
-          {!isCollapsed && <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">TaskFlow</h1>}
+          {!isCollapsed && (
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                TaskFlow
+              </span>
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"
