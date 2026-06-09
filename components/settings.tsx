@@ -9,221 +9,146 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useTheme } from "next-themes"
-import { SettingsIcon, Moon, Sun, Bell, User, Palette, Save, Mail, UserIcon } from "lucide-react"
+import { Moon, Sun, Bell, Palette, Save } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface SettingsProps {
-  user: {
+  user?: {
     id: string
     name: string
     email: string
     avatar?: string
   }
-  profileData?: {
-    name: string
-    email: string
-  }
 }
 
-export function Settings({ user, profileData }: SettingsProps) {
+export function Settings({ user }: SettingsProps) {
   const { theme, setTheme } = useTheme()
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: false,
-    desktop: true,
-  })
-  const [preferences, setPreferences] = useState({
-    timezone: "UTC-5",
-    defaultPriority: "medium",
-    defaultAssignee: "",
-    autoAssignDueDates: false,
-  })
+  const [saved, setSaved] = useState(false)
+  const [notifications, setNotifications] = useState({ email: true, push: false, desktop: true })
+  const [preferences, setPreferences] = useState({ timezone: "UTC+8", defaultPriority: "medium", defaultAssignee: "", autoAssignDueDates: false })
 
-  // Initialize preferences with user data
   useEffect(() => {
-    if (user || profileData) {
-      setPreferences(prev => ({
-        ...prev,
-        defaultAssignee: profileData?.name || user?.name || "",
-      }))
-    }
-  }, [user, profileData])
+    if (user?.name) setPreferences(p => ({ ...p, defaultAssignee: p.defaultAssignee || user.name }))
+  }, [user])
 
   const handleSave = () => {
-    // Here you would typically save settings to a backend
-    console.log("Settings saved:", { theme, notifications, preferences })
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
   }
 
+  const section = "border border-slate-100 rounded-xl overflow-hidden"
+  const sectionHeader = "px-5 py-4 border-b border-slate-50 bg-slate-50/60"
+  const sectionBody = "px-5 py-5 space-y-5 bg-white"
+  const rowBetween = "flex items-center justify-between"
+  const labelMain = "text-sm font-medium text-slate-800"
+  const labelSub  = "text-xs text-slate-400 mt-0.5"
+
   return (
-    <div className="flex-1 p-6 overflow-y-auto max-h-screen">
-      <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 overflow-y-auto max-h-screen">
+      <div className="max-w-2xl mx-auto space-y-5">
+
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <Button onClick={handleSave}>
-            <Save className="h-4 w-4 mr-2" />
-            Save Changes
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Settings</h1>
+            <p className="text-sm text-slate-400 mt-0.5">Manage your preferences</p>
+          </div>
+          <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white h-9 gap-2">
+            <Save className="h-3.5 w-3.5" /> Save changes
           </Button>
         </div>
 
-        {/* Theme Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Palette className="h-5 w-5" />
-              <span>Appearance</span>
-            </CardTitle>
-            <CardDescription>Customize the look and feel of your task manager</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Theme</Label>
-                <div className="text-sm text-muted-foreground">Choose between light and dark mode</div>
+        {saved && (
+          <Alert className="border-emerald-200 bg-emerald-50">
+            <AlertDescription className="text-emerald-700 text-sm">Settings saved successfully.</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Appearance */}
+        <div className={section}>
+          <div className={sectionHeader}>
+            <div className="flex items-center gap-2">
+              <Palette className="h-4 w-4 text-slate-400" />
+              <span className="text-sm font-semibold text-slate-800">Appearance</span>
+            </div>
+          </div>
+          <div className={sectionBody}>
+            <div className={rowBetween}>
+              <div>
+                <p className={labelMain}>Theme</p>
+                <p className={labelSub}>Choose light or dark mode</p>
               </div>
-              <div className="flex items-center space-x-2">
-                <Sun className="h-4 w-4" />
+              <div className="flex items-center gap-2">
+                <Sun className="h-3.5 w-3.5 text-slate-400" />
                 <Switch
                   checked={theme === "dark"}
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                  onCheckedChange={v => setTheme(v ? "dark" : "light")}
                 />
-                <Moon className="h-4 w-4" />
+                <Moon className="h-3.5 w-3.5 text-slate-400" />
               </div>
             </div>
 
-            <Separator />
+            <Separator className="bg-slate-50" />
 
-            <div className="space-y-2">
-              <Label htmlFor="accent-color">Accent Color</Label>
+            <div className="space-y-1.5">
+              <Label className={labelMain}>Accent colour</Label>
               <Select defaultValue="blue">
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select accent color" />
+                <SelectTrigger className="h-9 border-slate-200 w-48">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="blue">Blue</SelectItem>
-                  <SelectItem value="green">Green</SelectItem>
-                  <SelectItem value="purple">Purple</SelectItem>
-                  <SelectItem value="orange">Orange</SelectItem>
+                  <SelectItem value="blue">Indigo Blue (default)</SelectItem>
+                  <SelectItem value="slate">Slate</SelectItem>
+                  <SelectItem value="emerald">Emerald</SelectItem>
+                  <SelectItem value="violet">Violet</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Notification Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Bell className="h-5 w-5" />
-              <span>Notifications</span>
-            </CardTitle>
-            <CardDescription>Configure how you want to be notified about tasks and updates</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Email Notifications</Label>
-                <div className="text-sm text-muted-foreground">Receive task updates via email</div>
+        {/* Notifications */}
+        <div className={section}>
+          <div className={sectionHeader}>
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-slate-400" />
+              <span className="text-sm font-semibold text-slate-800">Notifications</span>
+            </div>
+          </div>
+          <div className={sectionBody}>
+            {[
+              { key: "email",   label: "Email notifications",   sub: "Receive task updates via email" },
+              { key: "push",    label: "Push notifications",    sub: "Get notified on your device" },
+              { key: "desktop", label: "Desktop notifications", sub: "Show notifications on this device" },
+            ].map((item, i, arr) => (
+              <div key={item.key}>
+                <div className={rowBetween}>
+                  <div>
+                    <p className={labelMain}>{item.label}</p>
+                    <p className={labelSub}>{item.sub}</p>
+                  </div>
+                  <Switch
+                    checked={notifications[item.key as keyof typeof notifications]}
+                    onCheckedChange={v => setNotifications(n => ({ ...n, [item.key]: v }))}
+                  />
+                </div>
+                {i < arr.length - 1 && <Separator className="bg-slate-50 mt-5" />}
               </div>
-              <Switch
-                checked={notifications.email}
-                onCheckedChange={(checked) => setNotifications((prev) => ({ ...prev, email: checked }))}
-              />
-            </div>
+            ))}
+          </div>
+        </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Push Notifications</Label>
-                <div className="text-sm text-muted-foreground">Get notified on your mobile device</div>
-              </div>
-              <Switch
-                checked={notifications.push}
-                onCheckedChange={(checked) => setNotifications((prev) => ({ ...prev, push: checked }))}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Desktop Notifications</Label>
-                <div className="text-sm text-muted-foreground">Show notifications on your desktop</div>
-              </div>
-              <Switch
-                checked={notifications.desktop}
-                onCheckedChange={(checked) => setNotifications((prev) => ({ ...prev, desktop: checked }))}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* User Preferences */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <SettingsIcon className="h-5 w-5" />
-              <span>General Preferences</span>
-            </CardTitle>
-            <CardDescription>Configure your timezone and other general settings</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="timezone">Timezone</Label>
-              <Select
-                value={preferences.timezone}
-                onValueChange={(value) => setPreferences((prev) => ({ ...prev, timezone: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your timezone" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="UTC-12">Baker Island Time (UTC-12)</SelectItem>
-                  <SelectItem value="UTC-11">Niue Time (UTC-11)</SelectItem>
-                  <SelectItem value="UTC-10">Hawaii-Aleutian Standard Time (UTC-10)</SelectItem>
-                  <SelectItem value="UTC-9">Alaska Standard Time (UTC-9)</SelectItem>
-                  <SelectItem value="UTC-8">Pacific Standard Time (UTC-8)</SelectItem>
-                  <SelectItem value="UTC-7">Mountain Standard Time (UTC-7)</SelectItem>
-                  <SelectItem value="UTC-6">Central Standard Time (UTC-6)</SelectItem>
-                  <SelectItem value="UTC-5">Eastern Standard Time (UTC-5)</SelectItem>
-                  <SelectItem value="UTC-4">Atlantic Standard Time (UTC-4)</SelectItem>
-                  <SelectItem value="UTC-3">Argentina Time (UTC-3)</SelectItem>
-                  <SelectItem value="UTC-2">South Georgia Time (UTC-2)</SelectItem>
-                  <SelectItem value="UTC-1">Azores Time (UTC-1)</SelectItem>
-                  <SelectItem value="UTC+0">Greenwich Mean Time (UTC+0)</SelectItem>
-                  <SelectItem value="UTC+1">Central European Time (UTC+1)</SelectItem>
-                  <SelectItem value="UTC+2">Eastern European Time (UTC+2)</SelectItem>
-                  <SelectItem value="UTC+3">Moscow Time (UTC+3)</SelectItem>
-                  <SelectItem value="UTC+4">Gulf Standard Time (UTC+4)</SelectItem>
-                  <SelectItem value="UTC+5">Pakistan Standard Time (UTC+5)</SelectItem>
-                  <SelectItem value="UTC+6">Bangladesh Standard Time (UTC+6)</SelectItem>
-                  <SelectItem value="UTC+7">Indochina Time (UTC+7)</SelectItem>
-                  <SelectItem value="UTC+8">China Standard Time (UTC+8)</SelectItem>
-                  <SelectItem value="UTC+9">Japan Standard Time (UTC+9)</SelectItem>
-                  <SelectItem value="UTC+10">Australian Eastern Standard Time (UTC+10)</SelectItem>
-                  <SelectItem value="UTC+11">Solomon Islands Time (UTC+11)</SelectItem>
-                  <SelectItem value="UTC+12">Fiji Time (UTC+12)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Task Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <SettingsIcon className="h-5 w-5" />
-              <span>Task Preferences</span>
-            </CardTitle>
-            <CardDescription>Configure default settings for new tasks</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="default-priority">Default Priority</Label>
-                <Select 
-                  value={preferences.defaultPriority}
-                  onValueChange={(value) => setPreferences((prev) => ({ ...prev, defaultPriority: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select default priority" />
-                  </SelectTrigger>
+        {/* Task preferences */}
+        <div className={section}>
+          <div className={sectionHeader}>
+            <span className="text-sm font-semibold text-slate-800">Task Preferences</span>
+          </div>
+          <div className={sectionBody}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className={labelMain}>Default priority</Label>
+                <Select value={preferences.defaultPriority} onValueChange={v => setPreferences(p => ({ ...p, defaultPriority: v }))}>
+                  <SelectTrigger className="h-9 border-slate-200"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
@@ -231,29 +156,48 @@ export function Settings({ user, profileData }: SettingsProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="default-assignee">Default Assignee</Label>
-                <Input 
-                  id="default-assignee" 
-                  placeholder="Enter default assignee" 
+              <div className="space-y-1.5">
+                <Label className={labelMain}>Default assignee</Label>
+                <Input className="h-9 border-slate-200" placeholder="Your name…"
                   value={preferences.defaultAssignee}
-                  onChange={(e) => setPreferences((prev) => ({ ...prev, defaultAssignee: e.target.value }))}
-                />
+                  onChange={e => setPreferences(p => ({ ...p, defaultAssignee: e.target.value }))} />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Auto-assign due dates</Label>
-                <div className="text-sm text-muted-foreground">Automatically set due dates for new tasks</div>
+            <Separator className="bg-slate-50" />
+
+            <div className={rowBetween}>
+              <div>
+                <p className={labelMain}>Auto-assign due dates</p>
+                <p className={labelSub}>Automatically set due dates for new tasks</p>
               </div>
-              <Switch 
+              <Switch
                 checked={preferences.autoAssignDueDates}
-                onCheckedChange={(checked) => setPreferences((prev) => ({ ...prev, autoAssignDueDates: checked }))}
+                onCheckedChange={v => setPreferences(p => ({ ...p, autoAssignDueDates: v }))}
               />
             </div>
-          </CardContent>
-        </Card>
+
+            <Separator className="bg-slate-50" />
+
+            <div className="space-y-1.5">
+              <Label className={labelMain}>Timezone</Label>
+              <Select value={preferences.timezone} onValueChange={v => setPreferences(p => ({ ...p, timezone: v }))}>
+                <SelectTrigger className="h-9 border-slate-200 w-full"><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {[
+                    ["UTC-8", "Pacific (UTC-8)"], ["UTC-7", "Mountain (UTC-7)"],
+                    ["UTC-6", "Central (UTC-6)"],  ["UTC-5", "Eastern (UTC-5)"],
+                    ["UTC+0", "GMT (UTC+0)"],       ["UTC+1", "Central Europe (UTC+1)"],
+                    ["UTC+3", "Moscow (UTC+3)"],    ["UTC+5", "Pakistan (UTC+5)"],
+                    ["UTC+7", "Indochina (UTC+7)"], ["UTC+8", "China / SGT (UTC+8)"],
+                    ["UTC+9", "Japan (UTC+9)"],     ["UTC+10", "AEST (UTC+10)"],
+                  ].map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )

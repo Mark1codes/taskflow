@@ -1,169 +1,123 @@
 "use client"
 
 import {
-  LayoutDashboard,
-  Plus,
-  CheckSquare,
-  Calendar,
-  Kanban,
-  Settings,
-  Menu,
-  Bot,
-  Sparkles,
-  MessageSquare,
-  Zap,
-  Music,
-  PlayCircle,
-  ListMusic,
-  Radio,
-  CheckCircle,
+  LayoutDashboard, Plus, CheckSquare, Calendar, Kanban,
+  Settings, Menu, Bot, Sparkles, MessageSquare, Zap,
+  Music, PlayCircle, ListMusic, Radio, CheckCircle2, ChevronLeft,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
-import { Separator } from "@/components/ui/separator"
 
 interface SidebarProps {
   activeView: string
   onViewChange: (view: string) => void
 }
 
-const navigation = [
+const mainNav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "add-task", label: "Add Task", icon: Plus },
-  { id: "tasks", label: "Task List", icon: CheckSquare },
-  { id: "calendar", label: "Calendar", icon: Calendar },
-  { id: "kanban", label: "Kanban Board", icon: Kanban },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "add-task",  label: "Add Task",   icon: Plus },
+  { id: "tasks",     label: "Task List",  icon: CheckSquare },
+  { id: "calendar",  label: "Calendar",   icon: Calendar },
+  { id: "kanban",    label: "Kanban",     icon: Kanban },
+  { id: "settings",  label: "Settings",   icon: Settings },
 ]
 
-const musicFeatures = [
+const musicNav = [
   { id: "music-player", label: "Music Player", icon: PlayCircle },
-  { id: "playlists", label: "Playlists", icon: ListMusic },
-  { id: "focus-sounds", label: "Focus Sounds", icon: Radio },
+  { id: "playlists",    label: "Playlists",     icon: ListMusic },
+  { id: "focus-sounds", label: "Focus Sounds",  icon: Radio },
 ]
 
-const aiFeatures = [
-  { id: "ai-assistant", label: "AI Assistant", icon: Bot },
-  { id: "smart-suggestions", label: "Smart Suggestions", icon: Sparkles },
-  { id: "ai-chat", label: "AI Chat", icon: MessageSquare },
-  { id: "auto-prioritize", label: "Auto Prioritize", icon: Zap },
+const aiNav = [
+  { id: "ai-assistant",    label: "AI Assistant",    icon: Bot },
+  { id: "smart-suggestions",label: "Smart Suggestions", icon: Sparkles },
+  { id: "ai-chat",          label: "AI Chat",          icon: MessageSquare },
+  { id: "auto-prioritize",  label: "Auto Prioritize",  icon: Zap },
 ]
+
+function NavGroup({ label, items, activeView, onViewChange, collapsed }: {
+  label: string
+  items: typeof mainNav
+  activeView: string
+  onViewChange: (v: string) => void
+  collapsed: boolean
+}) {
+  return (
+    <div className="mb-2">
+      {!collapsed && (
+        <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 select-none">
+          {label}
+        </p>
+      )}
+      {items.map(item => {
+        const Icon = item.icon
+        const active = activeView === item.id
+        return (
+          <button
+            key={item.id}
+            onClick={() => onViewChange(item.id)}
+            title={collapsed ? item.label : undefined}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 group",
+              active
+                ? "bg-blue-600 text-white"
+                : "text-slate-400 hover:text-white hover:bg-slate-800"
+            )}
+          >
+            <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-slate-500 group-hover:text-white")} />
+            {!collapsed && <span className="truncate">{item.label}</span>}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 export function Sidebar({ activeView, onViewChange }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div
-      className={cn(
-        "bg-card border-r border-border transition-all duration-300 flex flex-col h-full",
-        isCollapsed ? "w-16" : "w-64",
-      )}
-    >
-      <div className="flex h-full flex-col">
-        <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 border-b border-border shrink-0">
-          {!isCollapsed && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                TaskFlow
-              </span>
+    <div className={cn(
+      "flex flex-col h-full bg-slate-900 border-r border-slate-800 transition-all duration-300",
+      collapsed ? "w-16" : "w-60"
+    )}>
+      {/* Logo */}
+      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800 shrink-0">
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
+              <CheckCircle2 className="h-4 w-4 text-white" />
             </div>
+            <span className="font-bold text-white text-base">TaskFlow</span>
+          </div>
+        )}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className={cn(
+            "p-1.5 rounded-md text-slate-500 hover:text-white hover:bg-slate-800 transition-colors",
+            collapsed && "mx-auto"
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-7 w-7 sm:h-8 sm:w-8 shrink-0"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          <nav className="space-y-1 sm:space-y-2 p-2 sm:p-4">
-            {!isCollapsed && (
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Main</div>
-            )}
-            {navigation.map((item) => {
-              const Icon = item.icon
-              return (
-                <Button
-                  key={item.id}
-                  variant={activeView === item.id ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start text-sm h-9 sm:h-10",
-                    isCollapsed ? "px-2" : "px-3",
-                    !isCollapsed && "text-left",
-                  )}
-                  onClick={() => onViewChange(item.id)}
-                >
-                  <Icon className={cn("h-4 w-4 shrink-0", !isCollapsed && "mr-2 sm:mr-3")} />
-                  {!isCollapsed && <span className="truncate">{item.label}</span>}
-                </Button>
-              )
-            })}
-
-            <Separator className="my-3 sm:my-4" />
-
-            {!isCollapsed && (
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2 flex items-center">
-                <Music className="h-3 w-3 mr-1" />
-                Music & Focus
-              </div>
-            )}
-            {musicFeatures.map((item) => {
-              const Icon = item.icon
-              return (
-                <Button
-                  key={item.id}
-                  variant={activeView === item.id ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start text-sm h-9 sm:h-10",
-                    isCollapsed ? "px-2" : "px-3",
-                    !isCollapsed && "text-left",
-                    activeView === item.id &&
-                      "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700",
-                  )}
-                  onClick={() => onViewChange(item.id)}
-                >
-                  <Icon className={cn("h-4 w-4 shrink-0", !isCollapsed && "mr-2 sm:mr-3")} />
-                  {!isCollapsed && <span className="truncate">{item.label}</span>}
-                </Button>
-              )
-            })}
-
-            <Separator className="my-3 sm:my-4" />
-
-            {!isCollapsed && (
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2 flex items-center">
-                <Sparkles className="h-3 w-3 mr-1" />
-                AI Features
-              </div>
-            )}
-            {aiFeatures.map((item) => {
-              const Icon = item.icon
-              return (
-                <Button
-                  key={item.id}
-                  variant={activeView === item.id ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start text-sm h-9 sm:h-10",
-                    isCollapsed ? "px-2" : "px-3",
-                    !isCollapsed && "text-left",
-                  )}
-                  onClick={() => onViewChange(item.id)}
-                >
-                  <Icon className={cn("h-4 w-4 shrink-0", !isCollapsed && "mr-2 sm:mr-3")} />
-                  {!isCollapsed && <span className="truncate">{item.label}</span>}
-                </Button>
-              )
-            })}
-          </nav>
-        </div>
+        >
+          {collapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </button>
       </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto p-3 space-y-4">
+        <NavGroup label="Main" items={mainNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
+        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        <NavGroup label="Music & Focus" items={musicNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
+        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        <NavGroup label="AI" items={aiNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
+      </nav>
+
+      {/* Bottom hint */}
+      {!collapsed && (
+        <div className="p-3 border-t border-slate-800 shrink-0">
+          <div className="text-[10px] text-slate-600 text-center">TaskFlow v2.0</div>
+        </div>
+      )}
     </div>
   )
 }

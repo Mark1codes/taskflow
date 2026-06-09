@@ -1,169 +1,148 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
-  CheckCircle,
-  Calendar,
-  BarChart3,
-  Users,
-  Zap,
-  Shield,
-  ArrowRight,
-  Star,
-  LayoutDashboard,
-  Kanban,
-  Clock,
-  Music,
-  Headphones,
-  Radio,
-  PlayCircle,
+  CheckCircle, Calendar, BarChart3, Users, Zap, Shield,
+  ArrowRight, Star, LayoutDashboard, Kanban, Clock, Music,
+  Headphones, Radio, PlayCircle, CheckSquare,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import Image from "next/image"
 
 interface LandingPageProps {
   onLogin: () => void
   onSignUp: () => void
 }
 
+const features = [
+  { icon: LayoutDashboard, title: "Smart Dashboard", description: "Comprehensive overview of all your tasks with intelligent insights and real-time analytics." },
+  { icon: Kanban, title: "Kanban Boards", description: "Visualize your workflow with drag-and-drop Kanban boards for intuitive task management." },
+  { icon: Calendar, title: "Calendar View", description: "Never miss a deadline with our integrated calendar and smart scheduling system." },
+  { icon: Music, title: "Focus Music", description: "Curated playlists and ambient sounds engineered for deep work and flow states." },
+  { icon: BarChart3, title: "Progress Tracking", description: "Monitor productivity with detailed analytics and beautiful progress reports." },
+  { icon: Shield, title: "Secure & Reliable", description: "Enterprise-grade security with row-level policies and regular encrypted backups." },
+]
+
+const testimonials = [
+  { name: "Sarah Johnson", role: "Project Manager", company: "TechCorp", content: "TaskFlow transformed how our team manages projects. Completion rates are up 40% in two months.", rating: 5 },
+  { name: "Michael Chen", role: "Startup Founder", company: "InnovateLab", content: "The combination of task management and focus music is exactly what we needed. Clean, fast, reliable.", rating: 5 },
+  { name: "Emily Rodriguez", role: "Marketing Director", company: "GrowthCo", content: "Finally a tool that looks professional and actually works. The Kanban board alone is worth it.", rating: 5 },
+]
+
+// Inline SVG hero illustration — task board with cards and decorative elements
+function HeroIllustration() {
+  return (
+    <svg viewBox="0 0 520 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-xl">
+      {/* Background card */}
+      <rect x="20" y="30" width="480" height="340" rx="12" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="1.5" />
+
+      {/* Top bar */}
+      <rect x="20" y="30" width="480" height="44" rx="12" fill="#0F172A" />
+      <rect x="20" y="62" width="480" height="12" fill="#0F172A" />
+      <circle cx="46" cy="52" r="6" fill="#EF4444" opacity="0.8" />
+      <circle cx="64" cy="52" r="6" fill="#F59E0B" opacity="0.8" />
+      <circle cx="82" cy="52" r="6" fill="#22C55E" opacity="0.8" />
+      <text x="240" y="57" textAnchor="middle" fill="#94A3B8" fontSize="11" fontFamily="Inter, sans-serif">TaskFlow — Project Alpha</text>
+
+      {/* Column headers */}
+      <rect x="36" y="90" width="136" height="28" rx="6" fill="#F1F5F9" />
+      <text x="104" y="109" textAnchor="middle" fill="#475569" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">TO DO</text>
+      <rect x="192" y="90" width="136" height="28" rx="6" fill="#EFF6FF" />
+      <text x="260" y="109" textAnchor="middle" fill="#2563EB" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">IN PROGRESS</text>
+      <rect x="348" y="90" width="136" height="28" rx="6" fill="#F0FDF4" />
+      <text x="416" y="109" textAnchor="middle" fill="#16A34A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">DONE</text>
+
+      {/* TO DO cards */}
+      <rect x="36" y="130" width="136" height="68" rx="6" fill="white" stroke="#E2E8F0" strokeWidth="1" />
+      <rect x="36" y="130" width="3" height="68" rx="1.5" fill="#94A3B8" />
+      <text x="50" y="150" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Design review</text>
+      <rect x="50" y="158" width="52" height="16" rx="4" fill="#FEF3C7" />
+      <text x="76" y="170" textAnchor="middle" fill="#D97706" fontSize="9" fontFamily="Inter, sans-serif">Medium</text>
+      <text x="50" y="188" fill="#94A3B8" fontSize="9" fontFamily="Inter, sans-serif">Due Jun 10</text>
+
+      <rect x="36" y="210" width="136" height="60" rx="6" fill="white" stroke="#E2E8F0" strokeWidth="1" />
+      <rect x="36" y="210" width="3" height="60" rx="1.5" fill="#94A3B8" />
+      <text x="50" y="230" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Write test cases</text>
+      <rect x="50" y="238" width="40" height="16" rx="4" fill="#FEE2E2" />
+      <text x="70" y="250" textAnchor="middle" fill="#DC2626" fontSize="9" fontFamily="Inter, sans-serif">High</text>
+
+      <rect x="36" y="282" width="136" height="60" rx="6" fill="white" stroke="#E2E8F0" strokeWidth="1" />
+      <rect x="36" y="282" width="3" height="60" rx="1.5" fill="#94A3B8" />
+      <text x="50" y="302" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Update docs</text>
+      <rect x="50" y="310" width="36" height="16" rx="4" fill="#F0FDF4" />
+      <text x="68" y="322" textAnchor="middle" fill="#16A34A" fontSize="9" fontFamily="Inter, sans-serif">Low</text>
+
+      {/* IN PROGRESS cards */}
+      <rect x="192" y="130" width="136" height="68" rx="6" fill="white" stroke="#DBEAFE" strokeWidth="1" />
+      <rect x="192" y="130" width="3" height="68" rx="1.5" fill="#2563EB" />
+      <text x="206" y="150" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">API integration</text>
+      <rect x="206" y="158" width="52" height="16" rx="4" fill="#FEF3C7" />
+      <text x="232" y="170" textAnchor="middle" fill="#D97706" fontSize="9" fontFamily="Inter, sans-serif">Medium</text>
+      {/* Progress bar */}
+      <rect x="206" y="183" width="106" height="5" rx="2.5" fill="#E2E8F0" />
+      <rect x="206" y="183" width="72" height="5" rx="2.5" fill="#2563EB" />
+      <text x="170" y="189" fill="#94A3B8" fontSize="8" fontFamily="Inter, sans-serif">68%</text>
+
+      <rect x="192" y="210" width="136" height="68" rx="6" fill="white" stroke="#DBEAFE" strokeWidth="1" />
+      <rect x="192" y="210" width="3" height="68" rx="1.5" fill="#2563EB" />
+      <text x="206" y="230" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">UI redesign</text>
+      <rect x="206" y="238" width="40" height="16" rx="4" fill="#FEE2E2" />
+      <text x="226" y="250" textAnchor="middle" fill="#DC2626" fontSize="9" fontFamily="Inter, sans-serif">High</text>
+      <rect x="206" y="263" width="106" height="5" rx="2.5" fill="#E2E8F0" />
+      <rect x="206" y="263" width="40" height="5" rx="2.5" fill="#2563EB" />
+
+      {/* DONE cards */}
+      <rect x="348" y="130" width="136" height="60" rx="6" fill="white" stroke="#DCFCE7" strokeWidth="1" />
+      <rect x="348" y="130" width="3" height="60" rx="1.5" fill="#16A34A" />
+      <text x="362" y="150" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">User research</text>
+      <text x="362" y="165" fill="#94A3B8" fontSize="9" fontFamily="Inter, sans-serif">Completed Jun 2</text>
+      {/* Check icon */}
+      <circle cx="466" cy="150" r="9" fill="#16A34A" />
+      <path d="M461 150l3.5 3.5 6-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+      <rect x="348" y="202" width="136" height="60" rx="6" fill="white" stroke="#DCFCE7" strokeWidth="1" />
+      <rect x="348" y="202" width="3" height="60" rx="1.5" fill="#16A34A" />
+      <text x="362" y="222" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Database schema</text>
+      <text x="362" y="237" fill="#94A3B8" fontSize="9" fontFamily="Inter, sans-serif">Completed Jun 1</text>
+      <circle cx="466" cy="222" r="9" fill="#16A34A" />
+      <path d="M461 222l3.5 3.5 6-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+      <rect x="348" y="274" width="136" height="60" rx="6" fill="white" stroke="#DCFCE7" strokeWidth="1" />
+      <rect x="348" y="274" width="3" height="60" rx="1.5" fill="#16A34A" />
+      <text x="362" y="294" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Auth flow</text>
+      <text x="362" y="309" fill="#94A3B8" fontSize="9" fontFamily="Inter, sans-serif">Completed May 30</text>
+      <circle cx="466" cy="294" r="9" fill="#16A34A" />
+      <path d="M461 294l3.5 3.5 6-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
   const [isVisible, setIsVisible] = useState(false)
-  const [visibleCards, setVisibleCards] = useState<number[]>([])
 
   useEffect(() => {
-    // Trigger initial animations
-    const timer = setTimeout(() => setIsVisible(true), 100)
-    return () => clearTimeout(timer)
+    const t = setTimeout(() => setIsVisible(true), 80)
+    return () => clearTimeout(t)
   }, [])
 
-  useEffect(() => {
-    // Animate cards one by one
-    if (isVisible) {
-      features.forEach((_, index) => {
-        setTimeout(() => {
-          setVisibleCards((prev) => [...prev, index])
-        }, index * 150)
-      })
-    }
-  }, [isVisible])
-
-  const features = [
-    {
-      icon: LayoutDashboard,
-      title: "Smart Dashboard",
-      description: "Get a comprehensive overview of all your tasks with intelligent insights and analytics.",
-    },
-    {
-      icon: Kanban,
-      title: "Kanban Boards",
-      description: "Visualize your workflow with drag-and-drop Kanban boards for better task management.",
-    },
-    {
-      icon: Calendar,
-      title: "Calendar Integration",
-      description: "Never miss a deadline with our integrated calendar view and smart scheduling.",
-    },
-    {
-      icon: Music,
-      title: "Focus Music & Sounds",
-      description: "Enhance productivity with curated playlists and ambient sounds designed for deep work.",
-    },
-    {
-      icon: BarChart3,
-      title: "Progress Tracking",
-      description: "Monitor your productivity with detailed analytics and progress reports.",
-    },
-    {
-      icon: Users,
-      title: "Team Collaboration",
-      description: "Work seamlessly with your team through shared tasks and real-time updates.",
-    },
-    {
-      icon: Shield,
-      title: "Secure & Reliable",
-      description: "Your data is protected with enterprise-grade security and regular backups.",
-    },
-  ]
-
-  const musicFeatures = [
-    {
-      icon: PlayCircle,
-      title: "Focus Playlists",
-      description: "Curated music collections designed to enhance concentration and productivity.",
-      gradient: "from-purple-600 to-pink-600",
-    },
-    {
-      icon: Radio,
-      title: "Ambient Sounds",
-      description: "Nature sounds, white noise, and ambient tracks to create the perfect work environment.",
-      gradient: "from-green-600 to-teal-600",
-    },
-    {
-      icon: Headphones,
-      title: "Pomodoro Timer",
-      description: "Built-in focus timer with music integration for structured work sessions.",
-      gradient: "from-blue-600 to-indigo-600",
-    },
-  ]
-
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Project Manager",
-      company: "TechCorp",
-      content:
-        "TaskFlow has revolutionized how our team manages projects. The music feature helps us stay focused during long work sessions.",
-      rating: 5,
-    },
-    {
-      name: "Michael Chen",
-      role: "Startup Founder",
-      company: "InnovateLab",
-      content:
-        "The combination of task management and focus music is genius. Our productivity has increased by 40% since using TaskFlow.",
-      rating: 5,
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "Marketing Director",
-      company: "GrowthCo",
-      content:
-        "The ambient sounds feature is a game-changer. I can finally concentrate in our open office environment.",
-      rating: 5,
-    },
-  ]
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Navigation */}
-      <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-white">
+      {/* ── Navigation ── */}
+      <nav className="border-b border-slate-100 bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div
-              className={`flex items-center space-x-2 transition-all duration-700 ${
-                isVisible ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"
-              }`}
-            >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-white" />
+            <div className={`flex items-center space-x-2 transition-all duration-500 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`}>
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <CheckSquare className="h-4 w-4 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                TaskFlow
-              </span>
+              <span className="text-xl font-bold text-slate-900">TaskFlow</span>
             </div>
-            <div
-              className={`flex items-center space-x-4 transition-all duration-700 delay-200 ${
-                isVisible ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"
-              }`}
-            >
-              <Button variant="ghost" onClick={onLogin}>
+            <div className={`flex items-center gap-3 transition-all duration-500 delay-100 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}>
+              <Button variant="ghost" onClick={onLogin} className="text-slate-600 hover:text-slate-900">
                 Sign In
               </Button>
-              <Button
-                onClick={onSignUp}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
+              <Button onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white">
                 Get Started
               </Button>
             </div>
@@ -171,380 +150,206 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative py-20 lg:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <Badge
-              variant="secondary"
-              className={`mb-4 transition-all duration-700 delay-300 ${
-                isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-              }`}
-            >
-              <Zap className="h-3 w-3 mr-1" />
-              New: AI-Powered Task Insights + Focus Music
-            </Badge>
-            <h1
-              className={`text-4xl md:text-6xl font-bold text-gray-900 mb-6 transition-all duration-700 delay-500 ${
-                isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-              }`}
-            >
-              Manage Tasks Like a
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Pro</span>
-            </h1>
-            <p
-              className={`text-xl text-gray-600 mb-8 max-w-3xl mx-auto transition-all duration-700 delay-700 ${
-                isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-              }`}
-            >
-              Transform your productivity with TaskFlow's intuitive task management platform. Organize, prioritize, and
-              collaborate seamlessly with your team while staying focused with our integrated music features.
-            </p>
-            <div
-              className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-700 delay-900 ${
-                isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-              }`}
-            >
-              <Button
-                size="lg"
-                onClick={onSignUp}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-3 transform hover:scale-105 transition-all duration-200"
-              >
-                Start Free Trial
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={onLogin}
-                className="text-lg px-8 py-3 transform hover:scale-105 transition-all duration-200"
-              >
-                Watch Demo
-              </Button>
-            </div>
-          </div>
-        </div>
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden bg-white dot-grid">
+        {/* Subtle top-left glow */}
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-40 pointer-events-none" />
 
-        {/* Hero Image/Dashboard Preview */}
-        <div className="mt-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className={`relative transition-all duration-1000 delay-1100 ${
-              isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
-            }`}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-3xl"></div>
-            <Card className="relative border-0 shadow-2xl hover:shadow-3xl transition-shadow duration-500">
-              <CardContent className="p-0">
-                <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-t-2xl p-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse delay-100"></div>
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse delay-200"></div>
-                  </div>
-                </div>
-                <div className="p-8 bg-white rounded-b-2xl">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                      { title: "Total Tasks", value: "124", change: "+12% from last week" },
-                      { title: "Completed", value: "89", change: "72% completion rate" },
-                      { title: "Focus Time", value: "8.5h", change: "with music integration" },
-                    ].map((stat, index) => (
-                      <Card
-                        key={index}
-                        className={`transform transition-all duration-500 hover:scale-105 ${
-                          isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                        }`}
-                        style={{ transitionDelay: `${1300 + index * 100}ms` }}
-                      >
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">{stat.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">{stat.value}</div>
-                          <p className="text-xs text-muted-foreground">{stat.change}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className={`text-center mb-16 transition-all duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            }`}
-            style={{ transitionDelay: "1600ms" }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Everything you need to stay organized</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful features designed to help you and your team achieve more, faster.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => {
-              const Icon = feature.icon
-              const isCardVisible = visibleCards.includes(index)
-
-              return (
-                <Card
-                  key={index}
-                  className={`border-0 shadow-lg hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 ${
-                    isCardVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-10 opacity-0 scale-95"
-                  }`}
-                  style={{
-                    transitionDelay: `${1800 + index * 150}ms`,
-                    animationFillMode: "both",
-                  }}
-                >
-                  <CardHeader>
-                    <div
-                      className={`w-12 h-12 ${feature.title === "Focus Music & Sounds" ? "bg-gradient-to-r from-purple-600 to-pink-600" : "bg-gradient-to-r from-blue-600 to-purple-600"} rounded-lg flex items-center justify-center mb-4 transform transition-transform duration-300 hover:rotate-6`}
-                    >
-                      <Icon className="h-6 w-6 text-white" />
-                    </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-gray-600 text-base">{feature.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Music Features Section */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className={`text-center mb-16 transition-all duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            }`}
-            style={{ transitionDelay: "2000ms" }}
-          >
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <Music className="h-8 w-8 text-purple-600" />
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Focus with Music</h2>
-            </div>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Boost your productivity with our integrated music and ambient sound features designed for deep work.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {musicFeatures.map((feature, index) => {
-              const Icon = feature.icon
-
-              return (
-                <Card
-                  key={index}
-                  className={`border-0 shadow-lg hover:shadow-xl transition-all duration-500 transform hover:scale-105 ${
-                    isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                  }`}
-                  style={{ transitionDelay: `${2200 + index * 200}ms` }}
-                >
-                  <CardContent className="p-6">
-                    <div
-                      className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 mx-auto transform transition-transform duration-300 hover:rotate-12`}
-                    >
-                      <Icon className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-center mb-3">{feature.title}</h3>
-                    <p className="text-gray-600 text-center">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-
-          <div
-            className={`text-center mt-12 transition-all duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            }`}
-            style={{ transitionDelay: "2800ms" }}
-          >
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-lg px-8 py-3 transform hover:scale-105 transition-all duration-200"
-            >
-              <Headphones className="mr-2 h-5 w-5" />
-              Try Focus Music Free
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center text-white">
-            {[
-              { value: "50K+", label: "Active Users" },
-              { value: "1M+", label: "Tasks Completed" },
-              { value: "100K+", label: "Hours of Focus Music" },
-              { value: "24/7", label: "Support" },
-            ].map((stat, index) => (
-              <div
-                key={index}
-                className={`transform transition-all duration-700 hover:scale-110 ${
-                  isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                }`}
-                style={{ transitionDelay: `${2500 + index * 100}ms` }}
-              >
-                <div className="text-4xl font-bold mb-2 animate-pulse">{stat.value}</div>
-                <div className="text-blue-100">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className={`text-center mb-16 transition-all duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            }`}
-            style={{ transitionDelay: "2900ms" }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Loved by teams worldwide</h2>
-            <p className="text-xl text-gray-600">See what our customers have to say about TaskFlow</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card
-                key={index}
-                className={`border-0 shadow-lg transform transition-all duration-700 hover:scale-105 hover:shadow-xl ${
-                  isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                }`}
-                style={{ transitionDelay: `${3100 + index * 200}ms` }}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-5 w-5 text-yellow-400 fill-current animate-pulse"
-                        style={{ animationDelay: `${i * 100}ms` }}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 mb-4">"{testimonial.content}"</p>
-                  <div>
-                    <div className="font-semibold">{testimonial.name}</div>
-                    <div className="text-sm text-gray-500">
-                      {testimonial.role} at {testimonial.company}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <div
-            className={`transition-all duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            }`}
-            style={{ transitionDelay: "3700ms" }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ready to boost your productivity?</h2>
-            <p className="text-xl text-gray-600 mb-8">
-              Join thousands of teams already using TaskFlow to get more done with the power of music and smart task
-              management.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                onClick={onSignUp}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-3 transform hover:scale-105 transition-all duration-200"
-              >
-                Start Your Free Trial
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-lg px-8 py-3 transform hover:scale-105 transition-all duration-200"
-              >
-                <Clock className="mr-2 h-5 w-5" />
-                No Credit Card Required
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className={`grid grid-cols-1 md:grid-cols-4 gap-8 transition-all duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            }`}
-            style={{ transitionDelay: "3900ms" }}
-          >
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">TaskFlow</span>
-              </div>
-              <p className="text-gray-400">
-                The modern task management platform for productive teams with integrated focus music.
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left — copy */}
+            <div className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+              <Badge className="mb-5 bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-50">
+                <Zap className="h-3 w-3 mr-1" /> Now with Gemini AI
+              </Badge>
+              <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
+                The task manager<br />
+                <span className="text-blue-600">built for focus</span>
+              </h1>
+              <p className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
+                Organise, prioritise, and ship faster with TaskFlow. Kanban boards, 
+                calendar scheduling, AI insights, and built-in focus music — all in one clean workspace.
               </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button size="lg" onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white px-7 h-12 text-base">
+                  Start for free <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button size="lg" variant="outline" onClick={onLogin} className="h-12 text-base border-slate-200 text-slate-600 hover:text-slate-900">
+                  Sign in
+                </Button>
+              </div>
+              {/* Social proof strip */}
+              <div className="mt-10 flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  {["#0F172A","#2563EB","#16A34A","#D97706"].map((c, i) => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: c }}>
+                      {["S","M","E","J"][i]}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-500">
+                  <span className="font-semibold text-slate-800">50,000+</span> teams already use TaskFlow
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li className="hover:text-white transition-colors cursor-pointer">Features</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Music & Sounds</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Integrations</li>
-                <li className="hover:text-white transition-colors cursor-pointer">API</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li className="hover:text-white transition-colors cursor-pointer">About</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Blog</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Careers</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Contact</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li className="hover:text-white transition-colors cursor-pointer">Help Center</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Documentation</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Community</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Status</li>
-              </ul>
+
+            {/* Right — illustration */}
+            <div className={`transition-all duration-700 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-50 rounded-2xl" />
+                <div className="relative p-4">
+                  <HeroIllustration />
+                </div>
+              </div>
             </div>
           </div>
-          <div
-            className={`border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 transition-all duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            }`}
-            style={{ transitionDelay: "4100ms" }}
-          >
-            <p>&copy; 2025 TaskFlow. All rights reserved.</p>
+        </div>
+      </section>
+
+      {/* ── Stats bar ── */}
+      <section className="border-y border-slate-100 bg-slate-50 py-10">
+        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { value: "50K+", label: "Active Teams" },
+            { value: "1M+", label: "Tasks Shipped" },
+            { value: "99.9%", label: "Uptime" },
+            { value: "4.9★", label: "Average Rating" },
+          ].map((s, i) => (
+            <div key={i}>
+              <div className="text-3xl font-bold text-slate-900">{s.value}</div>
+              <div className="text-sm text-slate-500 mt-1">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Features ── */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Everything you need, nothing you don't</h2>
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+              A thoughtfully designed toolkit that helps individuals and teams stay organised without the noise.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, i) => {
+              const Icon = f.icon
+              return (
+                <div key={i} className="p-6 rounded-xl border border-slate-100 bg-white card-hover group">
+                  <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors duration-200">
+                    <Icon className="h-5 w-5 text-blue-600 group-hover:text-white transition-colors duration-200" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 mb-2">{f.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{f.description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Dark CTA band ── */}
+      <section className="bg-slate-900 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-4">Focus music built right in</h2>
+              <p className="text-slate-400 leading-relaxed mb-8">
+                Stop tab-hopping between Spotify and your task list. TaskFlow ships with curated playlists, 
+                ambient sound mixes, and a Pomodoro timer — all synced to your workflow.
+              </p>
+              <Button onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white h-11 px-6">
+                <Headphones className="mr-2 h-4 w-4" /> Try Focus Music Free
+              </Button>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { icon: PlayCircle, label: "Focus Playlists", desc: "Curated for deep work" },
+                { icon: Radio, label: "Ambient Sounds", desc: "Rain, café, lo-fi" },
+                { icon: Clock, label: "Pomodoro Timer", desc: "25/5 cycle built in" },
+              ].map((item, i) => {
+                const Icon = item.icon
+                return (
+                  <div key={i} className="bg-slate-800 rounded-xl p-5 text-center">
+                    <Icon className="h-7 w-7 text-blue-400 mx-auto mb-3" />
+                    <div className="text-sm font-semibold text-white">{item.label}</div>
+                    <div className="text-xs text-slate-400 mt-1">{item.desc}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials ── */}
+      <section className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Loved by teams worldwide</h2>
+            <p className="text-slate-500">Real feedback from real users.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <div key={i} className="bg-white rounded-xl border border-slate-100 p-6 card-hover">
+                <div className="flex gap-0.5 mb-4">
+                  {[...Array(t.rating)].map((_, j) => (
+                    <Star key={j} className="h-4 w-4 text-amber-400 fill-amber-400" />
+                  ))}
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-5">"{t.content}"</p>
+                <div>
+                  <div className="font-semibold text-slate-900 text-sm">{t.name}</div>
+                  <div className="text-xs text-slate-400">{t.role} · {t.company}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Final CTA ── */}
+      <section className="py-20 bg-white">
+        <div className="max-w-2xl mx-auto text-center px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Ready to get organised?</h2>
+          <p className="text-slate-500 mb-8">Join thousands of teams already shipping faster with TaskFlow. Free to start, no credit card required.</p>
+          <Button size="lg" onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12 text-base">
+            Create free account <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="bg-slate-900 text-white py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8 mb-12">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
+                  <CheckSquare className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-bold text-white">TaskFlow</span>
+              </div>
+              <p className="text-slate-400 text-sm leading-relaxed">The modern task management platform for productive teams.</p>
+            </div>
+            {[
+              { heading: "Product", links: ["Features", "Music & Sounds", "Integrations", "API"] },
+              { heading: "Company", links: ["About", "Blog", "Careers", "Contact"] },
+              { heading: "Support", links: ["Help Center", "Documentation", "Community", "Status"] },
+            ].map((col, i) => (
+              <div key={i}>
+                <h3 className="font-semibold text-white mb-4 text-sm">{col.heading}</h3>
+                <ul className="space-y-2">
+                  {col.links.map((l) => (
+                    <li key={l} className="text-slate-400 text-sm hover:text-white cursor-pointer transition-colors">{l}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-slate-800 pt-8 text-center text-slate-500 text-sm">
+            © 2025 TaskFlow. All rights reserved.
           </div>
         </div>
       </footer>

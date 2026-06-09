@@ -1,9 +1,8 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Clock, AlertCircle, TrendingUp, Calendar, Users } from "lucide-react"
+import { CheckCircle2, Clock, TrendingUp, AlertTriangle, Calendar, ArrowUpRight } from "lucide-react"
 
 interface Task {
   id: string
@@ -23,321 +22,212 @@ interface DashboardProps {
   isLoading?: boolean
 }
 
+const priorityConfig: Record<string, { label: string; class: string }> = {
+  high:   { label: "High",   class: "bg-red-50 text-red-600 border-red-100" },
+  medium: { label: "Medium", class: "bg-amber-50 text-amber-600 border-amber-100" },
+  low:    { label: "Low",    class: "bg-slate-50 text-slate-500 border-slate-100" },
+}
+
+const statusConfig: Record<string, { label: string; dot: string }> = {
+  completed:   { label: "Completed",   dot: "bg-emerald-500" },
+  "in-progress": { label: "In Progress", dot: "bg-blue-500" },
+  todo:        { label: "To Do",       dot: "bg-slate-400" },
+}
+
+function SkeletonCard() {
+  return (
+    <Card className="border border-slate-100">
+      <CardContent className="p-5 space-y-3">
+        <div className="h-4 w-24 bg-slate-100 rounded animate-pulse" />
+        <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
+        <div className="h-3 w-32 bg-slate-100 rounded animate-pulse" />
+      </CardContent>
+    </Card>
+  )
+}
+
 export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
   if (isLoading) {
     return (
-      <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto max-h-screen">
-        <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-          {/* Header Skeleton */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="h-8 w-48 bg-muted animate-pulse rounded"></div>
-            <div className="h-6 w-24 bg-muted animate-pulse rounded"></div>
-          </div>
-
-          {/* KPI Cards Skeleton */}
-          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, index) => (
-              <Card key={index}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
-                  <div className="h-4 w-4 bg-muted animate-pulse rounded-full"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
-                  <div className="h-3 w-24 mt-2 bg-muted animate-pulse rounded"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Task Status and Upcoming Tasks Skeleton */}
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <div className="h-6 w-40 bg-muted animate-pulse rounded"></div>
-                <div className="h-4 w-64 mt-2 bg-muted animate-pulse rounded"></div>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4">
-                {[...Array(3)].map((_, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-muted animate-pulse rounded-full"></div>
-                      <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
-                    </div>
-                    <div className="h-4 w-12 bg-muted animate-pulse rounded"></div>
-                  </div>
+      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        <div className="h-7 w-36 bg-slate-100 rounded animate-pulse" />
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {[...Array(2)].map((_, i) => (
+            <Card key={i} className="border border-slate-100">
+              <CardContent className="p-5 space-y-3">
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="h-10 bg-slate-100 rounded animate-pulse" />
                 ))}
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <div className="h-5 w-5 bg-muted animate-pulse rounded"></div>
-                  <div className="h-6 w-36 bg-muted animate-pulse rounded"></div>
-                </div>
-                <div className="h-4 w-48 mt-2 bg-muted animate-pulse rounded"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {[...Array(3)].map((_, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50">
-                      <div className="min-w-0 flex-1 space-y-2">
-                        <div className="h-4 w-48 bg-muted animate-pulse rounded"></div>
-                        <div className="h-3 w-32 bg-muted animate-pulse rounded"></div>
-                      </div>
-                      <div className="h-4 w-16 bg-muted animate-pulse rounded ml-2"></div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Tasks Skeleton */}
-          <Card>
-            <CardHeader>
-              <div className="h-6 w-36 bg-muted animate-pulse rounded"></div>
-              <div className="h-4 w-48 mt-2 bg-muted animate-pulse rounded"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 sm:space-y-4">
-                {[...Array(5)].map((_, index) => (
-                  <div key={index} className="flex items-center space-x-3 sm:space-x-4 p-2 sm:p-3 rounded-lg border">
-                    <div className="w-2 h-2 bg-muted animate-pulse rounded-full"></div>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="h-4 w-48 bg-muted animate-pulse rounded"></div>
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
-                        <div className="flex items-center space-x-1">
-                          <div className="h-3 w-3 bg-muted animate-pulse rounded"></div>
-                          <div className="h-3 w-24 bg-muted animate-pulse rounded"></div>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <div className="h-3 w-3 bg-muted animate-pulse rounded"></div>
-                          <div className="h-3 w-24 bg-muted animate-pulse rounded"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          ))}
         </div>
       </div>
     )
   }
 
-  const totalTasks = tasks.length
-  const completedTasks = tasks.filter((task) => task.status === "completed").length
-  const inProgressTasks = tasks.filter((task) => task.status === "in-progress").length
-  const todoTasks = tasks.filter((task) => task.status === "todo").length
+  const total = tasks.length
+  const completed  = tasks.filter(t => t.status === "completed").length
+  const inProgress = tasks.filter(t => t.status === "in-progress").length
+  const todo       = tasks.filter(t => t.status === "todo").length
+  const rate       = total > 0 ? Math.round((completed / total) * 100) : 0
 
-  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
-
-  const overdueTasks = tasks.filter((task) => {
-    if (!task.due_date) return false
-    const dueDate = new Date(task.due_date)
-    const today = new Date()
-    return dueDate < today && task.status !== "completed"
+  const now = new Date()
+  const overdue = tasks.filter(t => {
+    if (!t.due_date || t.status === "completed") return false
+    return new Date(t.due_date) < now
   }).length
 
-  const upcomingTasks = tasks.filter((task) => {
-    if (!task.due_date) return false
-    const dueDate = new Date(task.due_date)
-    const today = new Date()
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
-    return dueDate >= today && dueDate <= nextWeek && task.status !== "completed"
-  })
+  const upcoming = tasks.filter(t => {
+    if (!t.due_date || t.status === "completed") return false
+    const d = new Date(t.due_date)
+    const week = new Date(now.getTime() + 7 * 86400000)
+    return d >= now && d <= week
+  }).slice(0, 5)
 
-  const recentTasks = tasks.slice(0, 5)
+  const recent = tasks.slice(0, 6)
 
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString()
-    } catch {
-      return dateString
-    }
+  const fmt = (s: string) => {
+    try { return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric" }) }
+    catch { return s }
   }
 
+  const kpis = [
+    { label: "Total Tasks",      value: total,      sub: `${todo} to do`,          icon: CheckCircle2,   accent: "text-slate-600",  bg: "bg-slate-50" },
+    { label: "In Progress",      value: inProgress, sub: "Active now",              icon: Clock,          accent: "text-blue-600",   bg: "bg-blue-50"  },
+    { label: "Completion Rate",  value: `${rate}%`, sub: `${completed} completed`,  icon: TrendingUp,     accent: "text-emerald-600",bg: "bg-emerald-50"},
+    { label: "Overdue",          value: overdue,    sub: "Need attention",          icon: AlertTriangle,  accent: "text-red-600",    bg: "bg-red-50"   },
+  ]
+
   return (
-    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto max-h-screen">
-      <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
-          <Badge variant="outline" className="text-xs sm:text-sm w-fit">
-            {new Date().toLocaleDateString()}
+    <div className="p-4 sm:p-6 overflow-y-auto max-h-screen">
+      <div className="max-w-7xl mx-auto space-y-6">
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
+            <p className="text-sm text-slate-400 mt-0.5">
+              {now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </p>
+          </div>
+          <Badge variant="outline" className="text-xs text-slate-500 border-slate-200">
+            {total} total tasks
           </Badge>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Tasks</CardTitle>
-              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold">{totalTasks}</div>
-              <p className="text-xs text-muted-foreground">{completedTasks} completed</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">In Progress</CardTitle>
-              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold">{inProgressTasks}</div>
-              <p className="text-xs text-muted-foreground">Active tasks</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Completion Rate</CardTitle>
-              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold">{completionRate.toFixed(1)}%</div>
-              <Progress value={completionRate} className="mt-2" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Overdue</CardTitle>
-              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-destructive">{overdueTasks}</div>
-              <p className="text-xs text-muted-foreground">Need attention</p>
-            </CardContent>
-          </Card>
+        {/* KPI row */}
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {kpis.map((k, i) => {
+            const Icon = k.icon
+            return (
+              <Card key={i} className="border border-slate-100 card-hover">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-500">{k.label}</span>
+                    <div className={`w-8 h-8 rounded-lg ${k.bg} flex items-center justify-center`}>
+                      <Icon className={`h-4 w-4 ${k.accent}`} />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-slate-900">{k.value}</div>
+                  <div className="text-xs text-slate-400 mt-1">{k.sub}</div>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
 
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-          {/* Task Status Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">Task Status Overview</CardTitle>
-              <CardDescription className="text-sm">Current distribution of tasks by status</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">Completed</span>
+        {/* Completion bar */}
+        <Card className="border border-slate-100">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-slate-700">Overall progress</span>
+              <span className="text-sm font-bold text-slate-900">{rate}%</span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 rounded-full transition-all duration-700"
+                style={{ width: `${rate}%` }}
+              />
+            </div>
+            <div className="flex gap-4 mt-4">
+              {[
+                { label: "To Do", count: todo, color: "bg-slate-400" },
+                { label: "In Progress", count: inProgress, color: "bg-blue-500" },
+                { label: "Completed", count: completed, color: "bg-emerald-500" },
+              ].map(s => (
+                <div key={s.label} className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${s.color}`} />
+                  <span className="text-xs text-slate-500">{s.label} <strong className="text-slate-700">{s.count}</strong></span>
                 </div>
-                <span className="text-sm font-medium">{completedTasks}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm">In Progress</span>
-                </div>
-                <span className="text-sm font-medium">{inProgressTasks}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                  <span className="text-sm">To Do</span>
-                </div>
-                <span className="text-sm font-medium">{todoTasks}</span>
-              </div>
-            </CardContent>
-          </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Upcoming Tasks */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>Upcoming Tasks</span>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/* Upcoming */}
+          <Card className="border border-slate-100">
+            <CardHeader className="pb-3 border-b border-slate-50">
+              <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-slate-400" />
+                Due this week
               </CardTitle>
-              <CardDescription className="text-sm">Tasks due in the next 7 days</CardDescription>
             </CardHeader>
-            <CardContent>
-              {upcomingTasks.length > 0 ? (
-                <div className="space-y-3">
-                  {upcomingTasks.map((task) => (
-                    <div key={task.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50">
+            <CardContent className="p-0">
+              {upcoming.length > 0 ? (
+                <div className="divide-y divide-slate-50">
+                  {upcoming.map(task => (
+                    <div key={task.id} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{task.title}</p>
-                        <p className="text-xs text-muted-foreground">Due: {formatDate(task.due_date)}</p>
+                        <p className="text-sm font-medium text-slate-800 truncate">{task.title}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Due {fmt(task.due_date)}</p>
                       </div>
-                      <Badge
-                        variant={
-                          task.priority === "high"
-                            ? "destructive"
-                            : task.priority === "medium"
-                              ? "default"
-                              : "secondary"
-                        }
-                        className="text-xs shrink-0 ml-2"
-                      >
+                      <Badge className={`text-xs border ml-3 shrink-0 ${priorityConfig[task.priority]?.class ?? "bg-slate-50 text-slate-500 border-slate-100"}`}>
                         {task.priority}
                       </Badge>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No upcoming tasks</p>
+                <div className="px-5 py-8 text-center text-sm text-slate-400">No tasks due this week 🎉</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recent tasks */}
+          <Card className="border border-slate-100">
+            <CardHeader className="pb-3 border-b border-slate-50">
+              <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <ArrowUpRight className="h-4 w-4 text-slate-400" />
+                Recent tasks
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {recent.length > 0 ? (
+                <div className="divide-y divide-slate-50">
+                  {recent.map(task => {
+                    const sc = statusConfig[task.status] ?? { label: task.status, dot: "bg-slate-400" }
+                    return (
+                      <div key={task.id} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${sc.dot}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-800 truncate">{task.title}</p>
+                          <p className="text-xs text-slate-400">{sc.label} · {task.category}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="px-5 py-8 text-center text-sm text-slate-400">No tasks yet — create your first one!</div>
               )}
             </CardContent>
           </Card>
         </div>
-
-        {/* Recent Tasks */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Recent Tasks</CardTitle>
-            <CardDescription className="text-sm">Latest task activity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentTasks.length > 0 ? (
-              <div className="space-y-3 sm:space-y-4">
-                {recentTasks.map((task) => (
-                  <div key={task.id} className="flex items-center space-x-3 sm:space-x-4 p-2 sm:p-3 rounded-lg border">
-                    <div
-                      className={`w-2 h-2 rounded-full shrink-0 ${
-                        task.status === "completed"
-                          ? "bg-green-500"
-                          : task.status === "in-progress"
-                            ? "bg-blue-500"
-                            : "bg-gray-500"
-                      }`}
-                    ></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{task.title}</p>
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-xs text-muted-foreground mt-1">
-                        {task.assignee && (
-                          <span className="flex items-center space-x-1">
-                            <Users className="h-3 w-3" />
-                            <span className="truncate">{task.assignee}</span>
-                          </span>
-                        )}
-                        {task.due_date && (
-                          <span className="flex items-center space-x-1 mt-1 sm:mt-0">
-                            <Calendar className="h-3 w-3" />
-                            <span>{formatDate(task.due_date)}</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-xs shrink-0">
-                      {task.category}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No tasks yet. Create your first task to get started!</p>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

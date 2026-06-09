@@ -57,7 +57,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   const [activeView, setActiveView] = useState("dashboard")
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
-  const [currentUser, setCurrentUser] = useState<User>(initialUser)
+  const [currentUser, setCurrentUser] = useState<User | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -249,7 +249,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       case "kanban":
         return <KanbanBoard tasks={tasks} onUpdateTask={updateTask} />
       case "settings":
-        return <Settings />
+        return <Settings user={currentUser} />
       case "profile":
         return <ProfilePage user={currentUser} onUpdateUser={handleUpdateUser} />
       case "ai-assistant":
@@ -282,81 +282,95 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     )
   }
 
+  // Format active view label nicely
+  const viewLabel = (v: string) => {
+    const map: Record<string, string> = {
+      "add-task": "Add Task",
+      "ai-assistant": "AI Assistant",
+      "smart-suggestions": "Smart Suggestions",
+      "ai-chat": "AI Chat",
+      "auto-prioritize": "Auto Prioritize",
+      "music-player": "Music Player",
+      "focus-sounds": "Focus Sounds",
+    }
+    return map[v] || v.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+  }
+
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      <div className="hidden lg:block">
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Desktop sidebar */}
+      <div className="hidden lg:block shrink-0">
         <Sidebar activeView={activeView} onViewChange={handleViewChange} />
       </div>
 
+      {/* Mobile sidebar */}
       <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
         <SheetTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden h-8 w-8 sm:h-9 sm:w-9 fixed top-4 left-4 z-50"
+            className="lg:hidden h-9 w-9 fixed top-3.5 left-4 z-50 text-slate-600"
           >
-            <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64">
+        <SheetContent side="left" className="p-0 w-60 border-0">
           <Sidebar activeView={activeView} onViewChange={handleViewChange} />
         </SheetContent>
       </Sheet>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 sm:h-16 border-b border-border bg-card px-3 sm:px-6 flex items-center justify-between shrink-0">
-          <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
-            <h2 className="text-sm sm:text-lg font-semibold capitalize truncate">
-              {activeView === "add-task" ? "Add Task" : activeView.replace("-", " ")}
-            </h2>
+        {/* Top header */}
+        <header className="h-16 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <h1 className="text-base font-semibold text-slate-900">{viewLabel(activeView)}</h1>
             {activeView === "calendar" && (
-              <div className="hidden sm:flex items-center space-x-2 text-xs text-muted-foreground">
-                <span>|</span>
-                <span>{getCalendarTasks().length} scheduled tasks</span>
-              </div>
+              <span className="hidden sm:inline text-xs text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full">
+                {getCalendarTasks().length} scheduled
+              </span>
             )}
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
-            <span className="hidden sm:block text-xs sm:text-sm text-muted-foreground truncate max-w-32 sm:max-w-none">
-              Welcome back, {currentUser.name}!
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:block text-sm text-slate-500">
+              {currentUser.name}
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-7 w-7 sm:h-8 sm:w-8 rounded-full">
-                  <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+                <button className="relative h-8 w-8 rounded-full ring-2 ring-slate-200 hover:ring-blue-500 transition-all">
+                  <Avatar className="h-8 w-8">
                     <AvatarImage src={currentUser.avatar || "/placeholder.svg"} alt={currentUser.name} />
-                    <AvatarFallback className="text-xs sm:text-sm">{currentUser.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback className="text-xs bg-blue-600 text-white">{currentUser.name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                </Button>
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 sm:w-56" align="end" forceMount>
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium text-sm">{currentUser.name}</p>
-                    <p className="w-[150px] sm:w-[200px] truncate text-xs text-muted-foreground">{currentUser.email}</p>
-                  </div>
+              <DropdownMenuContent className="w-52" align="end" forceMount>
+                <div className="px-3 py-2 border-b border-slate-100">
+                  <p className="font-semibold text-sm text-slate-900">{currentUser.name}</p>
+                  <p className="text-xs text-slate-400 truncate">{currentUser.email}</p>
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleViewChange("settings")}>
-                  <SettingsIcon className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleViewChange("profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogoutClick} disabled={isLoading}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>{isLoading ? "Logging out..." : "Log out"}</span>
-                </DropdownMenuItem>
+                <div className="py-1">
+                  <DropdownMenuItem onClick={() => handleViewChange("settings")} className="gap-2">
+                    <SettingsIcon className="h-4 w-4 text-slate-400" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleViewChange("profile")} className="gap-2">
+                    <User className="h-4 w-4 text-slate-400" />
+                    Profile
+                  </DropdownMenuItem>
+                </div>
+                <div className="border-t border-slate-100 py-1">
+                  <DropdownMenuItem onClick={handleLogoutClick} disabled={isLoading} className="gap-2 text-red-500 focus:text-red-600">
+                    <LogOut className="h-4 w-4" />
+                    {isLoading ? "Signing out…" : "Sign out"}
+                  </DropdownMenuItem>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        <main className="flex-1 overflow-hidden">{renderContent()}</main>
+        <main className="flex-1 overflow-hidden bg-slate-50">{renderContent()}</main>
       </div>
     </div>
   )

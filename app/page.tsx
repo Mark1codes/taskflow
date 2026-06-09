@@ -78,7 +78,7 @@ export default function Home() {
     try {
       const { data: profileData, error: profileError } = await supabase
         .from('users')
-        .select('full_name, email')
+        .select('full_name')
         .eq('id', authUser.id)
         .single()
 
@@ -88,7 +88,6 @@ export default function Home() {
           .insert({
             id: authUser.id,
             full_name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User",
-            email: authUser.email,
           })
 
         if (insertError) {
@@ -96,10 +95,11 @@ export default function Home() {
         }
       }
 
+      // email lives in Supabase Auth (auth.users), not in the public users table
       return {
         id: authUser.id,
         name: profileData?.full_name || authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User",
-        email: profileData?.email || authUser.email || "",
+        email: authUser.email || "",
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.email || ""}`,
       }
     } catch (error) {
