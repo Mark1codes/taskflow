@@ -3,11 +3,12 @@
 import type React from "react"
 import supabase from '../utils/supabase'
 import { useState } from "react"
+import { BrandLogo } from "@/components/brand-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, CheckSquare, Eye, EyeOff, Mail, Lock } from "lucide-react"
+import { ArrowLeft, Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface LoginPageProps {
@@ -85,16 +86,12 @@ export function LoginPage({ onLogin, onSignUp, onBack }: LoginPageProps) {
   return (
     <div className="min-h-screen flex">
       {/* Left panel — brand */}
-      <div className="hidden lg:flex flex-col justify-between w-[480px] shrink-0 bg-slate-900 p-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <CheckSquare className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-xl font-bold text-white">TaskFlow</span>
-        </div>
+      <div className="hidden lg:flex flex-col w-[480px] shrink-0 bg-slate-900 p-10">
+        <BrandLogo markClassName="bg-blue-600" textClassName="text-white" />
 
+        <div className="flex flex-1 items-center">
         {/* Decorative task list mockup */}
-        <div className="space-y-3">
+        <div className="w-full space-y-3">
           {[
             { label: "Q2 planning complete", done: true },
             { label: "Ship v2.0 dashboard", done: true },
@@ -111,16 +108,14 @@ export function LoginPage({ onLogin, onSignUp, onBack }: LoginPageProps) {
             </div>
           ))}
         </div>
+        </div>
 
-        <blockquote className="border-l-2 border-blue-600 pl-4">
-          <p className="text-slate-300 text-sm leading-relaxed italic">"TaskFlow is the cleanest, fastest task manager we've used. Our team ships 40% more each sprint."</p>
-          <footer className="text-slate-500 text-xs mt-2">— Sarah J., Project Manager</footer>
-        </blockquote>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 bg-white">
-        <div className="w-full max-w-sm">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-white">
+        <div className="w-full max-w-5xl grid gap-10 xl:grid-cols-[minmax(320px,380px)_minmax(420px,1fr)] items-center">
+          <div className="w-full max-w-sm">
           <Button variant="ghost" onClick={onBack} className="mb-8 -ml-2 text-slate-500 hover:text-slate-900">
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to home
           </Button>
@@ -204,6 +199,15 @@ export function LoginPage({ onLogin, onSignUp, onBack }: LoginPageProps) {
             Don't have an account?{" "}
             <button onClick={onSignUp} className="text-blue-600 font-medium hover:underline">Sign up free</button>
           </p>
+          </div>
+
+          <div className="overflow-hidden">
+            <img
+              src="/Task%20gif.gif"
+              alt="TaskFlow workflow preview"
+              className="w-full h-auto object-cover"
+            />
+          </div>
         </div>
       </div>
     </div>

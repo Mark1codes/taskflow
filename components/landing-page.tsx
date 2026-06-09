@@ -2,13 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { BrandLogo } from "@/components/brand-logo"
 import {
-  CheckCircle, Calendar, BarChart3, Users, Zap, Shield,
-  ArrowRight, Star, LayoutDashboard, Kanban, Clock, Music,
-  Headphones, Radio, PlayCircle, CheckSquare,
+  Calendar, BarChart3, Zap, Shield,
+  ArrowRight, LayoutDashboard, Kanban, Clock,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import Image from "next/image"
 
 interface LandingPageProps {
   onLogin: () => void
@@ -19,18 +18,11 @@ const features = [
   { icon: LayoutDashboard, title: "Smart Dashboard", description: "Comprehensive overview of all your tasks with intelligent insights and real-time analytics." },
   { icon: Kanban, title: "Kanban Boards", description: "Visualize your workflow with drag-and-drop Kanban boards for intuitive task management." },
   { icon: Calendar, title: "Calendar View", description: "Never miss a deadline with our integrated calendar and smart scheduling system." },
-  { icon: Music, title: "Focus Music", description: "Curated playlists and ambient sounds engineered for deep work and flow states." },
+  { icon: Clock, title: "Time Planning", description: "Plan focused work blocks and keep deadlines visible across your whole workspace." },
   { icon: BarChart3, title: "Progress Tracking", description: "Monitor productivity with detailed analytics and beautiful progress reports." },
   { icon: Shield, title: "Secure & Reliable", description: "Enterprise-grade security with row-level policies and regular encrypted backups." },
 ]
 
-const testimonials = [
-  { name: "Sarah Johnson", role: "Project Manager", company: "TechCorp", content: "TaskFlow transformed how our team manages projects. Completion rates are up 40% in two months.", rating: 5 },
-  { name: "Michael Chen", role: "Startup Founder", company: "InnovateLab", content: "The combination of task management and focus music is exactly what we needed. Clean, fast, reliable.", rating: 5 },
-  { name: "Emily Rodriguez", role: "Marketing Director", company: "GrowthCo", content: "Finally a tool that looks professional and actually works. The Kanban board alone is worth it.", rating: 5 },
-]
-
-// Inline SVG hero illustration — task board with cards and decorative elements
 function HeroIllustration() {
   return (
     <svg viewBox="0 0 520 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-xl">
@@ -132,12 +124,11 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
       <nav className="border-b border-slate-100 bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className={`flex items-center space-x-2 transition-all duration-500 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`}>
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <CheckSquare className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-slate-900">TaskFlow</span>
-            </div>
+            <BrandLogo
+              textClassName="text-slate-900"
+              markClassName="bg-blue-600"
+              className={`transition-all duration-500 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`}
+            />
             <div className={`flex items-center gap-3 transition-all duration-500 delay-100 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}>
               <Button variant="ghost" onClick={onLogin} className="text-slate-600 hover:text-slate-900">
                 Sign In
@@ -168,7 +159,7 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
               </h1>
               <p className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
                 Organise, prioritise, and ship faster with TaskFlow. Kanban boards, 
-                calendar scheduling, AI insights, and built-in focus music — all in one clean workspace.
+                calendar scheduling, AI insights, and real-time task updates — all in one clean workspace.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button size="lg" onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white px-7 h-12 text-base">
@@ -177,19 +168,6 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
                 <Button size="lg" variant="outline" onClick={onLogin} className="h-12 text-base border-slate-200 text-slate-600 hover:text-slate-900">
                   Sign in
                 </Button>
-              </div>
-              {/* Social proof strip */}
-              <div className="mt-10 flex items-center gap-4">
-                <div className="flex -space-x-2">
-                  {["#0F172A","#2563EB","#16A34A","#D97706"].map((c, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: c }}>
-                      {["S","M","E","J"][i]}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-slate-500">
-                  <span className="font-semibold text-slate-800">50,000+</span> teams already use TaskFlow
-                </p>
               </div>
             </div>
 
@@ -203,23 +181,6 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── Stats bar ── */}
-      <section className="border-y border-slate-100 bg-slate-50 py-10">
-        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { value: "50K+", label: "Active Teams" },
-            { value: "1M+", label: "Tasks Shipped" },
-            { value: "99.9%", label: "Uptime" },
-            { value: "4.9★", label: "Average Rating" },
-          ].map((s, i) => (
-            <div key={i}>
-              <div className="text-3xl font-bold text-slate-900">{s.value}</div>
-              <div className="text-sm text-slate-500 mt-1">{s.label}</div>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -254,60 +215,19 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-4">Focus music built right in</h2>
+              <h2 className="text-3xl font-bold text-white mb-4">Built for clear execution</h2>
               <p className="text-slate-400 leading-relaxed mb-8">
-                Stop tab-hopping between Spotify and your task list. TaskFlow ships with curated playlists, 
-                ambient sound mixes, and a Pomodoro timer — all synced to your workflow.
+                Keep priorities, deadlines, and project context together. TaskFlow gives teams a calm workspace
+                for planning, tracking, and shipping important work.
               </p>
               <Button onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white h-11 px-6">
-                <Headphones className="mr-2 h-4 w-4" /> Try Focus Music Free
+                <ArrowRight className="mr-2 h-4 w-4" /> Start Planning Free
               </Button>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { icon: PlayCircle, label: "Focus Playlists", desc: "Curated for deep work" },
-                { icon: Radio, label: "Ambient Sounds", desc: "Rain, café, lo-fi" },
-                { icon: Clock, label: "Pomodoro Timer", desc: "25/5 cycle built in" },
-              ].map((item, i) => {
-                const Icon = item.icon
-                return (
-                  <div key={i} className="bg-slate-800 rounded-xl p-5 text-center">
-                    <Icon className="h-7 w-7 text-blue-400 mx-auto mb-3" />
-                    <div className="text-sm font-semibold text-white">{item.label}</div>
-                    <div className="text-xs text-slate-400 mt-1">{item.desc}</div>
-                  </div>
-                )
-              })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Testimonials ── */}
-      <section className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Loved by teams worldwide</h2>
-            <p className="text-slate-500">Real feedback from real users.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-100 p-6 card-hover">
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(t.rating)].map((_, j) => (
-                    <Star key={j} className="h-4 w-4 text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-slate-600 text-sm leading-relaxed mb-5">"{t.content}"</p>
-                <div>
-                  <div className="font-semibold text-slate-900 text-sm">{t.name}</div>
-                  <div className="text-xs text-slate-400">{t.role} · {t.company}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── Final CTA ── */}
       <section className="py-20 bg-white">
@@ -325,16 +245,15 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
-                  <CheckSquare className="h-4 w-4 text-white" />
-                </div>
-                <span className="font-bold text-white">TaskFlow</span>
-              </div>
+              <BrandLogo
+                className="mb-3"
+                markClassName="h-7 w-7 bg-blue-600"
+                textClassName="text-base text-white"
+              />
               <p className="text-slate-400 text-sm leading-relaxed">The modern task management platform for productive teams.</p>
             </div>
             {[
-              { heading: "Product", links: ["Features", "Music & Sounds", "Integrations", "API"] },
+              { heading: "Product", links: ["Features", "Integrations", "API", "Security"] },
               { heading: "Company", links: ["About", "Blog", "Careers", "Contact"] },
               { heading: "Support", links: ["Help Center", "Documentation", "Community", "Status"] },
             ].map((col, i) => (

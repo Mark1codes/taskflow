@@ -119,14 +119,16 @@ export default function Home() {
   }
 
   const handleLogout = async () => {
+    setUser(null)
+    setAuthState("landing")
+
     try {
-      await supabase.auth.signOut()
-      setUser(null)
-      setAuthState("landing")
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error("Logout error:", error)
+      }
     } catch (error) {
       console.error("Logout error:", error)
-      setUser(null)
-      setAuthState("landing")
     }
   }
 

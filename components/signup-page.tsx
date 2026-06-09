@@ -3,11 +3,12 @@
 import type React from "react"
 import supabase from '../utils/supabase'
 import { useState } from "react"
+import { BrandLogo } from "@/components/brand-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, CheckSquare, Eye, EyeOff, Mail, Lock, User } from "lucide-react"
+import { ArrowLeft, Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface SignUpPageProps {
@@ -88,14 +89,10 @@ export function SignUpPage({ onSignUp, onLogin, onBack }: SignUpPageProps) {
   return (
     <div className="min-h-screen flex">
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-between w-[480px] shrink-0 bg-slate-900 p-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <CheckSquare className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-xl font-bold text-white">TaskFlow</span>
-        </div>
+      <div className="hidden lg:flex flex-col w-[480px] shrink-0 bg-slate-900 p-10">
+        <BrandLogo markClassName="bg-blue-600" textClassName="text-white" />
 
+        <div className="flex flex-1 items-center">
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-white">Everything you need to stay organised</h2>
           <div className="space-y-4">
@@ -103,7 +100,7 @@ export function SignUpPage({ onSignUp, onLogin, onBack }: SignUpPageProps) {
               { icon: "✓", text: "Kanban boards & task lists" },
               { icon: "✓", text: "Calendar scheduling" },
               { icon: "✓", text: "Gemini AI assistant" },
-              { icon: "✓", text: "Focus music & ambient sounds" },
+              { icon: "✓", text: "Real-time task updates" },
               { icon: "✓", text: "Real-time collaboration" },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3">
@@ -115,14 +112,8 @@ export function SignUpPage({ onSignUp, onLogin, onBack }: SignUpPageProps) {
             ))}
           </div>
         </div>
-
-        <div className="bg-slate-800 rounded-xl p-5">
-          <div className="flex gap-0.5 mb-3">
-            {[...Array(5)].map((_, i) => <span key={i} className="text-amber-400 text-sm">★</span>)}
-          </div>
-          <p className="text-slate-300 text-sm italic leading-relaxed">"TaskFlow is the cleanest task manager we've tried. The focus music feature alone is worth it."</p>
-          <p className="text-slate-500 text-xs mt-3">— Michael C., Startup Founder</p>
         </div>
+
       </div>
 
       {/* Right panel — form */}

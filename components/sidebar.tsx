@@ -3,8 +3,9 @@
 import {
   LayoutDashboard, Plus, CheckSquare, Calendar, Kanban,
   Settings, Menu, Bot, Sparkles, MessageSquare, Zap,
-  Music, PlayCircle, ListMusic, Radio, CheckCircle2, ChevronLeft,
+  ChevronLeft,
 } from "lucide-react"
+import { BrandLogo } from "@/components/brand-logo"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -21,12 +22,6 @@ const mainNav = [
   { id: "calendar",  label: "Calendar",   icon: Calendar },
   { id: "kanban",    label: "Kanban",     icon: Kanban },
   { id: "settings",  label: "Settings",   icon: Settings },
-]
-
-const musicNav = [
-  { id: "music-player", label: "Music Player", icon: PlayCircle },
-  { id: "playlists",    label: "Playlists",     icon: ListMusic },
-  { id: "focus-sounds", label: "Focus Sounds",  icon: Radio },
 ]
 
 const aiNav = [
@@ -85,12 +80,10 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800 shrink-0">
         {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
-              <CheckCircle2 className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-bold text-white text-base">TaskFlow</span>
-          </div>
+          <BrandLogo
+            markClassName="h-7 w-7 bg-blue-600"
+            textClassName="text-base text-white"
+          />
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -106,8 +99,6 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
         <NavGroup label="Main" items={mainNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
-        {!collapsed && <div className="border-t border-slate-800 my-2" />}
-        <NavGroup label="Music & Focus" items={musicNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
         {!collapsed && <div className="border-t border-slate-800 my-2" />}
         <NavGroup label="AI" items={aiNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
       </nav>

@@ -22,9 +22,6 @@ import { LogOut, User, SettingsIcon, Menu } from "lucide-react"
 import { ProfilePage } from "@/components/profile-page"
 import { AIAssistant } from "@/components/ai-assistant"
 import { SmartSuggestions } from "@/components/smart-suggestions"
-import { MusicPlayer } from "@/components/music-player"
-import { Playlists } from "@/components/playlists"
-import { FocusSounds } from "@/components/focus-sounds"
 import supabase from '../utils/supabase'
 
 interface Task {
@@ -50,7 +47,7 @@ interface User {
 
 interface TaskManagerAppProps {
   user: User
-  onLogout: () => void
+  onLogout: () => void | Promise<void>
 }
 
 export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppProps) {
@@ -214,16 +211,14 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   }
 
   const handleLogoutClick = async () => {
+    if (isLoading) return
+
     try {
       setIsLoading(true)
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error("Error signing out:", error)
-      } else {
-        setTasks([]) // Clear tasks
-        setCurrentUser(null) // Clear user
-        onLogout() // Trigger parent logout handler
-      }
+
+      setTasks([])
+      setCurrentUser(null)
+      await onLogout()
     } catch (err) {
       console.error("Unexpected error during logout:", err)
     } finally {
@@ -260,12 +255,6 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
         return <AIAssistant />
       case "auto-prioritize":
         return <SmartSuggestions />
-      case "music-player":
-        return <MusicPlayer />
-      case "playlists":
-        return <Playlists />
-      case "focus-sounds":
-        return <FocusSounds />
       default:
         return <Dashboard tasks={tasks} isLoading={isLoading} />
     }
@@ -290,8 +279,6 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       "smart-suggestions": "Smart Suggestions",
       "ai-chat": "AI Chat",
       "auto-prioritize": "Auto Prioritize",
-      "music-player": "Music Player",
-      "focus-sounds": "Focus Sounds",
     }
     return map[v] || v.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())
   }
