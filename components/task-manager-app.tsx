@@ -18,10 +18,10 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { LogOut, User, SettingsIcon, Menu } from "lucide-react"
+import { LogOut, User, SettingsIcon, Menu, Clock3, Sparkles } from "lucide-react"
 import { ProfilePage } from "@/components/profile-page"
 import { AIAssistant } from "@/components/ai-assistant"
-import { SmartSuggestions } from "@/components/smart-suggestions"
+import { ThemeProvider } from "@/components/theme-provider"
 import supabase from '../utils/supabase'
 
 interface Task {
@@ -48,6 +48,22 @@ interface User {
 interface TaskManagerAppProps {
   user: User
   onLogout: () => void | Promise<void>
+}
+
+function ComingSoonView({ title }: { title: string }) {
+  return (
+    <div className="h-full overflow-y-auto bg-[#f7f9fc]">
+      <div className="mx-auto flex min-h-full max-w-3xl items-center justify-center p-6 lg:p-10">
+        <div className="w-full max-w-lg rounded-xl border border-slate-200/80 bg-white p-8 text-center shadow-[0_8px_24px_rgba(15,23,42,0.05)] sm:p-12">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><Sparkles className="h-5 w-5" /></div>
+          <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Coming soon</p>
+          <h1 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950">{title} is on the way.</h1>
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-500">We are preparing this workspace so it feels useful from the first click. Check back soon for the full experience.</p>
+          <div className="mx-auto mt-7 flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500"><Clock3 className="h-3.5 w-3.5 text-blue-600" /> In development</div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppProps) {
@@ -250,11 +266,11 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       case "ai-assistant":
         return <AIAssistant />
       case "smart-suggestions":
-        return <SmartSuggestions />
+        return <ComingSoonView title="Smart Suggestions" />
       case "ai-chat":
-        return <AIAssistant />
+        return <ComingSoonView title="AI Chat" />
       case "auto-prioritize":
-        return <SmartSuggestions />
+        return <ComingSoonView title="Auto Prioritize" />
       default:
         return <Dashboard tasks={tasks} isLoading={isLoading} />
     }
@@ -284,7 +300,8 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+    <div className="flex h-screen bg-slate-50 overflow-hidden dark:bg-slate-950">
       {/* Desktop sidebar */}
       <div className="hidden lg:block shrink-0">
         <Sidebar activeView={activeView} onViewChange={handleViewChange} />
@@ -308,9 +325,9 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top header */}
-        <header className="h-16 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between shrink-0">
+        <header className="h-16 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between shrink-0 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-3">
-            <h1 className="text-base font-semibold text-slate-900">{viewLabel(activeView)}</h1>
+            <h1 className="text-base font-semibold text-slate-900 dark:text-white">{viewLabel(activeView)}</h1>
             {activeView === "calendar" && (
               <span className="hidden sm:inline text-xs text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full">
                 {getCalendarTasks().length} scheduled
@@ -357,8 +374,9 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
           </div>
         </header>
 
-        <main className="flex-1 overflow-hidden bg-slate-50">{renderContent()}</main>
+        <main className="flex-1 overflow-hidden bg-slate-50 dark:bg-slate-950">{renderContent()}</main>
       </div>
     </div>
+    </ThemeProvider>
   )
 }

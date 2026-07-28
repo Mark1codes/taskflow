@@ -81,8 +81,10 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800 shrink-0">
         {!collapsed && (
           <BrandLogo
+            className="w-[136px]"
             markClassName="h-7 w-7 bg-blue-600"
             textClassName="text-base text-white"
+            light
           />
         )}
         <button

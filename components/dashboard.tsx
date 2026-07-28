@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle2, Clock, TrendingUp, AlertTriangle, Calendar, ArrowUpRight } from "lucide-react"
+import { CheckCircle2, Clock, TrendingUp, AlertTriangle, Calendar, ArrowUpRight, ArrowRight, Target, Sparkles } from "lucide-react"
 
 interface Task {
   id: string
@@ -89,6 +89,7 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
   }).slice(0, 5)
 
   const recent = tasks.slice(0, 6)
+  const focusTasks = tasks.filter(t => t.status === "in-progress").slice(0, 3)
 
   const fmt = (s: string) => {
     try { return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric" }) }
@@ -103,37 +104,35 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
   ]
 
   return (
-    <div className="p-4 sm:p-6 overflow-y-auto max-h-screen">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="h-full overflow-y-auto bg-[#f7f9fc] dark:bg-slate-950">
+      <div className="mx-auto max-w-[1440px] space-y-6 p-4 sm:p-6 lg:p-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
-            <p className="text-sm text-slate-400 mt-0.5">
-              {now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Workspace overview</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Your workspace at a glance</h1>
+            <p className="mt-1 text-sm text-slate-500">A clear view of what is moving, what is next, and what needs attention.</p>
           </div>
-          <Badge variant="outline" className="text-xs text-slate-500 border-slate-200">
-            {total} total tasks
-          </Badge>
+          <div className="flex items-center gap-3"><span className="hidden text-xs text-slate-400 sm:block">{now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</span><Badge variant="outline" className="h-8 border-slate-200 bg-white px-3 text-xs font-medium text-slate-600">{total} total tasks</Badge></div>
         </div>
 
         {/* KPI row */}
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {kpis.map((k, i) => {
             const Icon = k.icon
             return (
-              <Card key={i} className="border border-slate-100 card-hover">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-3">
+              <Card key={i} className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="flex items-start justify-between">
                     <span className="text-xs font-medium text-slate-500">{k.label}</span>
-                    <div className={`w-8 h-8 rounded-lg ${k.bg} flex items-center justify-center`}>
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${k.bg}`}>
                       <Icon className={`h-4 w-4 ${k.accent}`} />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-slate-900">{k.value}</div>
-                  <div className="text-xs text-slate-400 mt-1">{k.sub}</div>
+                  <div className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white sm:text-3xl">{k.value}</div>
+                  <div className="mt-3 text-xs text-slate-400">{k.sub}</div>
+                  <div className="mt-4 h-1 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${i === 0 ? "w-3/4 bg-slate-400" : i === 1 ? "w-1/2 bg-blue-500" : i === 2 ? "bg-emerald-500" : "w-1/4 bg-red-400"}`} style={i === 2 ? { width: `${rate}%` } : undefined} /></div>
                 </CardContent>
               </Card>
             )
@@ -141,37 +140,40 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
         </div>
 
         {/* Completion bar */}
-        <Card className="border border-slate-100">
-          <CardContent className="p-5">
+        <div className="grid gap-5 xl:grid-cols-[1.45fr_0.85fr]">
+        <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900">
+          <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-slate-700">Overall progress</span>
-              <span className="text-sm font-bold text-slate-900">{rate}%</span>
+              <div><span className="flex items-center gap-2 text-sm font-semibold text-slate-950"><Target className="h-4 w-4 text-blue-600" /> Delivery health</span><p className="mt-1 text-xs text-slate-400">Your current workload at a glance</p></div>
+              <span className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">{rate}%</span>
             </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-3 overflow-hidden rounded-full bg-slate-100">
               <div
                 className="h-full bg-blue-600 rounded-full transition-all duration-700"
                 style={{ width: `${rate}%` }}
               />
             </div>
-            <div className="flex gap-4 mt-4">
+            <div className="mt-6 grid grid-cols-3 divide-x divide-slate-100">
               {[
                 { label: "To Do", count: todo, color: "bg-slate-400" },
                 { label: "In Progress", count: inProgress, color: "bg-blue-500" },
                 { label: "Completed", count: completed, color: "bg-emerald-500" },
               ].map(s => (
-                <div key={s.label} className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${s.color}`} />
-                  <span className="text-xs text-slate-500">{s.label} <strong className="text-slate-700">{s.count}</strong></span>
+                <div key={s.label} className="pl-4 first:pl-0">
+                  <div className="text-xl font-semibold text-slate-950">{s.count}</div>
+                  <span className="mt-1 block text-xs text-slate-500">{s.label}</span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
+        <Card className="border-slate-200/80 bg-[#101827] text-white shadow-[0_8px_24px_rgba(15,23,42,0.12)]"><CardContent className="flex h-full flex-col justify-between p-5 sm:p-6"><div><div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-medium text-blue-300"><Sparkles className="h-4 w-4" /> Focus signal</span><span className="rounded-full border border-white/10 px-2 py-1 text-[10px] text-slate-400">Live</span></div><h2 className="mt-8 max-w-xs text-xl font-semibold leading-tight tracking-[-0.03em]">{focusTasks.length > 0 ? "Keep the momentum going." : "Your next move starts here."}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{focusTasks.length > 0 ? `${focusTasks.length} active ${focusTasks.length === 1 ? "task" : "tasks"} need your attention.` : "Create a task to give your day a clear direction."}</p></div><div className="mt-8 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-slate-400"><span className="truncate pr-3">{focusTasks.length > 0 ? focusTasks[0].title : "No active tasks"}</span><ArrowRight className="h-4 w-4 shrink-0 text-blue-400" /></div></CardContent></Card>
+        </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Upcoming */}
-          <Card className="border border-slate-100">
-            <CardHeader className="pb-3 border-b border-slate-50">
+          <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
+            <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6">
               <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-slate-400" />
                 Due this week
@@ -199,8 +201,8 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
           </Card>
 
           {/* Recent tasks */}
-          <Card className="border border-slate-100">
-            <CardHeader className="pb-3 border-b border-slate-50">
+          <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
+            <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6">
               <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <ArrowUpRight className="h-4 w-4 text-slate-400" />
                 Recent tasks

@@ -352,10 +352,10 @@ export function Calendar({ tasks, onUpdateTask }: CalendarViewProps) {
   }
 
   return (
-    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto h-[calc(100vh-100px)]">
-      <div className="max-w-7xl mx-auto min-h-full space-y-4 sm:space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Calendar</h1>
+    <div className="h-full overflow-y-auto bg-[#f7f9fc] p-4 sm:p-6 lg:p-8 dark:bg-slate-950">
+      <div className="mx-auto min-h-full max-w-7xl space-y-6">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end dark:border-slate-800">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Planning workspace</p><h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Calendar</h1><p className="mt-1 text-sm text-slate-500">Plan deadlines and see the shape of your week.</p></div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")}>
               <ChevronLeft className="h-4 w-4" />
@@ -373,9 +373,9 @@ export function Calendar({ tasks, onUpdateTask }: CalendarViewProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Calendar Grid */}
           <div className="lg:col-span-2">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Task Calendar</CardTitle>
+            <Card className="h-full border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900">
+              <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6 dark:border-slate-800">
+              <CardTitle className="text-sm font-semibold text-slate-950 dark:text-white">Task calendar</CardTitle>
                 <p className="text-sm text-muted-foreground">Click on any date to view tasks</p>
               </CardHeader>
               <CardContent className="overflow-auto">
@@ -400,7 +400,7 @@ export function Calendar({ tasks, onUpdateTask }: CalendarViewProps) {
 
                     return (
                       <div
-                        key={day}
+                        key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}-${index}`}
                         className={`p-2 h-20 sm:h-24 border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
                           isToday ? "bg-primary/10 border-primary" : 
                           isSelected ? "bg-primary/20 border-primary" : "border-border"
@@ -437,9 +437,9 @@ export function Calendar({ tasks, onUpdateTask }: CalendarViewProps) {
 
           {/* Today's Tasks Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Today's Tasks</CardTitle>
+            <Card className="h-full border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900">
+              <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6 dark:border-slate-800">
+                <CardTitle className="text-sm font-semibold text-slate-950 dark:text-white">Today&apos;s tasks</CardTitle>
               </CardHeader>
               <CardContent className="overflow-auto">
                 {(() => {

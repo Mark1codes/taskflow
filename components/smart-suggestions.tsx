@@ -78,41 +78,41 @@ export function SmartSuggestions() {
       case "productivity":
         return "bg-blue-100 text-blue-800"
       case "time":
-        return "bg-green-100 text-green-800"
+        return "bg-emerald-50 text-emerald-700"
       case "focus":
-        return "bg-purple-100 text-purple-800"
+        return "bg-blue-50 text-blue-700"
       case "automation":
-        return "bg-orange-100 text-orange-800"
+        return "bg-amber-50 text-amber-700"
       case "deadline":
-        return "bg-red-100 text-red-800"
+        return "bg-red-50 text-red-700"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-slate-100 text-slate-700"
     }
   }
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto max-h-screen">
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <div className="flex items-center justify-between">
+    <div className="h-full overflow-y-auto bg-[#f7f9fc]">
+      <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 shadow-[0_6px_16px_rgba(37,99,235,0.2)]">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Smart Suggestions</h1>
-              <p className="text-muted-foreground">AI-powered recommendations to boost your productivity</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Workspace intelligence</p>
+              <h1 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">Smart suggestions</h1>
+              <p className="mt-1 text-sm text-slate-500">Small improvements that keep your work moving.</p>
             </div>
           </div>
-          <Badge variant="secondary" className="flex items-center space-x-1">
-            <Sparkles className="h-3 w-3" />
-            <span>5 New Suggestions</span>
+          <Badge variant="outline" className="flex h-8 items-center gap-1 border-slate-200 bg-white px-3 text-xs font-medium text-slate-600">
+            <Sparkles className="h-3 w-3 text-blue-600" />
+            <span>5 new suggestions</span>
           </Badge>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)]"><CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5 text-green-600" />
                 <div>
@@ -122,8 +122,7 @@ export function SmartSuggestions() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4">
+          <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)]"><CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5 text-blue-600" />
                 <div>
@@ -133,8 +132,7 @@ export function SmartSuggestions() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4">
+          <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)]"><CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <Clock className="h-5 w-5 text-purple-600" />
                 <div>
@@ -151,11 +149,11 @@ export function SmartSuggestions() {
           {suggestions.map((suggestion) => {
             const Icon = suggestion.icon
             return (
-              <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
+              <Card key={suggestion.id} className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-md">
+                <CardContent className="p-5 sm:p-6">
                   <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Icon className="h-6 w-6 text-white" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <Icon className="h-5 w-5" />
                     </div>
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center space-x-2">
@@ -183,35 +181,35 @@ export function SmartSuggestions() {
         </div>
 
         {/* AI Insights */}
-        <Card>
-          <CardHeader>
+        <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
+          <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6">
             <CardTitle className="flex items-center space-x-2">
               <Sparkles className="h-5 w-5" />
               <span>AI Insights</span>
             </CardTitle>
             <CardDescription>Personalized insights based on your work patterns</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-5 sm:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-4">
                 <h4 className="font-semibold text-blue-900">Peak Performance Hours</h4>
                 <p className="text-sm text-blue-700 mt-1">
                   You complete 60% more tasks between 9 AM - 11 AM. Schedule important work during this window.
                 </p>
               </div>
-              <div className="p-4 bg-green-50 rounded-lg">
+              <div className="rounded-lg border border-emerald-100 bg-emerald-50/70 p-4">
                 <h4 className="font-semibold text-green-900">Task Completion Pattern</h4>
                 <p className="text-sm text-green-700 mt-1">
                   You're most likely to complete tasks on Tuesdays and Wednesdays. Plan accordingly.
                 </p>
               </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-4">
                 <h4 className="font-semibold text-purple-900">Focus Duration</h4>
                 <p className="text-sm text-purple-700 mt-1">
                   Your optimal focus session is 90 minutes. Take breaks to maintain productivity.
                 </p>
               </div>
-              <div className="p-4 bg-orange-50 rounded-lg">
+              <div className="rounded-lg border border-amber-100 bg-amber-50/70 p-4">
                 <h4 className="font-semibold text-orange-900">Procrastination Alert</h4>
                 <p className="text-sm text-orange-700 mt-1">
                   Tasks labeled "Research" tend to be delayed. Consider breaking them into smaller steps.

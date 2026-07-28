@@ -36,24 +36,25 @@ export function Settings({ user }: SettingsProps) {
     setTimeout(() => setSaved(false), 2500)
   }
 
-  const section = "border border-slate-100 rounded-xl overflow-hidden"
-  const sectionHeader = "px-5 py-4 border-b border-slate-50 bg-slate-50/60"
-  const sectionBody = "px-5 py-5 space-y-5 bg-white"
+  const section = "overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900"
+  const sectionHeader = "border-b border-slate-100 bg-slate-50/60 px-5 py-4 dark:border-slate-800 dark:bg-slate-950/50"
+  const sectionBody = "space-y-5 bg-white px-5 py-5 dark:bg-slate-900"
   const rowBetween = "flex items-center justify-between"
-  const labelMain = "text-sm font-medium text-slate-800"
+  const labelMain = "text-sm font-medium text-slate-800 dark:text-slate-100"
   const labelSub  = "text-xs text-slate-400 mt-0.5"
 
   return (
-    <div className="p-4 sm:p-6 overflow-y-auto max-h-screen">
-      <div className="max-w-2xl mx-auto space-y-5">
+    <div className="h-full overflow-y-auto bg-[#f7f9fc] dark:bg-slate-950">
+      <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Settings</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Manage your preferences</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Workspace controls</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Settings</h1>
+            <p className="mt-1 text-sm text-slate-500">Manage how TaskFlow fits your working style.</p>
           </div>
-          <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white h-9 gap-2">
+          <Button onClick={handleSave} className="h-9 gap-2 bg-blue-600 text-white hover:bg-blue-700">
             <Save className="h-3.5 w-3.5" /> Save changes
           </Button>
         </div>

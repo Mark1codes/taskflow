@@ -57,60 +57,36 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
 
   // Load user profile data on component mount
   useEffect(() => {
-    loadProfileData()
+    // The authenticated user already contains the core profile fields. Render those
+    // immediately and hydrate optional profile fields without blocking navigation.
+    setIsInitialLoading(false)
+    void loadProfileData()
   }, [user.id])
 
   const loadProfileData = async () => {
     try {
-      setIsInitialLoading(true)
-      
-      // Use Promise.all to load data concurrently
-      const [userResult, profileResult] = await Promise.all([
-        supabase
-          .from('users')
-          .select('full_name, email, created_at')
-          .eq('id', user.id)
-          .single(),
-        supabase
-          .from('profile')
-          .select('phone_number, bio, location, website')
-          .eq('user_id', user.id)
-          .single()
-      ])
-
-      const { data: userData, error: userError } = userResult
-      const { data: profileInfo, error: profileError } = profileResult
-
-      if (userError && userError.code !== 'PGRST116') {
-        console.error('Error loading user data:', userError)
-      }
+      const { data: profileInfo, error: profileError } = await supabase
+        .from('profile')
+        .select('phone_number, bio, location, website')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
       if (profileError && profileError.code !== 'PGRST116') {
         console.error('Error loading profile data:', profileError)
       }
 
-      // Update local state with fetched data
+      // Optional fields arrive after the page is already usable.
       setProfileData(prev => ({
         ...prev,
-        name: userData?.full_name || user.name || "",
-        email: userData?.email || user.email || "",
         phone: profileInfo?.phone_number || "",
         bio: profileInfo?.bio || "",
         location: profileInfo?.location || "",
         website: profileInfo?.website || "",
-        joinDate: userData?.created_at 
-          ? new Date(userData.created_at).toLocaleDateString('en-US', { 
-              year: 'numeric', 
-              month: 'long' 
-            })
-          : "January 2024"
       }))
     } catch (error) {
       console.error('Error loading profile:', error)
       setMessage("Failed to load profile data")
       setMessageType("error")
-    } finally {
-      setIsInitialLoading(false)
     }
   }
 

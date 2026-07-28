@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -87,7 +85,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-geist), Arial, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
   }
@@ -97,6 +95,31 @@
 }
 
 @layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .feature-marquee {
+    animation: feature-marquee 28s linear infinite;
+    will-change: transform;
+  }
+
+  @keyframes feature-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-50% - 0.5rem)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .feature-marquee {
+      animation-play-state: paused !important;
+    }
+  }
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;

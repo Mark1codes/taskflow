@@ -1,11 +1,32 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { BrandLogo } from "@/components/brand-logo"
+import { Button } from "@/components/ui/button"
 import {
-  Calendar, BarChart3, Zap, Shield,
-  ArrowRight, LayoutDashboard, Kanban, Clock,
+  ArrowDown,
+  ArrowRight,
+  Bell,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  CircleDot,
+  Command,
+  ArrowLeft,
+  BarChart3,
+  BookOpen,
+  CheckCheck,
+  Inbox,
+  LayoutDashboard,
+  ListTodo,
+  Menu,
+  Plus,
+  Search,
+  Layers3,
+  MessageSquare,
+  Settings2,
+  Sparkles,
+  Users,
+  Zap,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -15,263 +36,209 @@ interface LandingPageProps {
 }
 
 const features = [
-  { icon: LayoutDashboard, title: "Smart Dashboard", description: "Comprehensive overview of all your tasks with intelligent insights and real-time analytics." },
-  { icon: Kanban, title: "Kanban Boards", description: "Visualize your workflow with drag-and-drop Kanban boards for intuitive task management." },
-  { icon: Calendar, title: "Calendar View", description: "Never miss a deadline with our integrated calendar and smart scheduling system." },
-  { icon: Clock, title: "Time Planning", description: "Plan focused work blocks and keep deadlines visible across your whole workspace." },
-  { icon: BarChart3, title: "Progress Tracking", description: "Monitor productivity with detailed analytics and beautiful progress reports." },
-  { icon: Shield, title: "Secure & Reliable", description: "Enterprise-grade security with row-level policies and regular encrypted backups." },
+  { icon: CheckCircle2, title: "Stay focused", description: "A clean workspace that helps you prioritize what matters most." },
+  { icon: Users, title: "Work in sync", description: "Keep everyone aligned with clarity across tasks and projects." },
+  { icon: Zap, title: "Move faster", description: "From planning to execution, keep momentum without the noise." },
 ]
 
-function HeroIllustration() {
+const tools = [
+  { icon: CheckCircle2, title: "Organize your work", description: "Break down projects into tasks and keep everything in its place." },
+  { icon: ListTodo, title: "See the bigger picture", description: "Switch views to track progress your way." },
+  { icon: CircleDot, title: "Own your day", description: "Focus on your tasks without distractions." },
+  { icon: Bell, title: "Stay on track", description: "Get timely updates and never miss what's important." },
+]
+
+type NavDetail = { section: string; title: string; description: string; icon: typeof CheckCircle2; primary: string; secondary: string; points: string[]; workflow: string[] }
+
+const navDetails: Record<string, NavDetail> = {
+  "Task management": { section: "Product", title: "One clear place for the work that matters.", description: "Turn scattered requests into an organized operating rhythm. TaskFlow gives every project a home, every task an owner, and every deadline a next step.", icon: CheckCheck, primary: "Start organizing", secondary: "View workflow", points: ["Capture work in seconds", "Assign owners and due dates", "See progress without status meetings"], workflow: ["Capture the request", "Shape it into a task", "Move it to done"] },
+  Views: { section: "Product", title: "Choose the view that matches the work.", description: "Move from a focused task list to a calendar or Kanban board without copying data or losing context. Your team works from one source of truth.", icon: Layers3, primary: "Explore workspace views", secondary: "See the difference", points: ["List view for daily focus", "Board view for flow", "Calendar view for commitments"], workflow: ["List for clarity", "Board for momentum", "Calendar for timing"] },
+  "AI assistant": { section: "Product", title: "Make the next action obvious.", description: "TaskFlow AI turns project context into useful momentum: summarize a thread, break down a goal, or surface the task that needs attention next.", icon: Sparkles, primary: "Try the assistant", secondary: "See example prompts", points: ["Summarize project context", "Break big goals into steps", "Draft updates in your team's voice"], workflow: ["Bring the context", "Ask for a next step", "Keep moving"] },
+  "For teams": { section: "Solutions", title: "Keep priorities aligned as work changes.", description: "Give every team a shared operating picture, from weekly planning to the last mile of delivery. Less chasing. More confident decisions.", icon: Users, primary: "Build team alignment", secondary: "See team workflow", points: ["Shared priorities", "Clear ownership", "Progress everyone can trust"], workflow: ["Set the priority", "Share the context", "Ship together"] },
+  "For design": { section: "Solutions", title: "Move from a good idea to shipped work.", description: "Keep briefs, decisions, feedback, and delivery connected. TaskFlow gives creative teams room to think and a system to finish.", icon: Command, primary: "Support your design team", secondary: "Explore the process", points: ["Turn briefs into milestones", "Keep feedback attached to work", "Protect deep-work time"], workflow: ["Shape the brief", "Make the decision", "Release the work"] },
+  "For operations": { section: "Solutions", title: "Make recurring work repeatable.", description: "Build dependable operating habits with reusable workflows, visible handoffs, and a calm place to manage the details that keep the business moving.", icon: Settings2, primary: "Design your workflow", secondary: "See an operations setup", points: ["Standardize repeatable work", "Spot blockers early", "Create reliable handoffs"], workflow: ["Define the playbook", "Run the workflow", "Improve the system"] },
+  Documentation: { section: "Resources", title: "Understand the TaskFlow system.", description: "Find the practical answers you need to set up your workspace, shape your projects, and help your team build a better way of working.", icon: BookOpen, primary: "Read the documentation", secondary: "Browse the basics", points: ["Workspace setup", "Project and task fundamentals", "Team conventions"], workflow: ["Learn the model", "Set up your space", "Make it yours"] },
+  Guides: { section: "Resources", title: "Practical ways to work with more clarity.", description: "Short, useful guidance for planning projects, protecting focus, and creating a team rhythm that lasts beyond the kickoff meeting.", icon: MessageSquare, primary: "Read the guides", secondary: "Find a better habit", points: ["Plan a realistic week", "Run sharper check-ins", "Turn review into progress"], workflow: ["Choose the habit", "Try it this week", "Keep what works"] },
+  Changelog: { section: "Resources", title: "A product that keeps getting better.", description: "Follow the improvements behind TaskFlow: thoughtful refinements, new capabilities, and the small details that make daily work feel lighter.", icon: BarChart3, primary: "View product updates", secondary: "See recent improvements", points: ["New workflow capabilities", "Faster everyday actions", "Quality-of-life refinements"], workflow: ["Listen to feedback", "Make the improvement", "Put it to work"] },
+}
+
+const navItems = [
+  { label: "Product", items: [["Task management", "Plan, track, and finish work"], ["Views", "List, calendar, and Kanban workflows"], ["AI assistant", "Turn context into your next action"]] },
+  { label: "Solutions", items: [["For teams", "Keep priorities aligned"], ["For design", "Move from idea to shipped"], ["For operations", "Make recurring work repeatable"]] },
+  { label: "Resources", items: [["Documentation", "Learn the TaskFlow system"], ["Guides", "Practical ways to work better"], ["Changelog", "See what is new"]] },
+]
+
+function FeatureCarousel() {
+  const [isPaused, setIsPaused] = useState(false)
+
   return (
-    <svg viewBox="0 0 520 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-xl">
-      {/* Background card */}
-      <rect x="20" y="30" width="480" height="340" rx="12" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="1.5" />
+    <div
+      className="relative"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) setIsPaused(false)
+      }}
+    >
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-white to-transparent sm:w-16" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white to-transparent sm:w-16" />
+      <div className="no-scrollbar overflow-hidden px-8 pb-3 sm:px-16 lg:px-20">
+        <div className="feature-marquee flex w-max gap-4" style={{ animationPlayState: isPaused ? "paused" : "running" }}>
+          {[...tools, ...tools].map(({ icon: Icon, title, description }, index) => (
+            <article key={`${title}-${index}`} className="w-[calc(100vw-4rem)] shrink-0 border-y border-slate-200 px-1 py-9 sm:w-[calc((100vw-9rem)/2)] sm:px-7 lg:w-[calc((min(1120px,100vw)-11rem)/3)] lg:px-6">
+              <Icon className="h-6 w-6 text-blue-600" strokeWidth={1.7} />
+              <h3 className="mt-7 text-base font-medium text-slate-950">{title}</h3>
+              <p className="mt-3 max-w-xs text-sm leading-6 text-slate-500">{description}</p>
+              <div className="mt-9 h-1 w-12 overflow-hidden rounded-full bg-blue-100"><div className="h-full w-2/3 rounded-full bg-blue-600" /></div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
-      {/* Top bar */}
-      <rect x="20" y="30" width="480" height="44" rx="12" fill="#0F172A" />
-      <rect x="20" y="62" width="480" height="12" fill="#0F172A" />
-      <circle cx="46" cy="52" r="6" fill="#EF4444" opacity="0.8" />
-      <circle cx="64" cy="52" r="6" fill="#F59E0B" opacity="0.8" />
-      <circle cx="82" cy="52" r="6" fill="#22C55E" opacity="0.8" />
-      <text x="240" y="57" textAnchor="middle" fill="#94A3B8" fontSize="11" fontFamily="Inter, sans-serif">TaskFlow — Project Alpha</text>
+function DetailView({ detail, onBack, onSignUp }: { detail: NavDetail; onBack: () => void; onSignUp: () => void }) {
+  const Icon = detail.icon
+  return <div className="min-h-[calc(100vh-69px)] bg-[#f8fafc]"><section className="border-b border-slate-200 bg-white"><div className="mx-auto max-w-7xl px-5 pb-16 pt-10 sm:px-8 lg:pb-24 lg:pt-16"><button onClick={onBack} className="mb-14 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-950"><ArrowLeft className="h-4 w-4" /> Back to TaskFlow</button><div className="grid items-end gap-12 lg:grid-cols-[0.9fr_1.1fr]"><div className="max-w-xl"><div className="flex items-center gap-3 text-sm font-medium text-blue-600"><Icon className="h-5 w-5" /> {detail.section}</div><h1 className="mt-6 text-4xl font-semibold leading-[1.04] tracking-[-0.055em] text-slate-950 sm:text-6xl">{detail.title}</h1><p className="mt-6 max-w-lg text-lg leading-8 text-slate-500">{detail.description}</p><div className="mt-9 flex flex-wrap gap-3"><Button onClick={onSignUp} className="h-11 rounded-md bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700">{detail.primary}<ArrowRight className="ml-2 h-4 w-4" /></Button><button onClick={() => document.getElementById("detail-workflow")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-5 text-sm font-medium text-slate-700 hover:border-slate-300">{detail.secondary}<ArrowDown className="h-4 w-4" /></button></div></div><div className="rounded-xl border border-slate-200 bg-[#10141c] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.14)] sm:p-7"><div className="flex items-center justify-between border-b border-white/10 pb-5"><div className="flex items-center gap-2 text-sm font-medium text-white"><span className="h-2 w-2 rounded-full bg-blue-400" /> TaskFlow workspace</div><span className="text-xs text-slate-500">Live view</span></div><div className="mt-6 grid gap-3 sm:grid-cols-3">{detail.workflow.map((step, index) => <div key={step} className="rounded-lg border border-white/10 bg-white/[0.04] p-4"><p className="font-mono text-[10px] tracking-[0.18em] text-blue-400">0{index + 1}</p><p className="mt-8 text-sm font-medium leading-5 text-white">{step}</p><div className="mt-5 h-1 rounded-full bg-white/10"><div className={`h-1 rounded-full bg-blue-500 ${index === 0 ? "w-4/5" : index === 1 ? "w-3/5" : "w-2/5"}`} /></div></div>)}</div></div></div></div></section><section id="detail-workflow" className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-24 lg:py-24"><div><p className="font-mono text-[10px] uppercase tracking-[0.22em] text-blue-600">Built for the details</p><h2 className="mt-5 text-3xl font-semibold tracking-[-0.045em] text-slate-950">A more capable way to work, with less overhead.</h2></div><div className="grid divide-y divide-slate-200 border-y border-slate-200">{detail.points.map((point, index) => <div key={point} className="flex items-center gap-5 py-6"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"><Check className="h-4 w-4" /></span><div><p className="text-base font-medium text-slate-950">{point}</p><p className="mt-1 text-sm text-slate-500">A clear, flexible step in the way your team gets work done.</p></div><span className="ml-auto font-mono text-xs text-slate-400">0{index + 1}</span></div>)}</div></section></div>
+}
 
-      {/* Column headers */}
-      <rect x="36" y="90" width="136" height="28" rx="6" fill="#F1F5F9" />
-      <text x="104" y="109" textAnchor="middle" fill="#475569" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">TO DO</text>
-      <rect x="192" y="90" width="136" height="28" rx="6" fill="#EFF6FF" />
-      <text x="260" y="109" textAnchor="middle" fill="#2563EB" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">IN PROGRESS</text>
-      <rect x="348" y="90" width="136" height="28" rx="6" fill="#F0FDF4" />
-      <text x="416" y="109" textAnchor="middle" fill="#16A34A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">DONE</text>
+function WorkspacePreview() {
+  const rows = [
+    ["Define project scope", "Done", "AD"],
+    ["Create wireframes", "In progress", "SC"],
+    ["Design system updates", "In progress", "AM"],
+    ["Build landing page", "To do", "JS"],
+    ["QA and user testing", "To do", "KB"],
+    ["Prepare launch assets", "To do", "AD"],
+  ]
 
-      {/* TO DO cards */}
-      <rect x="36" y="130" width="136" height="68" rx="6" fill="white" stroke="#E2E8F0" strokeWidth="1" />
-      <rect x="36" y="130" width="3" height="68" rx="1.5" fill="#94A3B8" />
-      <text x="50" y="150" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Design review</text>
-      <rect x="50" y="158" width="52" height="16" rx="4" fill="#FEF3C7" />
-      <text x="76" y="170" textAnchor="middle" fill="#D97706" fontSize="9" fontFamily="Inter, sans-serif">Medium</text>
-      <text x="50" y="188" fill="#94A3B8" fontSize="9" fontFamily="Inter, sans-serif">Due Jun 10</text>
-
-      <rect x="36" y="210" width="136" height="60" rx="6" fill="white" stroke="#E2E8F0" strokeWidth="1" />
-      <rect x="36" y="210" width="3" height="60" rx="1.5" fill="#94A3B8" />
-      <text x="50" y="230" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Write test cases</text>
-      <rect x="50" y="238" width="40" height="16" rx="4" fill="#FEE2E2" />
-      <text x="70" y="250" textAnchor="middle" fill="#DC2626" fontSize="9" fontFamily="Inter, sans-serif">High</text>
-
-      <rect x="36" y="282" width="136" height="60" rx="6" fill="white" stroke="#E2E8F0" strokeWidth="1" />
-      <rect x="36" y="282" width="3" height="60" rx="1.5" fill="#94A3B8" />
-      <text x="50" y="302" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Update docs</text>
-      <rect x="50" y="310" width="36" height="16" rx="4" fill="#F0FDF4" />
-      <text x="68" y="322" textAnchor="middle" fill="#16A34A" fontSize="9" fontFamily="Inter, sans-serif">Low</text>
-
-      {/* IN PROGRESS cards */}
-      <rect x="192" y="130" width="136" height="68" rx="6" fill="white" stroke="#DBEAFE" strokeWidth="1" />
-      <rect x="192" y="130" width="3" height="68" rx="1.5" fill="#2563EB" />
-      <text x="206" y="150" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">API integration</text>
-      <rect x="206" y="158" width="52" height="16" rx="4" fill="#FEF3C7" />
-      <text x="232" y="170" textAnchor="middle" fill="#D97706" fontSize="9" fontFamily="Inter, sans-serif">Medium</text>
-      {/* Progress bar */}
-      <rect x="206" y="183" width="106" height="5" rx="2.5" fill="#E2E8F0" />
-      <rect x="206" y="183" width="72" height="5" rx="2.5" fill="#2563EB" />
-      <text x="170" y="189" fill="#94A3B8" fontSize="8" fontFamily="Inter, sans-serif">68%</text>
-
-      <rect x="192" y="210" width="136" height="68" rx="6" fill="white" stroke="#DBEAFE" strokeWidth="1" />
-      <rect x="192" y="210" width="3" height="68" rx="1.5" fill="#2563EB" />
-      <text x="206" y="230" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">UI redesign</text>
-      <rect x="206" y="238" width="40" height="16" rx="4" fill="#FEE2E2" />
-      <text x="226" y="250" textAnchor="middle" fill="#DC2626" fontSize="9" fontFamily="Inter, sans-serif">High</text>
-      <rect x="206" y="263" width="106" height="5" rx="2.5" fill="#E2E8F0" />
-      <rect x="206" y="263" width="40" height="5" rx="2.5" fill="#2563EB" />
-
-      {/* DONE cards */}
-      <rect x="348" y="130" width="136" height="60" rx="6" fill="white" stroke="#DCFCE7" strokeWidth="1" />
-      <rect x="348" y="130" width="3" height="60" rx="1.5" fill="#16A34A" />
-      <text x="362" y="150" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">User research</text>
-      <text x="362" y="165" fill="#94A3B8" fontSize="9" fontFamily="Inter, sans-serif">Completed Jun 2</text>
-      {/* Check icon */}
-      <circle cx="466" cy="150" r="9" fill="#16A34A" />
-      <path d="M461 150l3.5 3.5 6-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-
-      <rect x="348" y="202" width="136" height="60" rx="6" fill="white" stroke="#DCFCE7" strokeWidth="1" />
-      <rect x="348" y="202" width="3" height="60" rx="1.5" fill="#16A34A" />
-      <text x="362" y="222" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Database schema</text>
-      <text x="362" y="237" fill="#94A3B8" fontSize="9" fontFamily="Inter, sans-serif">Completed Jun 1</text>
-      <circle cx="466" cy="222" r="9" fill="#16A34A" />
-      <path d="M461 222l3.5 3.5 6-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-
-      <rect x="348" y="274" width="136" height="60" rx="6" fill="white" stroke="#DCFCE7" strokeWidth="1" />
-      <rect x="348" y="274" width="3" height="60" rx="1.5" fill="#16A34A" />
-      <text x="362" y="294" fill="#0F172A" fontSize="11" fontWeight="600" fontFamily="Inter, sans-serif">Auth flow</text>
-      <text x="362" y="309" fill="#94A3B8" fontSize="9" fontFamily="Inter, sans-serif">Completed May 30</text>
-      <circle cx="466" cy="294" r="9" fill="#16A34A" />
-      <path d="M461 294l3.5 3.5 6-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+  return (
+    <div className="relative mx-auto w-full max-w-[650px] [perspective:1400px]">
+      <div className="absolute -inset-12 bg-blue-500/[0.04] blur-3xl" />
+      <div className="relative rotate-[2deg] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.16)] [transform:rotateY(-9deg)_rotateX(3deg)]">
+        <div className="flex h-[390px] sm:h-[440px]">
+          <aside className="hidden w-40 shrink-0 bg-[#10141c] p-3 text-slate-400 sm:block">
+            <div className="mb-7 flex items-center gap-2 px-1 text-[11px] font-medium text-white">
+              <BrandLogo className="w-[72px]" light />
+            </div>
+            <div className="space-y-1 text-[10px]">
+              <div className="flex items-center gap-2 rounded-md bg-white/10 px-2 py-1.5 text-white"><Inbox className="h-3 w-3" /> Inbox</div>
+              <div className="flex items-center gap-2 px-2 py-1.5"><ListTodo className="h-3 w-3" /> My tasks</div>
+              <div className="flex items-center gap-2 px-2 py-1.5"><LayoutDashboard className="h-3 w-3" /> Today</div>
+              <div className="flex items-center gap-2 px-2 py-1.5"><CircleDot className="h-3 w-3" /> Upcoming</div>
+              <p className="px-2 pb-1 pt-5 text-[9px] uppercase tracking-widest text-slate-600">Projects</p>
+              {['Website redesign', 'Mobile app', 'Marketing launch', 'Q2 planning'].map((item, i) => (
+                <div key={item} className="flex items-center gap-2 px-2 py-1.5 text-[10px]">
+                  <span className={`h-1.5 w-1.5 rounded-full ${i === 0 ? "bg-blue-500" : "bg-slate-600"}`} />{item}
+                </div>
+              ))}
+            </div>
+          </aside>
+          <div className="min-w-0 flex-1 bg-white">
+            <div className="flex h-12 items-center justify-between border-b border-slate-100 px-4 sm:px-5">
+              <div><p className="text-[11px] font-semibold text-slate-900">Website redesign</p><p className="text-[9px] text-slate-400">Projects / Website redesign</p></div>
+              <div className="flex items-center gap-2 text-slate-400"><Search className="h-3.5 w-3.5" /><Bell className="h-3.5 w-3.5" /><span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-50 text-[8px] font-semibold text-blue-600">SC</span></div>
+            </div>
+            <div className="border-b border-slate-100 px-4 pt-4 sm:px-5">
+              <div className="flex items-center gap-4 text-[10px] text-slate-400"><span className="border-b-2 border-blue-500 pb-3 font-medium text-blue-600">List</span><span className="pb-3">Board</span><span className="pb-3">Timeline</span></div>
+            </div>
+            <div className="px-4 py-3 sm:px-5">
+              <div className="mb-2 grid grid-cols-[1fr_90px_34px] border-b border-slate-100 pb-2 text-[9px] uppercase tracking-wider text-slate-400"><span>Task</span><span>Status</span><span /></div>
+              {rows.map(([title, status, initials], i) => (
+                <div key={title} className="grid grid-cols-[1fr_90px_34px] items-center border-b border-slate-50 py-3 text-[10px] text-slate-600">
+                  <span className="flex min-w-0 items-center gap-2 truncate"><span className={`flex h-3 w-3 shrink-0 items-center justify-center rounded-full border ${i === 0 ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300"}`}>{i === 0 && <Check className="h-2 w-2" />}</span>{title}</span>
+                  <span className={status === "Done" ? "text-emerald-600" : status === "In progress" ? "text-blue-600" : "text-slate-400"}><span className="mr-1">●</span>{status}</span>
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[8px] text-slate-500">{initials}</span>
+                </div>
+              ))}
+              <div className="mt-2 flex items-center gap-2 text-[10px] text-slate-400"><Plus className="h-3 w-3" /> Add task</div>
+            </div>
+          </div>
+          <div className="hidden w-44 shrink-0 border-l border-slate-100 bg-white p-4 md:block">
+            <div className="mb-5 flex items-center justify-between"><ArrowRight className="h-3 w-3 rotate-180 text-slate-400" /><Menu className="h-3 w-3 text-slate-400" /></div>
+            <p className="text-[11px] font-semibold text-slate-900">Create wireframes</p>
+            <div className="mt-5 space-y-4 text-[9px]"><div><p className="mb-1 text-slate-400">Status</p><p className="text-blue-600">● In progress</p></div><div><p className="mb-1 text-slate-400">Assignee</p><p className="text-slate-700">SC Sarah Chen</p></div><div><p className="mb-1 text-slate-400">Priority</p><p className="text-amber-600">● Medium</p></div><div><p className="mb-1 text-slate-400">Due date</p><p className="text-slate-700">May 24</p></div></div>
+            <div className="mt-7 border-t border-slate-100 pt-4"><p className="mb-2 text-[9px] text-slate-400">Description</p><div className="space-y-1.5"><div className="h-1.5 w-full rounded bg-slate-100" /><div className="h-1.5 w-4/5 rounded bg-slate-100" /><div className="h-1.5 w-11/12 rounded bg-slate-100" /></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
 export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
   const [isVisible, setIsVisible] = useState(false)
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [selectedDetail, setSelectedDetail] = useState<NavDetail | null>(null)
+
+  const openDetail = (title: string) => {
+    setSelectedDetail(navDetails[title])
+    setOpenMenu(null)
+    setMobileMenuOpen(false)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   useEffect(() => {
-    const t = setTimeout(() => setIsVisible(true), 80)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setIsVisible(true), 80)
+    return () => clearTimeout(timer)
   }, [])
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* ── Navigation ── */}
-      <nav className="border-b border-slate-100 bg-white sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <BrandLogo
-              textClassName="text-slate-900"
-              markClassName="bg-blue-600"
-              className={`transition-all duration-500 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`}
-            />
-            <div className={`flex items-center gap-3 transition-all duration-500 delay-100 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}>
-              <Button variant="ghost" onClick={onLogin} className="text-slate-600 hover:text-slate-900">
-                Sign In
-              </Button>
-              <Button onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white">
-                Get Started
-              </Button>
-            </div>
+    <div className="min-h-screen overflow-hidden bg-white text-[#111111]">
+      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+        <div className="relative mx-auto flex h-[68px] max-w-7xl items-center justify-between px-5 sm:px-8">
+          <BrandLogo className={`w-[150px] transition-all duration-500 ${isVisible ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"}`} />
+          <div className="hidden items-center gap-7 text-sm text-slate-600 md:flex">
+            {navItems.map((nav) => <div key={nav.label} className="relative"><button onClick={() => setOpenMenu(openMenu === nav.label ? null : nav.label)} className={`flex items-center gap-1 transition-colors ${openMenu === nav.label ? "text-slate-950" : "hover:text-slate-950"}`} aria-expanded={openMenu === nav.label}>{nav.label}<ChevronDown className={`h-3.5 w-3.5 transition-transform ${openMenu === nav.label ? "rotate-180" : ""}`} /></button>{openMenu === nav.label && <div className="absolute left-1/2 top-9 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)]">{nav.items.map(([title, description]) => <button key={title} onClick={() => openDetail(title)} className="block w-full rounded-md px-3 py-3 text-left transition-colors hover:bg-slate-50"><p className="text-sm font-medium text-slate-900">{title}</p><p className="mt-1 text-xs leading-5 text-slate-500">{description}</p></button>)}</div>}</div>)}
           </div>
+          <div className="flex items-center gap-2"><Button variant="outline" onClick={onLogin} className="hidden h-9 rounded-md border-slate-300 px-4 text-sm font-medium text-slate-900 shadow-none sm:inline-flex">Sign in</Button><Button onClick={onSignUp} className="h-9 rounded-md bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">Create workspace</Button><button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle navigation" aria-expanded={mobileMenuOpen} className="ml-1 rounded-md p-2 text-slate-500 md:hidden"><Menu className="h-5 w-5" /></button></div>
         </div>
+        {mobileMenuOpen && <div className="border-t border-slate-100 bg-white px-5 py-4 md:hidden"><div className="mx-auto max-w-7xl space-y-2">{navItems.map((nav) => <details key={nav.label} className="group"><summary className="flex cursor-pointer list-none items-center justify-between py-3 text-sm font-medium text-slate-800">{nav.label}<ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" /></summary><div className="space-y-1 pb-2 pl-3">{nav.items.map(([title, description]) => <button key={title} onClick={() => openDetail(title)} className="block w-full py-2 text-left"><p className="text-sm text-slate-700">{title}</p><p className="text-xs text-slate-400">{description}</p></button>)}</div></details>)}</div></div>}
       </nav>
 
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-white dot-grid">
-        {/* Subtle top-left glow */}
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-40 pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left — copy */}
-            <div className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-              <Badge className="mb-5 bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-50">
-                <Zap className="h-3 w-3 mr-1" /> Now with Gemini AI
-              </Badge>
-              <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-                The task manager<br />
-                <span className="text-blue-600">built for focus</span>
-              </h1>
-              <p className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
-                Organise, prioritise, and ship faster with TaskFlow. Kanban boards, 
-                calendar scheduling, AI insights, and real-time task updates — all in one clean workspace.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button size="lg" onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white px-7 h-12 text-base">
-                  Start for free <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button size="lg" variant="outline" onClick={onLogin} className="h-12 text-base border-slate-200 text-slate-600 hover:text-slate-900">
-                  Sign in
-                </Button>
-              </div>
+      {selectedDetail ? <DetailView detail={selectedDetail} onBack={() => setSelectedDetail(null)} onSignUp={onSignUp} /> : <main>
+        <section className="relative border-b border-slate-100 bg-white">
+          <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] [background-size:80px_80px] [mask-image:linear-gradient(to_bottom,transparent,black_12%,black_75%,transparent)]" />
+          <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 pb-24 pt-20 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10 lg:pb-28 lg:pt-28">
+            <div className={`relative z-10 max-w-xl transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}>
+              <h1 className="max-w-[620px] text-5xl font-semibold leading-[0.98] tracking-[-0.065em] text-slate-950 sm:text-6xl lg:text-[72px]">The task manager<br />built for focus.</h1>
+              <p className="mt-7 max-w-md text-lg leading-8 text-slate-500">Plan your work. Stay aligned.<br />Move projects forward.</p>
+              <div className="mt-9 flex items-center gap-4"><Button size="lg" onClick={onSignUp} className="h-12 rounded-md bg-blue-600 px-6 text-base font-medium text-white shadow-[0_8px_20px_rgba(41,122,255,0.22)] hover:bg-blue-700">Create workspace <ArrowRight className="ml-2 h-4 w-4" /></Button><button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })} className="hidden items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 sm:flex">See how it works <ArrowDown className="h-4 w-4" /></button></div>
             </div>
+            <div className={`relative transition-all delay-150 duration-1000 ${isVisible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}><WorkspacePreview /></div>
+          </div>
+        </section>
 
-            {/* Right — illustration */}
-            <div className={`transition-all duration-700 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-50 rounded-2xl" />
-                <div className="relative p-4">
-                  <HeroIllustration />
+        <section id="method" className="relative overflow-hidden border-y border-white/10 bg-[#0b111b] text-white">
+          <div className="absolute inset-y-0 left-1/2 hidden w-px bg-white/[0.035] lg:block" />
+          <div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20 lg:py-24">
+            <div className="max-w-sm">
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-blue-400">The TaskFlow method</p>
+              <h2 className="mt-6 text-3xl font-semibold leading-tight tracking-[-0.05em] text-white sm:text-4xl">Make progress<br /><span className="text-slate-500">visible.</span></h2>
+              <p className="mt-6 text-sm leading-7 text-slate-400">A focused system for turning scattered intent into clear, compounding momentum.</p>
+              <div className="mt-10 flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-slate-600"><span className="h-px w-10 bg-blue-500" />Built for the way work moves</div>
+            </div>
+            <div className="relative grid gap-0 sm:grid-cols-3">
+              <div className="absolute left-0 right-0 top-[21px] hidden h-px bg-gradient-to-r from-blue-500/70 via-blue-500/25 to-white/10 sm:block" />
+              {features.map(({ icon: Icon, title, description }, index) => (
+                <div key={title} className="group relative border-t border-white/10 py-7 sm:border-l sm:border-t-0 sm:px-7 sm:py-0 first:sm:pl-0 last:sm:pr-0">
+                  <div className="relative z-10 flex items-center gap-3"><span className="flex h-[42px] w-[42px] items-center justify-center rounded-full border border-blue-500/50 bg-[#0b111b] text-blue-400 transition-colors group-hover:border-blue-400 group-hover:bg-blue-500/10"><Icon className="h-5 w-5" strokeWidth={1.7} /></span><span className="font-mono text-[10px] tracking-[0.18em] text-slate-600">0{index + 1} / 03</span></div>
+                  <p className="mt-9 font-mono text-[10px] uppercase tracking-[0.2em] text-blue-400">{index === 0 ? "Attention" : index === 1 ? "Alignment" : "Velocity"}</p>
+                  <h3 className="mt-3 text-lg font-medium tracking-[-0.03em] text-white">{title}</h3>
+                  <p className="mt-3 max-w-[190px] text-sm leading-6 text-slate-400">{description}</p>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Features ── */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Everything you need, nothing you don't</h2>
-            <p className="text-lg text-slate-500 max-w-2xl mx-auto">
-              A thoughtfully designed toolkit that helps individuals and teams stay organised without the noise.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f, i) => {
-              const Icon = f.icon
-              return (
-                <div key={i} className="p-6 rounded-xl border border-slate-100 bg-white card-hover group">
-                  <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors duration-200">
-                    <Icon className="h-5 w-5 text-blue-600 group-hover:text-white transition-colors duration-200" />
-                  </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">{f.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{f.description}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+        <section id="features" className="overflow-hidden bg-white"><div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32"><div className="mb-14 text-center"><p className="text-sm font-medium text-blue-600">Everything you need to ship work</p><h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">A calmer way to get things done.</h2></div><FeatureCarousel /></div></section>
 
-      {/* ── Dark CTA band ── */}
-      <section className="bg-slate-900 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-4">Built for clear execution</h2>
-              <p className="text-slate-400 leading-relaxed mb-8">
-                Keep priorities, deadlines, and project context together. TaskFlow gives teams a calm workspace
-                for planning, tracking, and shipping important work.
-              </p>
-              <Button onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white h-11 px-6">
-                <ArrowRight className="mr-2 h-4 w-4" /> Start Planning Free
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ── Final CTA ── */}
-      <section className="py-20 bg-white">
-        <div className="max-w-2xl mx-auto text-center px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Ready to get organised?</h2>
-          <p className="text-slate-500 mb-8">Join thousands of teams already shipping faster with TaskFlow. Free to start, no credit card required.</p>
-          <Button size="lg" onClick={onSignUp} className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12 text-base">
-            Create free account <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </section>
-
-      {/* ── Footer ── */}
-      <footer className="bg-slate-900 text-white py-14">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <BrandLogo
-                className="mb-3"
-                markClassName="h-7 w-7 bg-blue-600"
-                textClassName="text-base text-white"
-              />
-              <p className="text-slate-400 text-sm leading-relaxed">The modern task management platform for productive teams.</p>
-            </div>
-            {[
-              { heading: "Product", links: ["Features", "Integrations", "API", "Security"] },
-              { heading: "Company", links: ["About", "Blog", "Careers", "Contact"] },
-              { heading: "Support", links: ["Help Center", "Documentation", "Community", "Status"] },
-            ].map((col, i) => (
-              <div key={i}>
-                <h3 className="font-semibold text-white mb-4 text-sm">{col.heading}</h3>
-                <ul className="space-y-2">
-                  {col.links.map((l) => (
-                    <li key={l} className="text-slate-400 text-sm hover:text-white cursor-pointer transition-colors">{l}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-slate-800 pt-8 text-center text-slate-500 text-sm">
-            © 2025 TaskFlow. All rights reserved.
-          </div>
-        </div>
-      </footer>
+        <section id="footer" className="bg-[#0b111b] text-white"><div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-24"><div className="flex flex-col justify-between gap-10 border-b border-white/15 pb-16 sm:flex-row sm:items-end"><div><h2 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Ready to get started?</h2><p className="mt-4 max-w-sm text-base leading-7 text-slate-400">Create your workspace and start getting things done.</p></div><Button onClick={onSignUp} className="h-12 self-start rounded-md bg-blue-600 px-7 text-base text-white hover:bg-blue-700 sm:self-auto">Create workspace <ArrowRight className="ml-2 h-4 w-4" /></Button></div><footer className="grid gap-10 pt-12 sm:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><BrandLogo className="w-[150px]" textClassName="text-white" /><p className="mt-5 max-w-xs text-sm leading-6 text-slate-500">The modern task management platform for productive teams.</p></div>{[['Product', 'Overview', 'Integrations', 'Changelog'], ['Solutions', 'Teams', 'Design', 'Operations'], ['Resources', 'Docs', 'Guides', 'Help center']].map(([heading, ...links]) => <div key={heading}><p className="text-sm font-medium text-white">{heading}</p><div className="mt-4 space-y-3 text-sm text-slate-500">{links.map(link => <p key={link}>{link}</p>)}</div></div>)}</footer><div className="mt-12 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 text-xs text-slate-600 sm:flex-row"><span>© 2025 TaskFlow. All rights reserved.</span><span>Privacy &nbsp;&nbsp; Terms</span></div></div></section>
+      </main>}
     </div>
   )
 }

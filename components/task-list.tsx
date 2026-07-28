@@ -109,17 +109,18 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
   }
 
   return (
-    <div className="p-4 sm:p-6 overflow-y-auto max-h-screen">
-      <div className="max-w-5xl mx-auto space-y-5">
+    <div className="h-full overflow-y-auto bg-[#f7f9fc] dark:bg-slate-950">
+      <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Task List</h1>
-            <p className="text-sm text-slate-400 mt-0.5">{filtered.length} of {tasks.length} tasks</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Work queue</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Task list</h1>
+            <p className="mt-1 text-sm text-slate-500">{filtered.length} of {tasks.length} tasks in your workspace.</p>
           </div>
           <Button variant="outline" size="sm" onClick={fetchTasks} disabled={refreshing || isLoading}
-            className="border-slate-200 text-slate-600 gap-1.5">
+            className="h-9 gap-1.5 border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
@@ -128,7 +129,7 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
         {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
 
         {/* Filters */}
-        <Card className="border border-slate-100">
+        <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900">
           <CardContent className="p-4">
             <div className="flex flex-col md:flex-row gap-3">
               <div className="flex-1 relative">
@@ -184,8 +185,8 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
               const pc = priorityConfig[task.priority] ?? priorityConfig["medium"]
               const overdue = isOverdue(task.due_date) && task.status !== "completed"
               return (
-                <Card key={task.id} className={`border border-slate-100 border-l-4 ${sc.border} card-hover bg-white`}>
-                  <CardContent className="p-4">
+                <Card key={task.id} className={`border-slate-200/80 border-l-4 ${sc.border} bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900`}>
+                  <CardContent className="p-4 sm:p-5">
                     <div className="flex items-start gap-3">
                       {/* Status toggle */}
                       <button onClick={() => toggleStatus(task.id, task.status)}

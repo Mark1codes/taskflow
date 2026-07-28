@@ -65,21 +65,22 @@ export function AddTask({ onAddTask, onBack, user }: AddTaskProps) {
   }
 
   return (
-    <div className="p-4 sm:p-6 overflow-y-auto max-h-screen">
-      <div className="max-w-2xl mx-auto space-y-5">
+    <div className="h-full overflow-y-auto bg-[#f7f9fc] dark:bg-slate-950">
+      <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
 
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8 text-slate-500 hover:text-slate-900">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Add New Task</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Fill in the details below</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Task workspace</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Create a new task</h1>
+            <p className="mt-1 text-sm text-slate-500">Capture the work, add context, and give it a clear owner.</p>
           </div>
         </div>
 
-        <Card className="border border-slate-100">
-          <CardContent className="p-6">
+        <Card className="border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] dark:border-slate-800 dark:bg-slate-900">
+          <CardContent className="p-5 sm:p-7">
             {error && <Alert variant="destructive" className="mb-5"><AlertDescription>{error}</AlertDescription></Alert>}
 
             {success && (
