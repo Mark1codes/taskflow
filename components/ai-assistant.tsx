@@ -21,7 +21,7 @@ export function AIAssistant() {
       id: 1,
       type: "ai",
       content:
-        "Hello! I'm your AI assistant powered by Google Gemini. I can help you with task management, productivity tips, prioritisation strategies, and project insights. How can I assist you today?",
+        "Hello! I'm your AI assistant. I can help you with task management, productivity tips, prioritisation strategies, and project insights. How can I assist you today?",
       timestamp: new Date(),
     },
   ])

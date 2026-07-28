@@ -7,7 +7,7 @@ const GEMINI_API_URL =
 export async function POST(req: NextRequest) {
   if (!GEMINI_API_KEY) {
     return NextResponse.json(
-      { error: 'GEMINI_API_KEY is not configured. Add it to your .env.local file.' },
+      { error: 'The AI assistant is not configured yet. Please try again later.' },
       { status: 503 }
     )
   }
@@ -53,7 +53,7 @@ If the user asks about specific tasks or data you don't have access to, acknowle
       const errText = await response.text()
       console.error('Gemini API error:', errText)
       return NextResponse.json(
-        { error: 'Gemini API request failed', details: errText },
+        { error: 'The AI assistant could not complete that request.', details: errText },
         { status: response.status }
       )
     }
