@@ -15,6 +15,13 @@ interface Message {
   timestamp: Date
 }
 
+function cleanAIText(text: string) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/__(.*?)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+}
+
 export function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -174,7 +181,7 @@ export function AIAssistant() {
                         : "border border-slate-200 bg-slate-50 text-slate-800"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">{cleanAIText(message.content)}</p>
                     <p className="text-xs opacity-60 mt-1">
                       {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>

@@ -2,6 +2,7 @@
 
 import type React from "react"
 import supabase from "../utils/supabase"
+import { getAvatarDisplayUrl } from "@/utils/avatar"
 import { useState } from "react"
 import { BrandLogo } from "@/components/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -35,7 +36,8 @@ export function LoginPage({ onLogin, onSignUp, onBack }: LoginPageProps) {
       if (data.user) {
         const { data: profileData } = await supabase.from("users").select("full_name").eq("id", data.user.id).single()
         if (!profileData) await supabase.from("users").insert({ id: data.user.id, full_name: data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "User" })
-        onLogin({ id: data.user.id, name: profileData?.full_name || data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "User", email: data.user.email || "", avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.email || ""}` })
+        const avatar = await getAvatarDisplayUrl(supabase, data.user.user_metadata?.avatar_path, data.user.user_metadata?.avatar_url || "")
+        onLogin({ id: data.user.id, name: profileData?.full_name || data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "User", email: data.user.email || "", avatar })
       }
     } catch (err: any) { setError("An unexpected error occurred: " + err.message) }
     setIsLoading(false)

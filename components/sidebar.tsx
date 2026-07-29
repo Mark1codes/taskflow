@@ -2,7 +2,7 @@
 
 import {
   LayoutDashboard, Plus, CheckSquare, Calendar, Kanban,
-  Settings, Menu, Bot, Sparkles, MessageSquare, Zap,
+  Settings, Menu, Bot, Sparkles, Zap,
   ChevronLeft,
 } from "lucide-react"
 import { BrandLogo } from "@/components/brand-logo"
@@ -27,8 +27,6 @@ const mainNav = [
 const aiNav = [
   { id: "ai-assistant",    label: "AI Assistant",    icon: Bot },
   { id: "smart-suggestions",label: "Smart Suggestions", icon: Sparkles },
-  { id: "ai-chat",          label: "AI Chat",          icon: MessageSquare },
-  { id: "auto-prioritize",  label: "Auto Prioritize",  icon: Zap },
 ]
 
 function NavGroup({ label, items, activeView, onViewChange, collapsed }: {

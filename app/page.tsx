@@ -6,6 +6,7 @@ import { LoginPage } from "@/components/login-page"
 import { SignUpPage } from "@/components/signup-page"
 import { TaskManagerApp } from "@/components/task-manager-app"
 import supabase from '../utils/supabase'
+import { getAvatarDisplayUrl } from "@/utils/avatar"
 
 type AuthState = "landing" | "login" | "signup" | "authenticated"
 
@@ -95,20 +96,32 @@ export default function Home() {
         }
       }
 
+      const avatar = await getAvatarDisplayUrl(
+        supabase,
+        authUser.user_metadata?.avatar_path,
+        authUser.user_metadata?.avatar_url || ""
+      )
+
       // email lives in Supabase Auth (auth.users), not in the public users table
       return {
         id: authUser.id,
         name: profileData?.full_name || authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User",
         email: authUser.email || "",
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.email || ""}`,
+        avatar,
       }
     } catch (error) {
       console.error("Error creating user data:", error)
+      const avatar = await getAvatarDisplayUrl(
+        supabase,
+        authUser.user_metadata?.avatar_path,
+        authUser.user_metadata?.avatar_url || ""
+      )
+
       return {
         id: authUser.id,
         name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User",
         email: authUser.email || "",
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.email || ""}`,
+        avatar,
       }
     }
   }

@@ -2,7 +2,8 @@
 
 import type React from "react"
 import supabase from '../utils/supabase'
-import { useState, useEffect, useCallback } from "react"
+import { AVATAR_BUCKET, getAvatarDisplayUrl } from "@/utils/avatar"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -54,6 +55,9 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [message, setMessage] = useState("")
   const [messageType, setMessageType] = useState<"success" | "error">("success")
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false)
+  const [avatarSrc, setAvatarSrc] = useState(user.avatar || "")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Load user profile data on component mount
   useEffect(() => {
@@ -62,6 +66,10 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
     setIsInitialLoading(false)
     void loadProfileData()
   }, [user.id])
+
+  useEffect(() => {
+    setAvatarSrc(user.avatar || "")
+  }, [user.avatar])
 
   const loadProfileData = async () => {
     try {
@@ -98,75 +106,46 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isLoading) return
+
     setIsLoading(true)
-    setMessage("")
+    setMessage("Saving profile...")
+    setMessageType("success")
 
     try {
-      // Prepare updates
+      const now = new Date().toISOString()
       const userUpdate = {
         full_name: profileData.name.trim(),
-        email: profileData.email.trim(),
-        updated_at: new Date().toISOString()
+        updated_at: now,
       }
-
       const profileUpdate = {
         phone_number: profileData.phone.trim(),
         bio: profileData.bio.trim(),
         location: profileData.location.trim(),
         website: profileData.website.trim(),
-        updated_at: new Date().toISOString()
+        updated_at: now,
       }
 
-      // First, update user data
-      const { error: userError } = await supabase
-        .from('users')
-        .update(userUpdate)
-        .eq('id', user.id)
+      const authRequest = profileData.email.trim() !== user.email
+        ? supabase.auth.updateUser({ email: profileData.email.trim() })
+        : Promise.resolve({ error: null })
 
-      if (userError) throw userError
+      const [userResult, profileResult, authResult] = await Promise.all([
+        supabase.from("users").update(userUpdate).eq("id", user.id),
+        supabase.from("profile").update(profileUpdate).eq("user_id", user.id),
+        authRequest,
+      ])
 
-      // Check if profile exists first
-      const { data: existingProfile } = await supabase
-        .from('profile')
-        .select('id')
-        .eq('user_id', user.id)
-        .single()
+      if (userResult.error) throw userResult.error
+      if (profileResult.error) throw profileResult.error
+      if (authResult.error) throw authResult.error
 
-      let profileError
-      if (existingProfile) {
-        // Update existing profile
-        const { error } = await supabase
-          .from('profile')
-          .update(profileUpdate)
-          .eq('user_id', user.id)
-        profileError = error
-      } else {
-        // Insert new profile
-        const { error } = await supabase
-          .from('profile')
-          .insert({
-            user_id: user.id,
-            ...profileUpdate
-          })
-        profileError = error
-      }
-
-      if (profileError) throw profileError
-
-      // Update the user context with new data
-      const updatedUser = { 
-        ...user, 
-        name: profileData.name,
-        email: profileData.email
-      }
-      onUpdateUser(updatedUser)
-
+      onUpdateUser({ ...user, name: profileData.name.trim(), email: profileData.email.trim() })
       setMessage("Profile updated successfully!")
-      setMessageType("success")
       clearMessage()
     } catch (error: any) {
-      console.error('Error updating profile:', error)
-      setMessage("Failed to update profile: " + (error.message || "Unknown error"))
+      console.error("Error updating profile:", error)
+      setMessage("Failed to save profile: " + (error.message || "Please try again."))
       setMessageType("error")
       clearMessage()
     } finally {
@@ -238,17 +217,125 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
     }
   }
 
-  const handleAvatarUpload = () => {
-    // Generate a new avatar with better randomization
-    const seeds = ['felix', 'aneka', 'bob', 'sara', 'alice', 'john', 'jane', 'mike', 'emma', 'david']
-    const randomSeed = seeds[Math.floor(Math.random() * seeds.length)] + Date.now()
-    const newAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}`
-    
-    const updatedUser = { ...user, avatar: newAvatar }
-    onUpdateUser(updatedUser)
-    setMessage("Profile picture updated!")
+  const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs)
+    })
+
+    try {
+      return await Promise.race([promise, timeout])
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }
+
+  const optimizeAvatar = (file: File): Promise<File> =>
+    new Promise((resolve) => {
+      const sourceUrl = URL.createObjectURL(file)
+      const image = new Image()
+      image.onload = () => {
+        const scale = Math.min(1, 320 / Math.max(image.width, image.height))
+        const canvas = document.createElement("canvas")
+        canvas.width = Math.max(1, Math.round(image.width * scale))
+        canvas.height = Math.max(1, Math.round(image.height * scale))
+        const context = canvas.getContext("2d")
+        context?.drawImage(image, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob((blob) => {
+          URL.revokeObjectURL(sourceUrl)
+          resolve(blob ? new File([blob], "avatar.webp", { type: "image/webp" }) : file)
+        }, "image/webp", 0.72)
+      }
+      image.onerror = () => {
+        URL.revokeObjectURL(sourceUrl)
+        resolve(file)
+      }
+      image.src = sourceUrl
+    })
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      setMessage("Please choose an image file.")
+      setMessageType("error")
+      clearMessage()
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage("Please choose an image smaller than 10MB.")
+      setMessageType("error")
+      clearMessage()
+      event.target.value = ""
+      return
+    }
+
+    const previousAvatar = user.avatar || ""
+    const localPreview = URL.createObjectURL(file)
+    setIsAvatarUploading(true)
+    setAvatarSrc(localPreview)
+    onUpdateUser({ ...user, avatar: localPreview })
+    setMessage("Preparing profile picture...")
     setMessageType("success")
-    clearMessage()
+
+    try {
+      const avatarFile = await withTimeout(
+        optimizeAvatar(file),
+        8000,
+        "The image took too long to prepare. Please try a smaller picture."
+      )
+      const filePath = user.id + "/" + Date.now() + "-" + avatarFile.name.replace(/[^a-zA-Z0-9._-]/g, "-")
+      setMessage("Uploading optimized profile picture...")
+      const { error: uploadError } = await supabase.storage.from(AVATAR_BUCKET).upload(filePath, avatarFile, {
+        upsert: true,
+        cacheControl: "31536000",
+        contentType: avatarFile.type,
+      })
+      if (uploadError) {
+        throw new Error(
+          uploadError.message.includes("bucket")
+            ? "The avatars bucket was not found. Create a Supabase Storage bucket named avatars."
+            : uploadError.message.includes("policy") || uploadError.message.includes("row-level security")
+              ? "Supabase blocked the upload. Check the avatars bucket policies for authenticated users."
+              : uploadError.message
+        )
+      }
+
+      const { data } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(filePath)
+      if (!data.publicUrl) {
+        throw new Error("Supabase did not return an avatar URL.")
+      }
+
+      const displayUrl = await getAvatarDisplayUrl(supabase, filePath, data.publicUrl)
+      const displayCheck = await fetch(displayUrl, { method: "GET", cache: "no-store" })
+      if (!displayCheck.ok) {
+        throw new Error(
+          "The image uploaded, but the browser cannot read it. Add a select/read policy for authenticated users on the avatars bucket."
+        )
+      }
+
+      const { error: userError } = await supabase.auth.updateUser({
+        data: { avatar_url: data.publicUrl, avatar_path: filePath },
+      })
+      if (userError) throw new Error(userError.message)
+
+      setAvatarSrc(displayUrl)
+      onUpdateUser({ ...user, avatar: displayUrl })
+      setMessage("Profile picture updated!")
+      clearMessage()
+    } catch (error: any) {
+      console.error("Error uploading profile picture:", error)
+      setAvatarSrc(previousAvatar)
+      onUpdateUser({ ...user, avatar: previousAvatar })
+      setMessage("Profile picture was not saved: " + (error.message || "Please check your avatars bucket setup."))
+      setMessageType("error")
+      clearMessage()
+    } finally {
+      setIsAvatarUploading(false)
+      URL.revokeObjectURL(localPreview)
+      event.target.value = ""
+    }
   }
 
   const tabs = [
@@ -259,7 +346,7 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
 
   if (isInitialLoading) {
     return (
-      <div className="flex-1 p-6 overflow-y-auto max-h-screen">
+      <div className="h-full min-h-0 flex-1 overflow-y-auto p-6">
         <div className="space-y-6 max-w-4xl mx-auto">
           {/* Header Skeleton */}
           <div className="flex items-center justify-between">
@@ -331,7 +418,7 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
   }
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto max-h-screen">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto p-6">
       <div className="space-y-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
@@ -352,15 +439,19 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                  <AvatarImage key={avatarSrc} src={avatarSrc || undefined} alt={user.name} />
                   <AvatarFallback className="text-2xl">{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
+                <input ref={fileInputRef} id="profile-image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" onChange={handleAvatarUpload} />
                 <Button
+                  type="button"
                   size="icon"
+                  disabled={isAvatarUploading}
                   className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-                  onClick={handleAvatarUpload}
+                  onClick={() => fileInputRef.current?.click()}
+                  aria-label="Upload profile picture"
                 >
-                  <Camera className="h-4 w-4" />
+                  <Camera className={isAvatarUploading ? "h-4 w-4 animate-pulse" : "h-4 w-4"} />
                 </Button>
               </div>
               <div className="flex-1">

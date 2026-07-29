@@ -1,11 +1,18 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Sparkles, Clock, TrendingUp, Target, Zap, CheckCircle, AlertTriangle } from "lucide-react"
 
-export function SmartSuggestions() {
+interface SmartSuggestionsProps {
+  mode?: "suggestions" | "prioritize"
+}
+
+export function SmartSuggestions({ mode = "suggestions" }: SmartSuggestionsProps) {
+  const [aiResult, setAiResult] = useState("")
+  const [isGenerating, setIsGenerating] = useState(false)
   const suggestions = [
     {
       id: 1,
@@ -90,6 +97,28 @@ export function SmartSuggestions() {
     }
   }
 
+  const generateWithAI = async () => {
+    setIsGenerating(true)
+    setAiResult("")
+    const prompt = mode === "prioritize"
+      ? "Help me prioritize my work. Give me a concise framework for deciding what to do first, including urgency, impact, effort, and a suggested order."
+      : "Give me three practical productivity suggestions for managing tasks, planning focus time, and keeping work moving."
+
+    try {
+      const response = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [{ type: "user", content: prompt }] }),
+      })
+      const data = await response.json()
+      setAiResult(response.ok ? data.reply : data.error || "The assistant could not generate a response.")
+    } catch {
+      setAiResult("The assistant is temporarily unavailable. Please try again shortly.")
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   return (
     <div className="h-full overflow-y-auto bg-[#f7f9fc]">
       <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
@@ -100,15 +129,14 @@ export function SmartSuggestions() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Workspace intelligence</p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">Smart suggestions</h1>
+              <h1 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">{mode === "prioritize" ? "Auto prioritize" : "Smart suggestions"}</h1>
               <p className="mt-1 text-sm text-slate-500">Small improvements that keep your work moving.</p>
             </div>
           </div>
-          <Badge variant="outline" className="flex h-8 items-center gap-1 border-slate-200 bg-white px-3 text-xs font-medium text-slate-600">
-            <Sparkles className="h-3 w-3 text-blue-600" />
-            <span>5 new suggestions</span>
-          </Badge>
+          <Button onClick={generateWithAI} disabled={isGenerating} className="h-9 gap-2 bg-blue-600 text-xs text-white hover:bg-blue-700"><Sparkles className="h-3.5 w-3.5" />{isGenerating ? "Thinking..." : mode === "prioritize" ? "Prioritize with AI" : "Generate with AI"}</Button>
         </div>
+
+        {aiResult && <Card className="border-blue-100 bg-blue-50/60 shadow-[0_2px_8px_rgba(37,99,235,0.06)]"><CardContent className="p-5"><div className="flex items-start gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white"><Sparkles className="h-4 w-4" /></span><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">TaskFlow AI</p><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{aiResult}</p></div></div></CardContent></Card>}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">

@@ -34,7 +34,7 @@ export function SignUpPage({ onSignUp, onLogin, onBack }: SignUpPageProps) {
       if (data.user) {
         const { error: insertError } = await supabase.from("users").insert({ id: data.user.id, full_name: formData.name })
         if (insertError && !insertError.message.includes("duplicate key")) { setError("Failed to create user profile: " + insertError.message); setIsLoading(false); return }
-        onSignUp({ id: data.user.id, name: formData.name, email: data.user.email || "", avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.email || ""}` })
+        onSignUp({ id: data.user.id, name: formData.name, email: data.user.email || "", avatar: data.user.user_metadata?.avatar_url || "" })
       }
     } catch (err: any) { setError("An unexpected error occurred: " + err.message) }
     setIsLoading(false)
