@@ -1,5 +1,5 @@
 <p align="center">
- <img width="783" height="42" alt="image" src="https://github.com/user-attachments/assets/7b04b86b-2727-47d3-8994-c94625cf10c0" />
+<img width="1920" height="912" alt="image" src="https://github.com/user-attachments/assets/b0b393f1-ffa4-4186-ad56-dd593e940784" />
 </p>
 
 # TaskFlow
