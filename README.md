@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/Task%20gif.gif" alt="TaskFlow landing page preview" width="100%" />
+ <img width="783" height="42" alt="image" src="https://github.com/user-attachments/assets/7b04b86b-2727-47d3-8994-c94625cf10c0" />
 </p>
 
 # TaskFlow
