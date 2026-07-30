@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Calendar, User, MoreHorizontal, Trash2, CheckCircle2, RefreshCw, Plus, ArrowUpDown, Timer, ListChecks, Clock, Lock } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import supabase from '../utils/supabase' // used by fetchTasks for manual refresh
+import { CompleteTaskDialog } from "./complete-task-dialog"
+import supabase from '@/utils/supabase' // used by fetchTasks for manual refresh
 
 interface Task {
   id: string
@@ -23,6 +24,7 @@ interface Task {
   user_id: string
   created_at: string
   updated_at: string
+  completion_note?: string
   subtasks?: { id: string; title: string; completed: boolean }[]
   time_spent_minutes?: number
   blocked_by_id?: string
@@ -58,6 +60,7 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
   const [priorityFilter, setPriorityFilter] = useState("all")
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState("")
+  const [taskToComplete, setTaskToComplete] = useState<Task | null>(null)
 
   useEffect(() => { setTasks(initialTasks) }, [initialTasks])
 
@@ -101,8 +104,26 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
 
   const toggleStatus = (taskId: string, current: string) => {
     const next = statusOrder[(statusOrder.indexOf(current) + 1) % statusOrder.length]
+    
+    if (next === "completed") {
+      const task = tasks.find(t => t.id === taskId)
+      if (task) {
+        setTaskToComplete(task)
+        return
+      }
+    }
+    
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: next } : t))
     onUpdateTask(taskId, { status: next })
+  }
+
+  const handleConfirmComplete = async (note: string) => {
+    if (!taskToComplete) return
+    const updates: any = { status: 'completed' }
+    if (note) updates.completion_note = note
+    
+    setTasks(prev => prev.map(t => t.id === taskToComplete.id ? { ...t, status: 'completed', completion_note: note } : t))
+    onUpdateTask(taskToComplete.id, updates)
   }
 
   const handleDelete = (taskId: string) => {
@@ -241,6 +262,12 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                           <p className="text-[13px] text-slate-500 dark:text-slate-400 mb-3 line-clamp-1 pr-8">{task.description}</p>
                         )}
 
+                        {task.status === 'completed' && task.completion_note && (
+                          <div className="mt-3 mb-2 p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-lg text-[13px] text-emerald-800 dark:text-emerald-400">
+                            <strong className="font-semibold">Completion Note:</strong> {task.completion_note}
+                          </div>
+                        )}
+
                         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
                           {task.assignee && (
                             <span className="flex items-center gap-1">
@@ -339,6 +366,13 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
           )}
         </div>
       </div>
+
+      <CompleteTaskDialog
+        isOpen={!!taskToComplete}
+        onClose={() => setTaskToComplete(null)}
+        onConfirm={handleConfirmComplete}
+        taskTitle={taskToComplete?.title || ""}
+      />
     </div>
   )
 }

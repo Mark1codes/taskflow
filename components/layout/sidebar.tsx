@@ -3,9 +3,9 @@
 import {
   LayoutDashboard, Plus, CheckSquare, Calendar, Kanban, Activity,
   Settings, Menu, Bot, Sparkles, Zap,
-  ChevronLeft,
+  ChevronLeft, Bell
 } from "lucide-react"
-import { BrandLogo } from "@/components/brand-logo"
+import { BrandLogo } from "@/components/layout/brand-logo"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -23,6 +23,7 @@ const mainNav = [
   { id: "kanban",    label: "Kanban",     icon: Kanban },
   { id: "activity",  label: "Activity",   icon: Activity },
   { id: "settings",  label: "Settings",   icon: Settings },
+  { id: "inbox",     label: "Inbox",      icon: Bell },
 ]
 
 const aiNav = [

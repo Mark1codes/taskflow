@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LandingPage } from "@/components/landing-page"
-import { LoginPage } from "@/components/login-page"
-import { SignUpPage } from "@/components/signup-page"
-import { TaskManagerApp } from "@/components/task-manager-app"
+import { LandingPage } from "@/components/core/landing-page"
+import { LoginPage } from "@/components/auth/login-page"
+import { SignUpPage } from "@/components/auth/signup-page"
+import { TaskManagerApp } from "@/components/core/task-manager-app"
 import supabase from '../utils/supabase'
 import { getAvatarDisplayUrl } from "@/utils/avatar"
 import { Loader2 } from "lucide-react"

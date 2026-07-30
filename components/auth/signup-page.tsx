@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import supabase from "../utils/supabase"
+import supabase from "@/utils/supabase"
 import { useState } from "react"
-import { BrandLogo } from "@/components/brand-logo"
+import { BrandLogo } from "@/components/layout/brand-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"

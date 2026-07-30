@@ -12,14 +12,17 @@ export async function GET(req: NextRequest) {
 
   // Use service role key if available to bypass RLS on the users table.
   // If not configured, fall back to anon key (may return empty if RLS is strict).
-  const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_KEY!
-
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    supabaseKey,
-    { auth: { persistSession: false } }
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+    { 
+      auth: { persistSession: false },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    }
   )
 
   // Fetch only safe, non-sensitive fields: id + full_name

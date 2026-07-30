@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Sidebar } from "@/components/sidebar"
-import { Dashboard } from "@/components/dashboard"
-import { TaskList } from "@/components/task-list"
-import { AddTask } from "@/components/add-task"
-import { Calendar } from "@/components/calendar-view"
-import { KanbanBoard } from "@/components/kanban-board"
-import { Settings } from "@/components/settings"
+import { Sidebar } from "@/components/layout/sidebar"
+import { Dashboard } from "@/components/core/dashboard"
+import { TaskList } from "@/components/tasks/task-list"
+import { AddTask } from "@/components/tasks/add-task"
+import { Calendar } from "@/components/tasks/calendar-view"
+import { KanbanBoard } from "@/components/tasks/kanban-board"
+import { Settings } from "@/components/core/settings"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -19,13 +19,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet"
 import { LogOut, User, SettingsIcon, Menu } from "lucide-react"
-import { ProfilePage } from "@/components/profile-page"
-import { AIAssistant } from "@/components/ai-assistant"
-import { AIWorkPlanner } from "@/components/ai-work-planner"
-import { ThemeProvider } from "@/components/theme-provider"
-import { FocusMode } from "@/components/focus-mode"
-import { ActivityFeed } from "@/components/activity-feed"
-import supabase from '../utils/supabase'
+import { ProfilePage } from "@/components/core/profile-page"
+import { AIAssistant } from "@/components/ai/ai-assistant"
+import { AIWorkPlanner } from "@/components/ai/ai-work-planner"
+import { ThemeProvider } from "@/components/layout/theme-provider"
+import { FocusMode } from "@/components/core/focus-mode"
+import { ActivityFeed } from "@/components/core/activity-feed"
+import { Inbox } from "@/components/tasks/inbox"
+import supabase from '@/utils/supabase'
 
 interface Task {
   id: string
@@ -39,6 +40,7 @@ interface Task {
   updated_at: string
   user_id: string
   description?: string
+  completion_note?: string
   subtasks?: { id: string; title: string; completed: boolean }[]
   time_spent_minutes?: number
 }
@@ -108,7 +110,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
           table: 'task',
           filter: `user_id=eq.${currentUser.id}`
         },
-        (payload) => {
+        (payload: any) => {
           console.log('Real-time update:', payload)
           
           switch (payload.eventType) {
@@ -299,8 +301,10 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     switch (activeView) {
       case "dashboard":
         return <Dashboard tasks={tasks} isLoading={isLoading} />
+      case "inbox":
+        return <Inbox tasks={tasks} user={currentUser} onUpdateTask={updateTask} />
       case "add-task":
-        return <AddTask tasks={tasks} onAddTask={addTask} onBack={() => setActiveView("dashboard")} user={currentUser} />
+        return <AddTask tasks={tasks} onAddTask={addTask} onBack={() => setActiveView("tasks")} user={currentUser} />
       case "tasks":
         return <TaskList tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} onStartFocus={setFocusedTask} />
       case "calendar":
@@ -308,7 +312,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       case "kanban":
         return <KanbanBoard tasks={tasks} onUpdateTask={updateTask} onStartFocus={setFocusedTask} />
       case "activity":
-        return <ActivityFeed />
+        return <ActivityFeed user={currentUser} />
       case "settings":
         return <Settings user={currentUser} />
       case "profile":
@@ -409,13 +413,13 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     {focusedTask && (
       <FocusMode 
         task={focusedTask} 
-        onClose={(minutesSpent) => {
+        onClose={(minutesSpent: number) => {
           if (minutesSpent > 0) {
             updateTask(focusedTask.id, { time_spent_minutes: (focusedTask.time_spent_minutes || 0) + minutesSpent })
           }
           setFocusedTask(null)
         }} 
-        onComplete={(minutesSpent) => {
+        onComplete={(minutesSpent: number) => {
           updateTask(focusedTask.id, { 
             status: 'completed',
             time_spent_minutes: (focusedTask.time_spent_minutes || 0) + minutesSpent 

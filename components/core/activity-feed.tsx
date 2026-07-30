@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, CheckCircle2, Plus, RefreshCw, User, Target, Timer } from "lucide-react"
-import supabase from '../utils/supabase'
+import supabase from '@/utils/supabase'
 
 interface ActivityEvent {
   id: string
@@ -13,7 +13,11 @@ interface ActivityEvent {
   timestamp: string
 }
 
-export function ActivityFeed() {
+interface ActivityFeedProps {
+  user?: any
+}
+
+export function ActivityFeed({ user }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -32,14 +36,25 @@ export function ActivityFeed() {
       // Transform into a feed of events based on timestamps
       const events: ActivityEvent[] = []
       
-      data.forEach(task => {
+      const getActorName = (task: any, action: string) => {
+        if (action === 'created') {
+          return task.user_id === user?.id ? "Me" : "A team member"
+        }
+        if (task.assignee) {
+          return task.assignee === user?.name ? "Me" : task.assignee
+        }
+        return task.user_id === user?.id ? "Me" : "Someone"
+      }
+
+      data.forEach((task: any) => {
+        
         // Did they just create it?
         if (task.created_at === task.updated_at) {
           events.push({
             id: task.id + '-create',
             title: task.title,
             action: 'created',
-            user_name: task.assignee || 'Someone',
+            user_name: getActorName(task, 'created'),
             timestamp: task.created_at
           })
         } else if (task.status === 'completed') {
@@ -47,7 +62,7 @@ export function ActivityFeed() {
             id: task.id + '-complete',
             title: task.title,
             action: 'completed',
-            user_name: task.assignee || 'Someone',
+            user_name: getActorName(task, 'completed'),
             timestamp: task.updated_at
           })
         } else if (task.time_spent_minutes > 0) {
@@ -55,7 +70,7 @@ export function ActivityFeed() {
             id: task.id + '-focus',
             title: task.title,
             action: 'focused',
-            user_name: task.assignee || 'Someone',
+            user_name: getActorName(task, 'focused'),
             timestamp: task.updated_at
           })
         } else {
@@ -63,7 +78,7 @@ export function ActivityFeed() {
             id: task.id + '-update',
             title: task.title,
             action: 'updated',
-            user_name: task.assignee || 'Someone',
+            user_name: getActorName(task, 'updated'),
             timestamp: task.updated_at
           })
         }
