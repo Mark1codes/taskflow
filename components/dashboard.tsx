@@ -2,7 +2,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle2, Clock, TrendingUp, AlertTriangle, Calendar, ArrowUpRight, ArrowRight, Target, Sparkles } from "lucide-react"
+import { CheckCircle2, Clock, TrendingUp, AlertTriangle, Calendar, ArrowUpRight, ArrowRight, Target, Sparkles, Activity } from "lucide-react"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 interface Task {
   id: string
@@ -103,6 +105,35 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
     { label: "Overdue",          value: overdue,    sub: "Need attention",          icon: AlertTriangle,  accent: "text-red-600",    bg: "bg-red-50"   },
   ]
 
+  const chartData = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(now)
+    d.setDate(d.getDate() - (6 - i))
+    
+    const dateStr = d.toISOString().split('T')[0]
+    const shortDayName = d.toLocaleDateString("en-US", { weekday: "short" })
+    
+    const newTasks = tasks.filter(t => t.created_at && t.created_at.startsWith(dateStr)).length
+    // Fallback to created_at if updated_at is missing for some reason
+    const completedTasks = tasks.filter(t => t.status === "completed" && ((t.updated_at && t.updated_at.startsWith(dateStr)) || (t.created_at && t.created_at.startsWith(dateStr)))).length
+
+    return {
+      date: shortDayName,
+      completed: completedTasks,
+      new: newTasks
+    }
+  })
+
+  const chartConfig = {
+    completed: {
+      label: "Completed Tasks",
+      color: "#2563EB",
+    },
+    new: {
+      label: "New Tasks",
+      color: "#94A3B8",
+    },
+  }
+
   return (
     <div className="h-full overflow-y-auto bg-[#f7f9fc] dark:bg-slate-950">
       <div className="mx-auto max-w-[1440px] space-y-6 p-4 sm:p-6 lg:p-8">
@@ -139,6 +170,39 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
           })}
         </div>
 
+        {/* Analytics Graph */}
+        <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900">
+          <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <Activity className="h-4 w-4 text-blue-600" />
+              Productivity Trend
+            </CardTitle>
+            <Badge variant="secondary" className="bg-slate-100 text-slate-600 font-normal hover:bg-slate-100">Last 7 days</Badge>
+          </CardHeader>
+          <CardContent className="p-5 sm:p-6 pb-2">
+            <ChartContainer config={chartConfig} className="h-[280px] w-full">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="fillCompleted" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-completed)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--color-completed)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="fillNew" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-new)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--color-new)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={12} fontSize={12} tickFormatter={(value) => value.slice(0, 3)} stroke="#94a3b8" />
+                <YAxis tickLine={false} axisLine={false} tickMargin={12} fontSize={12} stroke="#94a3b8" />
+                <ChartTooltip content={<ChartTooltipContent indicator="line" />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                <Area type="monotone" dataKey="new" stroke="var(--color-new)" fillOpacity={1} fill="url(#fillNew)" strokeWidth={2} activeDot={{ r: 4, fill: "var(--color-new)", stroke: "#fff", strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="completed" stroke="var(--color-completed)" fillOpacity={1} fill="url(#fillCompleted)" strokeWidth={2} activeDot={{ r: 4, fill: "var(--color-completed)", stroke: "#fff", strokeWidth: 2 }} />
+              </AreaChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
         {/* Completion bar */}
         <div className="grid gap-5 xl:grid-cols-[1.45fr_0.85fr]">
         <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900">
@@ -167,7 +231,7 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-slate-200/80 bg-[#101827] text-white shadow-[0_8px_24px_rgba(15,23,42,0.12)]"><CardContent className="flex h-full flex-col justify-between p-5 sm:p-6"><div><div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-medium text-blue-300"><Sparkles className="h-4 w-4" /> Focus signal</span><span className="rounded-full border border-white/10 px-2 py-1 text-[10px] text-slate-400">Live</span></div><h2 className="mt-8 max-w-xs text-xl font-semibold leading-tight tracking-[-0.03em]">{focusTasks.length > 0 ? "Keep the momentum going." : "Your next move starts here."}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{focusTasks.length > 0 ? `${focusTasks.length} active ${focusTasks.length === 1 ? "task" : "tasks"} need your attention.` : "Create a task to give your day a clear direction."}</p></div><div className="mt-8 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-slate-400"><span className="truncate pr-3">{focusTasks.length > 0 ? focusTasks[0].title : "No active tasks"}</span><ArrowRight className="h-4 w-4 shrink-0 text-blue-400" /></div></CardContent></Card>
+        <Card className="relative overflow-hidden border-blue-100 bg-gradient-to-br from-blue-50/50 to-white text-slate-900 shadow-sm"><div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-500/5 blur-3xl" /><CardContent className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-6"><div><div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-medium text-blue-600"><Sparkles className="h-4 w-4" /> Focus signal</span><span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] text-blue-600">Live</span></div><h2 className="mt-8 max-w-xs text-xl font-semibold leading-tight tracking-[-0.03em]">{focusTasks.length > 0 ? "Keep the momentum going." : "Your next move starts here."}</h2><p className="mt-3 text-sm leading-6 text-slate-500">{focusTasks.length > 0 ? `${focusTasks.length} active ${focusTasks.length === 1 ? "task" : "tasks"} need your attention.` : "Create a task to give your day a clear direction."}</p></div><div className="mt-8 flex items-start flex-col border-t border-slate-100 pt-4 text-xs text-slate-500"><span className="truncate pr-3 font-medium text-slate-700">{focusTasks.length > 0 ? focusTasks[0].title : "No active tasks"}</span></div></CardContent></Card>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">

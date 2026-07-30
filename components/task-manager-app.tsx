@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet"
 import { LogOut, User, SettingsIcon, Menu } from "lucide-react"
 import { ProfilePage } from "@/components/profile-page"
 import { AIAssistant } from "@/components/ai-assistant"
@@ -64,6 +64,23 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       fetchTasks(initialUser.id)
     }
   }, [initialUser])
+
+  // Dynamically update the browser tab title on every view change
+  useEffect(() => {
+    const viewTitles: Record<string, string> = {
+      dashboard:    "Dashboard",
+      tasks:        "My Tasks",
+      "add-task":   "Add Task",
+      kanban:       "Kanban Board",
+      calendar:     "Calendar",
+      "ai-assistant":   "AI Assistant",
+      "ai-planner": "AI Work Planner",
+      settings:     "Settings",
+      profile:      "Profile",
+    }
+    const pageName = viewTitles[activeView] || "TaskFlow"
+    document.title = `${pageName} — TaskFlow`
+  }, [activeView])
 
   // Set up real-time subscription for tasks
   useEffect(() => {
@@ -152,6 +169,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   }
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
+    if (!currentUser) return
     try {
       // Optimistic update - update UI immediately
       setTasks(prevTasks => 
@@ -177,11 +195,12 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     } catch (error) {
       console.error("Error updating task:", error)
       // Revert optimistic update on error
-      await fetchTasks(currentUser.id)
+      if (currentUser) await fetchTasks(currentUser.id)
     }
   }
 
   const deleteTask = async (taskId: string) => {
+    if (!currentUser) return
     try {
       // Optimistic update - remove from UI immediately
       const taskToDelete = tasks.find(task => task.id === taskId)
@@ -232,6 +251,27 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     return tasks.filter(task => task.due_date && task.due_date.trim() !== '')
   }
 
+  // Format active view label nicely
+  const viewLabel = (v: string) => {
+    const map: Record<string, string> = {
+      "add-task": "Add Task",
+      "ai-assistant": "AI Assistant",
+      "smart-suggestions": "Smart Suggestions",
+    }
+    return map[v] || v.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
+          <p className="text-muted-foreground">Please log in to access the app.</p>
+        </div>
+      </div>
+    )
+  }
+
   const renderContent = () => {
     switch (activeView) {
       case "dashboard":
@@ -257,27 +297,6 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     }
   }
 
-  if (!currentUser) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
-          <p className="text-muted-foreground">Please log in to access the app.</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Format active view label nicely
-  const viewLabel = (v: string) => {
-    const map: Record<string, string> = {
-      "add-task": "Add Task",
-      "ai-assistant": "AI Assistant",
-      "smart-suggestions": "Smart Suggestions",
-    }
-    return map[v] || v.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())
-  }
-
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
     <div className="flex h-screen bg-slate-50 overflow-hidden dark:bg-slate-950">
@@ -286,29 +305,34 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
         <Sidebar activeView={activeView} onViewChange={handleViewChange} />
       </div>
 
-      {/* Mobile sidebar */}
-      <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden h-9 w-9 fixed top-3.5 left-4 z-50 text-slate-600"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-60 border-0">
-          <Sidebar activeView={activeView} onViewChange={handleViewChange} />
-        </SheetContent>
-      </Sheet>
-
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top header */}
         <header className="h-16 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between shrink-0 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-3">
+            {/* Mobile sidebar */}
+            <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="lg:hidden h-9 w-9 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white shrink-0"
+                >
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-60 border-0">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                  <SheetDescription>Mobile sidebar menu</SheetDescription>
+                </SheetHeader>
+                <Sidebar activeView={activeView} onViewChange={handleViewChange} />
+              </SheetContent>
+            </Sheet>
+
             <h1 className="text-base font-semibold text-slate-900 dark:text-white">{viewLabel(activeView)}</h1>
             {activeView === "calendar" && (
-              <span className="hidden sm:inline text-xs text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full">
+              <span className="hidden sm:inline text-xs text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full dark:border-slate-800">
                 {getCalendarTasks().length} scheduled
               </span>
             )}

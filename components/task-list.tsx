@@ -14,11 +14,11 @@ import supabase from '../utils/supabase' // used by fetchTasks for manual refres
 interface Task {
   id: string
   title: string
-  description: string
+  description?: string
   status: string
   priority: string
   due_date: string
-  assignee: string
+  assignee?: string
   category: string
   user_id: string
   created_at: string

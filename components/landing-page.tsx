@@ -28,7 +28,24 @@ import {
   Users,
   Zap,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+
+// Lightweight scroll-reveal hook using IntersectionObserver
+function useReveal(threshold = 0.12) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { threshold }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+  return { ref, visible }
+}
 
 interface LandingPageProps {
   onLogin: () => void
@@ -46,6 +63,7 @@ const tools = [
   { icon: ListTodo, title: "See the bigger picture", description: "Switch views to track progress your way." },
   { icon: CircleDot, title: "Own your day", description: "Focus on your tasks without distractions." },
   { icon: Bell, title: "Stay on track", description: "Get timely updates and never miss what's important." },
+  { icon: Sparkles, title: "Work smarter with AI", description: "Generate subtasks, draft updates, and prioritize your focus instantly." },
 ]
 
 type NavDetail = { section: string; title: string; description: string; icon: typeof CheckCircle2; primary: string; secondary: string; points: string[]; workflow: string[] }
@@ -186,12 +204,27 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
     return () => clearTimeout(timer)
   }, [])
 
+  const section1 = useReveal()
+  const section2 = useReveal()
+  const section3 = useReveal()
+  const section4 = useReveal()
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.desktop-nav-menu')) {
+        setOpenMenu(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   return (
     <div className="min-h-screen overflow-hidden bg-white text-[#111111]">
       <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div className="relative mx-auto flex h-[68px] max-w-7xl items-center justify-between px-5 sm:px-8">
           <BrandLogo className={`w-[150px] transition-all duration-500 ${isVisible ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"}`} />
-          <div className="hidden items-center gap-7 text-sm text-slate-600 md:flex">
+          <div className="desktop-nav-menu hidden items-center gap-7 text-sm text-slate-600 md:flex">
             {navItems.map((nav) => <div key={nav.label} className="relative"><button onClick={() => setOpenMenu(openMenu === nav.label ? null : nav.label)} className={`flex items-center gap-1 transition-colors ${openMenu === nav.label ? "text-slate-950" : "hover:text-slate-950"}`} aria-expanded={openMenu === nav.label}>{nav.label}<ChevronDown className={`h-3.5 w-3.5 transition-transform ${openMenu === nav.label ? "rotate-180" : ""}`} /></button>{openMenu === nav.label && <div className="absolute left-1/2 top-9 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)]">{nav.items.map(([title, description]) => <button key={title} onClick={() => openDetail(title)} className="block w-full rounded-md px-3 py-3 text-left transition-colors hover:bg-slate-50"><p className="text-sm font-medium text-slate-900">{title}</p><p className="mt-1 text-xs leading-5 text-slate-500">{description}</p></button>)}</div>}</div>)}
           </div>
           <div className="flex items-center gap-2"><Button variant="outline" onClick={onLogin} className="hidden h-9 rounded-md border-slate-300 px-4 text-sm font-medium text-slate-900 shadow-none sm:inline-flex">Sign in</Button><Button onClick={onSignUp} className="h-9 rounded-md bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">Create workspace</Button><button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle navigation" aria-expanded={mobileMenuOpen} className="ml-1 rounded-md p-2 text-slate-500 md:hidden"><Menu className="h-5 w-5" /></button></div>
@@ -204,15 +237,18 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
           <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] [background-size:80px_80px] [mask-image:linear-gradient(to_bottom,transparent,black_12%,black_75%,transparent)]" />
           <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 pb-24 pt-20 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10 lg:pb-28 lg:pt-28">
             <div className={`relative z-10 max-w-xl transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}>
-              <h1 className="max-w-[620px] text-5xl font-semibold leading-[0.98] tracking-[-0.065em] text-slate-950 sm:text-6xl lg:text-[72px]">The task manager<br />built for focus.</h1>
-              <p className="mt-7 max-w-md text-lg leading-8 text-slate-500">Plan your work. Stay aligned.<br />Move projects forward.</p>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3.5 py-1 text-xs font-semibold text-blue-600 backdrop-blur-sm">
+                <Sparkles className="h-3.5 w-3.5" /> Powered by Smart AI Assistance
+              </div>
+              <h1 className="max-w-[620px] text-5xl font-semibold leading-[0.98] tracking-[-0.065em] text-slate-950 sm:text-6xl lg:text-[72px]">The AI-powered task manager<br />built for focus.</h1>
+              <p className="mt-7 max-w-md text-lg leading-8 text-slate-500">Plan your work with intelligent AI guidance.<br />Stay aligned & move projects forward faster.</p>
               <div className="mt-9 flex items-center gap-4"><Button size="lg" onClick={onSignUp} className="h-12 rounded-md bg-blue-600 px-6 text-base font-medium text-white shadow-[0_8px_20px_rgba(41,122,255,0.22)] hover:bg-blue-700">Create workspace <ArrowRight className="ml-2 h-4 w-4" /></Button><button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })} className="hidden items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 sm:flex">See how it works <ArrowDown className="h-4 w-4" /></button></div>
             </div>
             <div className={`relative transition-all delay-150 duration-1000 ${isVisible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}><WorkspacePreview /></div>
           </div>
         </section>
 
-        <section id="method" className="relative overflow-hidden border-y border-white/10 bg-[#0b111b] text-white">
+        <section id="method" ref={section1.ref} className={`relative overflow-hidden border-y border-white/10 bg-[#0b111b] text-white transition-all duration-700 ${section1.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           <div className="absolute inset-y-0 left-1/2 hidden w-px bg-white/[0.035] lg:block" />
           <div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20 lg:py-24">
             <div className="max-w-sm">
@@ -235,9 +271,79 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
           </div>
         </section>
 
-        <section id="features" className="overflow-hidden bg-white"><div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32"><div className="mb-14 text-center"><p className="text-sm font-medium text-blue-600">Everything you need to ship work</p><h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">A calmer way to get things done.</h2></div><FeatureCarousel /></div></section>
+        {/* Dedicated AI Showcase Section */}
+        {/* Dedicated AI Showcase Section */}
+        <section id="ai-intelligence" ref={section2.ref} className={`relative overflow-hidden bg-[#080d15] py-24 text-white sm:py-32 transition-all duration-700 ${section2.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+          <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-blue-600/10 blur-[120px]" />
+          
+          <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
+            <div className="flex flex-col items-center text-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1.5 text-xs font-medium text-blue-400 backdrop-blur-md">
+                <Sparkles className="h-3.5 w-3.5" /> Built-in AI Work Assistant
+              </div>
+              <h2 className="mt-8 max-w-3xl text-4xl font-semibold leading-tight tracking-[-0.045em] text-white sm:text-5xl lg:text-6xl">
+                Supercharge your productivity with intelligent AI.
+              </h2>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
+                TaskFlow AI acts as your personal project strategist. Instantly break down complex goals, generate smart task suggestions, and summarize project context without leaving your workspace.
+              </p>
+              
+              <div className="mt-10 flex flex-wrap justify-center gap-6">
+                {[
+                  "Natural language task breakdown",
+                  "Schedule optimization",
+                  "Context-aware summaries"
+                ].map((feat) => (
+                  <div key={feat} className="flex items-center gap-2">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-blue-400">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span className="text-sm font-medium text-slate-200">{feat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-        <section id="footer" className="bg-[#0b111b] text-white"><div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-24"><div className="flex flex-col justify-between gap-10 border-b border-white/15 pb-16 sm:flex-row sm:items-end"><div><h2 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Ready to get started?</h2><p className="mt-4 max-w-sm text-base leading-7 text-slate-400">Create your workspace and start getting things done.</p></div><Button onClick={onSignUp} className="h-12 self-start rounded-md bg-blue-600 px-7 text-base text-white hover:bg-blue-700 sm:self-auto">Create workspace <ArrowRight className="ml-2 h-4 w-4" /></Button></div><footer className="grid gap-10 pt-12 sm:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><BrandLogo className="w-[150px]" textClassName="text-white" /><p className="mt-5 max-w-xs text-sm leading-6 text-slate-500">The modern task management platform for productive teams.</p></div>{[['Product', 'Overview', 'Integrations', 'Changelog'], ['Solutions', 'Teams', 'Design', 'Operations'], ['Resources', 'Docs', 'Guides', 'Help center']].map(([heading, ...links]) => <div key={heading}><p className="text-sm font-medium text-white">{heading}</p><div className="mt-4 space-y-3 text-sm text-slate-500">{links.map(link => <p key={link}>{link}</p>)}</div></div>)}</footer><div className="mt-12 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 text-xs text-slate-600 sm:flex-row"><span>© 2025 TaskFlow. All rights reserved.</span><span>Privacy &nbsp;&nbsp; Terms</span></div></div></section>
+            <div className="relative mx-auto mt-20 w-full max-w-6xl [perspective:2000px]">
+              {/* Immersive background glow */}
+              <div className="absolute -inset-10 animate-pulse rounded-full bg-blue-500/20 blur-[100px]" />
+              <div className="absolute -inset-10 translate-x-20 translate-y-20 animate-pulse rounded-full bg-indigo-500/20 blur-[120px] delay-700" />
+              
+              {/* 3D Premium SaaS Isometric Frame */}
+              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0c121e] shadow-[0_40px_100px_-20px_rgba(37,99,235,0.4)] transition-all duration-1000 ease-out [transform:translateZ(0)_rotateY(-6deg)_rotateX(10deg)_rotateZ(1deg)_scale(1.02)] hover:[transform:translateZ(0)_rotateY(0deg)_rotateX(0deg)_rotateZ(0deg)_scale(1)]">
+                
+                {/* Mockup Top Bar */}
+                <div className="flex h-12 w-full items-center gap-2 border-b border-white/10 bg-[#162032] px-5">
+                  <div className="flex gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-slate-500/80" />
+                    <span className="h-3 w-3 rounded-full bg-slate-500/80" />
+                    <span className="h-3 w-3 rounded-full bg-slate-500/80" />
+                  </div>
+                  <div className="mx-auto flex h-6 items-center rounded-md px-4 text-xs font-medium text-slate-400">
+                    TaskFlow AI Assistant
+                  </div>
+                  <div className="w-12" />
+                </div>
+
+                {/* Main image wrapper */}
+                <div className="relative bg-white">
+                  <img
+                    src="/ai-feature-preview.png"
+                    alt="TaskFlow AI Assistant Showcase"
+                    className="relative z-10 w-full h-auto object-cover"
+                  />
+                  {/* Subtle Glass reflection overlay */}
+                  <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-tr from-white/5 via-transparent to-white/10 opacity-30" />
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" ref={section3.ref} className={`overflow-hidden bg-white transition-all duration-700 ${section3.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}><div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32"><div className="mb-14 text-center"><p className="text-sm font-medium text-blue-600">Everything you need to ship work</p><h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">A calmer way to get things done.</h2></div><FeatureCarousel /></div></section>
+
+        <section id="footer" ref={section4.ref} className={`bg-[#0b111b] text-white transition-all duration-700 ${section4.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}><div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-24"><div className="flex flex-col justify-between gap-10 border-b border-white/15 pb-16 sm:flex-row sm:items-end"><div><h2 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Ready to get started?</h2><p className="mt-4 max-w-sm text-base leading-7 text-slate-400">Create your workspace and start getting things done.</p></div><Button onClick={onSignUp} className="h-12 self-start rounded-md bg-blue-600 px-7 text-base text-white hover:bg-blue-700 sm:self-auto">Create workspace <ArrowRight className="ml-2 h-4 w-4" /></Button></div><footer className="grid gap-10 pt-12 sm:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><BrandLogo className="w-[150px]" textClassName="text-white" /><p className="mt-5 max-w-xs text-sm leading-6 text-slate-500">The modern task management platform for productive teams.</p></div>{[['Product', 'Overview', 'Integrations', 'Changelog'], ['Solutions', 'Teams', 'Design', 'Operations'], ['Resources', 'Docs', 'Guides', 'Help center']].map(([heading, ...links]) => <div key={heading}><p className="text-sm font-medium text-white">{heading}</p><div className="mt-4 space-y-3 text-sm text-slate-500">{links.map(link => <p key={link}>{link}</p>)}</div></div>)}</footer><div className="mt-12 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 text-xs text-slate-600 sm:flex-row"><span>© 2025 TaskFlow. All rights reserved.</span><span>Privacy &nbsp;&nbsp; Terms</span></div></div></section>
       </main>}
     </div>
   )

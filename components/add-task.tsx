@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Plus, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, Plus, CheckCircle2, Sparkles, Wand2, Lightbulb } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 
 interface AddTaskProps {
   onAddTask: (task: any) => void
@@ -64,6 +65,38 @@ export function AddTask({ onAddTask, onBack, user }: AddTaskProps) {
     if (success) setSuccess(false)
   }
 
+  const handleAIGenerate = async (type: 'description' | 'ideas') => {
+    if (!formData.title.trim()) {
+      setError("Please enter a task title first so the AI knows what to write about.");
+      return;
+    }
+    
+    setIsLoading(true);
+    set("description", "AI is thinking...");
+
+    const prompt = type === 'description' 
+      ? `Write a short, professional project brief and description for a task titled "${formData.title}". Keep it concise, using markdown. Include Objectives and Next Steps.`
+      : `Brainstorm some quick ideas, potential approaches, and risks for a task titled "${formData.title}". Keep it concise and use markdown bullet points.`;
+
+    try {
+      const response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ type: 'user', content: prompt }] }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to generate content');
+      
+      set("description", data.reply?.trim() || "");
+    } catch (err: any) {
+      setError(err.message || "Failed to generate AI content");
+      set("description", "");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <div className="h-full overflow-y-auto bg-[#f7f9fc] dark:bg-slate-950">
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
@@ -102,9 +135,32 @@ export function AddTask({ onAddTask, onBack, user }: AddTaskProps) {
               {/* Description */}
               <div className="space-y-1.5">
                 <Label htmlFor="description" className="text-sm font-medium text-slate-700">Description</Label>
-                <Textarea id="description" placeholder="Add more context (optional)…" value={formData.description}
-                  onChange={e => set("description", e.target.value)}
-                  rows={3} className="border-slate-200 resize-none focus-visible:ring-blue-500" disabled={isLoading} />
+                <div className="relative">
+                  <Textarea id="description" placeholder="Add more context (optional)…" value={formData.description}
+                    onChange={e => set("description", e.target.value)}
+                    rows={4} className="border-slate-200 pr-10 resize-none focus-visible:ring-blue-500" disabled={isLoading} />
+                  
+                  {/* AI Assistant Button */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button type="button" className="absolute bottom-2.5 right-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition-transform hover:scale-110 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1">
+                        <Sparkles className="h-3.5 w-3.5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel className="text-xs text-slate-500">AI Assistant</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleAIGenerate('description')} className="cursor-pointer text-sm">
+                        <Wand2 className="mr-2 h-4 w-4 text-blue-600" />
+                        Write description
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAIGenerate('ideas')} className="cursor-pointer text-sm">
+                        <Lightbulb className="mr-2 h-4 w-4 text-amber-500" />
+                        Brainstorm ideas
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
               {/* Priority + Status */}
@@ -147,9 +203,16 @@ export function AddTask({ onAddTask, onBack, user }: AddTaskProps) {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="category" className="text-sm font-medium text-slate-700">Category</Label>
-                  <Input id="category" placeholder="e.g. Design, Dev…" value={formData.category}
+                  <Input id="category" list="category-options" placeholder="e.g. Design, Dev…" value={formData.category}
                     onChange={e => set("category", e.target.value)}
                     className="h-10 border-slate-200 focus-visible:ring-blue-500" disabled={isLoading} />
+                  <datalist id="category-options">
+                    <option value="Design" />
+                    <option value="Development" />
+                    <option value="Marketing" />
+                    <option value="Operations" />
+                    <option value="Personal" />
+                  </datalist>
                 </div>
               </div>
 

@@ -10,11 +10,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 interface Task {
   id: string
   title: string
-  description: string
+  description?: string
   status: string
   priority: string
   due_date: string
-  assignee: string
+  assignee?: string
   category: string
 }
 

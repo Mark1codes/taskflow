@@ -8,18 +8,29 @@ import { TaskManagerApp } from "@/components/task-manager-app"
 import supabase from '../utils/supabase'
 import { getAvatarDisplayUrl } from "@/utils/avatar"
 
-type AuthState = "landing" | "login" | "signup" | "authenticated"
+type AuthState = "initializing" | "landing" | "login" | "signup" | "authenticated"
 
 export default function Home() {
-  const [authState, setAuthState] = useState<AuthState>("landing")
+  const [authState, setAuthState] = useState<AuthState>("initializing")
   const [user, setUser] = useState<any>(null)
   const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true)
 
+  
   useEffect(() => {
-    
+    const titles: Record<AuthState, string> = {
+      initializing: "TaskFlow",
+      landing:      "TaskFlow — Focused Task Management",
+      login:        "Sign In — TaskFlow",
+      signup:       "Create Account — TaskFlow",
+      authenticated: "TaskFlow",
+    }
+    document.title = titles[authState] ?? "TaskFlow"
+  }, [authState])
+
+  useEffect(() => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
-    
+
     if (!supabaseUrl || !supabaseKey) {
       console.warn('Supabase environment variables are not configured')
       setIsSupabaseConfigured(false)
@@ -56,18 +67,24 @@ export default function Home() {
                 const userData = await createUserData(data.session.user)
                 setUser(userData)
                 setAuthState("authenticated")
+                return
               }
             } catch (err) {
               console.error("Error exchanging code for session:", err)
             }
           }
           window.history.replaceState({}, document.title, '/')
+          setAuthState("landing")
+        } else {
+          // No active session — show landing page
+          setAuthState("landing")
         }
       } catch (error) {
         console.error("Session check error:", error)
+        setAuthState("landing")
       }
     }
-    
+
     checkSession()
 
     return () => {
@@ -102,7 +119,6 @@ export default function Home() {
         authUser.user_metadata?.avatar_url || ""
       )
 
-      // email lives in Supabase Auth (auth.users), not in the public users table
       return {
         id: authUser.id,
         name: profileData?.full_name || authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User",
@@ -167,8 +183,29 @@ export default function Home() {
     }
 
     switch (authState) {
+      case "initializing":
+        // Block rendering entirely until session check resolves — prevents any flash
+        return (
+          <div className="min-h-screen flex flex-col items-center justify-center bg-[#f7f9fc]">
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex items-center gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 51 41" role="img" aria-label="TaskFlow" width="32" height="26">
+                  <path d="M43 31L31 40H5L7 35L12 31H29L32 35L40 11L45 7H50L43 31ZM43 5L38 9H21L18 5L10 29L5 33H0L7 9L19 0H45L43 5ZM24 13H35L29 31L26 27H15L21 9L24 13Z" fill="#297AFF"/>
+                </svg>
+                <span className="text-lg font-semibold text-slate-900 tracking-tight">TaskFlow</span>
+              </div>
+              <div className="flex gap-1.5 mt-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.3s]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.15s]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce" />
+              </div>
+            </div>
+          </div>
+        )
+
       case "landing":
         return <LandingPage onLogin={() => setAuthState("login")} onSignUp={() => setAuthState("signup")} />
+
       case "login":
         return (
           <LoginPage
@@ -177,6 +214,7 @@ export default function Home() {
             onBack={() => setAuthState("landing")}
           />
         )
+
       case "signup":
         return (
           <SignUpPage
@@ -185,12 +223,20 @@ export default function Home() {
             onBack={() => setAuthState("landing")}
           />
         )
+
       case "authenticated":
         return <TaskManagerApp user={user} onLogout={handleLogout} />
+
       default:
         return <LandingPage onLogin={() => setAuthState("login")} onSignUp={() => setAuthState("signup")} />
     }
   }
 
-  return <div className="min-h-screen">{renderContent()}</div>
+  return (
+    <div className="min-h-screen">
+      <div key={authState} className="animate-page-enter">
+        {renderContent()}
+      </div>
+    </div>
+  )
 }
