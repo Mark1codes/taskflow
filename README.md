@@ -181,8 +181,6 @@ Public SEO currently focuses on the landing page. Authenticated dashboard conten
 - Keep Supabase Row Level Security policies scoped to `auth.uid()`.
 - Avoid using service-role keys in frontend code.
 
-See [SECURITY_PRIORITY_FIX_ORDER.md](./SECURITY_PRIORITY_FIX_ORDER.md) for the current security hardening backlog.
-
 ## Deployment
 
 The app is deployed on Vercel:
