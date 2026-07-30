@@ -29,3 +29,6 @@ SECURITY_PRIORITY_FIX_ORDER.md
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# roadmaps
+NOTIFICATIONS_ROADMAP.md
