@@ -23,6 +23,8 @@ import { ProfilePage } from "@/components/profile-page"
 import { AIAssistant } from "@/components/ai-assistant"
 import { AIWorkPlanner } from "@/components/ai-work-planner"
 import { ThemeProvider } from "@/components/theme-provider"
+import { FocusMode } from "@/components/focus-mode"
+import { ActivityFeed } from "@/components/activity-feed"
 import supabase from '../utils/supabase'
 
 interface Task {
@@ -37,6 +39,8 @@ interface Task {
   updated_at: string
   user_id: string
   description?: string
+  subtasks?: { id: string; title: string; completed: boolean }[]
+  time_spent_minutes?: number
 }
 
 interface User {
@@ -57,13 +61,19 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   const [tasks, setTasks] = useState<Task[]>([])
   const [currentUser, setCurrentUser] = useState<User | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
+  const [focusedTask, setFocusedTask] = useState<Task | null>(null)
 
   useEffect(() => {
     if (initialUser) {
       setCurrentUser(initialUser)
-      fetchTasks(initialUser.id)
+      fetchTasks(initialUser.id, initialUser.name)
     }
   }, [initialUser])
+  // Load color theme
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("taskflow-color-theme") || "blue"
+    document.documentElement.setAttribute("data-theme", savedTheme)
+  }, [])
 
   // Dynamically update the browser tab title on every view change
   useEffect(() => {
@@ -83,6 +93,8 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   }, [activeView])
 
   // Set up real-time subscription for tasks
+  // Note: Supabase realtime doesn't support OR filters, so we listen to all task
+  // changes for the user's own tasks and handle assigned tasks client-side on refresh.
   useEffect(() => {
     if (!currentUser?.id) return
 
@@ -132,23 +144,34 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     }
   }, [currentUser?.id])
 
-  const fetchTasks = async (userId: string) => {
+  // Fetch tasks where current user is the creator OR the named assignee
+  const fetchTasks = async (userId: string, userName?: string) => {
     try {
       setIsLoading(true)
-      const { data, error } = await supabase
+      const name = userName || currentUser?.name || ''
+
+      // Build OR filter: tasks I created OR tasks assigned to me by name
+      let query = supabase
         .from('task')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false })
-      
+
+      if (name) {
+        query = query.or(`user_id.eq.${userId},assignee.eq.${name}`)
+      } else {
+        query = query.eq('user_id', userId)
+      }
+
+      const { data, error } = await query
+
       if (error) {
-        console.error("Error fetching tasks:", error)
+        console.error('Error fetching tasks:', error)
         setTasks([])
       } else {
         setTasks(data || [])
       }
     } catch (error) {
-      console.error("Error fetching tasks:", error)
+      console.error('Error fetching tasks:', error)
       setTasks([])
     } finally {
       setIsLoading(false)
@@ -277,13 +300,15 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       case "dashboard":
         return <Dashboard tasks={tasks} isLoading={isLoading} />
       case "add-task":
-        return <AddTask onAddTask={addTask} onBack={() => setActiveView("dashboard")} user={currentUser} />
+        return <AddTask tasks={tasks} onAddTask={addTask} onBack={() => setActiveView("dashboard")} user={currentUser} />
       case "tasks":
-        return <TaskList tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} />
+        return <TaskList tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} onStartFocus={setFocusedTask} />
       case "calendar":
         return <Calendar tasks={getCalendarTasks()} onUpdateTask={updateTask} />
       case "kanban":
-        return <KanbanBoard tasks={tasks} onUpdateTask={updateTask} />
+        return <KanbanBoard tasks={tasks} onUpdateTask={updateTask} onStartFocus={setFocusedTask} />
+      case "activity":
+        return <ActivityFeed />
       case "settings":
         return <Settings user={currentUser} />
       case "profile":
@@ -380,6 +405,25 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
         <main className="min-h-0 flex-1 overflow-hidden bg-slate-50 dark:bg-slate-950">{renderContent()}</main>
       </div>
     </div>
+    
+    {focusedTask && (
+      <FocusMode 
+        task={focusedTask} 
+        onClose={(minutesSpent) => {
+          if (minutesSpent > 0) {
+            updateTask(focusedTask.id, { time_spent_minutes: (focusedTask.time_spent_minutes || 0) + minutesSpent })
+          }
+          setFocusedTask(null)
+        }} 
+        onComplete={(minutesSpent) => {
+          updateTask(focusedTask.id, { 
+            status: 'completed',
+            time_spent_minutes: (focusedTask.time_spent_minutes || 0) + minutesSpent 
+          })
+          setFocusedTask(null)
+        }} 
+      />
+    )}
     </ThemeProvider>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import {
-  LayoutDashboard, Plus, CheckSquare, Calendar, Kanban,
+  LayoutDashboard, Plus, CheckSquare, Calendar, Kanban, Activity,
   Settings, Menu, Bot, Sparkles, Zap,
   ChevronLeft,
 } from "lucide-react"
@@ -21,6 +21,7 @@ const mainNav = [
   { id: "tasks",     label: "Task List",  icon: CheckSquare },
   { id: "calendar",  label: "Calendar",   icon: Calendar },
   { id: "kanban",    label: "Kanban",     icon: Kanban },
+  { id: "activity",  label: "Activity",   icon: Activity },
   { id: "settings",  label: "Settings",   icon: Settings },
 ]
 

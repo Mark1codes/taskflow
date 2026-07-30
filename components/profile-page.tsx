@@ -276,7 +276,7 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
     setIsAvatarUploading(true)
     setAvatarSrc(localPreview)
     onUpdateUser({ ...user, avatar: localPreview })
-    setMessage("Preparing profile picture...")
+    setMessage("Processing image...")
     setMessageType("success")
 
     try {
@@ -286,7 +286,7 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
         "The image took too long to prepare. Please try a smaller picture."
       )
       const filePath = user.id + "/" + Date.now() + "-" + avatarFile.name.replace(/[^a-zA-Z0-9._-]/g, "-")
-      setMessage("Uploading optimized profile picture...")
+      setMessage("Uploading...")
       const { error: uploadError } = await supabase.storage.from(AVATAR_BUCKET).upload(filePath, avatarFile, {
         upsert: true,
         cacheControl: "31536000",

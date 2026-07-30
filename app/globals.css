@@ -8,6 +8,19 @@
     --brand: 221 83% 53%;           /* #2563EB */
     --brand-dark: 221 83% 43%;      /* #1D4ED8 */
 
+    /* Theme Engine (Default Indigo) */
+    --theme-50: #eff6ff;
+    --theme-100: #dbeafe;
+    --theme-200: #bfdbfe;
+    --theme-300: #93c5fd;
+    --theme-400: #60a5fa;
+    --theme-500: #3b82f6;
+    --theme-600: #2563eb;
+    --theme-700: #1d4ed8;
+    --theme-800: #1e40af;
+    --theme-900: #1e3a8a;
+    --theme-950: #172554;
+
     /* Surfaces */
     --background: 210 40% 98%;      /* #F8FAFC */
     --foreground: 222 47% 11%;      /* #0F172A */
@@ -76,6 +89,69 @@
     --chart-3: 38 92% 50%;
     --chart-4: 0 72% 51%;
     --chart-5: 270 60% 55%;
+  }
+  
+  [data-theme="emerald"] {
+    --primary: 160 84% 39%;
+    --ring: 160 84% 39%;
+    --brand: 160 84% 39%;
+    --theme-50: #ecfdf5;
+    --theme-100: #d1fae5;
+    --theme-200: #a7f3d0;
+    --theme-300: #6ee7b7;
+    --theme-400: #34d399;
+    --theme-500: #10b981;
+    --theme-600: #059669;
+    --theme-700: #047857;
+    --theme-800: #065f46;
+    --theme-900: #064e3b;
+    --theme-950: #022c22;
+  }
+  .dark[data-theme="emerald"] {
+    --primary: 160 60% 45%;
+    --ring: 160 60% 45%;
+  }
+
+  [data-theme="slate"] {
+    --primary: 215 19% 35%;
+    --ring: 215 19% 35%;
+    --brand: 215 19% 35%;
+    --theme-50: #f8fafc;
+    --theme-100: #f1f5f9;
+    --theme-200: #e2e8f0;
+    --theme-300: #cbd5e1;
+    --theme-400: #94a3b8;
+    --theme-500: #64748b;
+    --theme-600: #475569;
+    --theme-700: #334155;
+    --theme-800: #1e293b;
+    --theme-900: #0f172a;
+    --theme-950: #020617;
+  }
+  .dark[data-theme="slate"] {
+    --primary: 215 20% 65%;
+    --ring: 215 20% 65%;
+  }
+
+  [data-theme="violet"] {
+    --primary: 262 83% 58%;
+    --ring: 262 83% 58%;
+    --brand: 262 83% 58%;
+    --theme-50: #f5f3ff;
+    --theme-100: #ede9fe;
+    --theme-200: #ddd6fe;
+    --theme-300: #c4b5fd;
+    --theme-400: #a78bfa;
+    --theme-500: #8b5cf6;
+    --theme-600: #7c3aed;
+    --theme-700: #6d28d9;
+    --theme-800: #5b21b6;
+    --theme-900: #4c1d95;
+    --theme-950: #2e1065;
+  }
+  .dark[data-theme="violet"] {
+    --primary: 262 83% 70%;
+    --ring: 262 83% 70%;
   }
 }
 

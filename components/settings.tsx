@@ -26,10 +26,21 @@ export function Settings({ user }: SettingsProps) {
   const [saved, setSaved] = useState(false)
   const [notifications, setNotifications] = useState({ email: true, push: false, desktop: true })
   const [preferences, setPreferences] = useState({ timezone: "UTC+8", defaultPriority: "medium", defaultAssignee: "", autoAssignDueDates: false })
+  const [colorTheme, setColorTheme] = useState("blue")
 
   useEffect(() => {
     if (user?.name) setPreferences(p => ({ ...p, defaultAssignee: p.defaultAssignee || user.name }))
+    // Load theme from localStorage
+    const savedTheme = localStorage.getItem("taskflow-color-theme") || "blue"
+    setColorTheme(savedTheme)
+    document.documentElement.setAttribute("data-theme", savedTheme)
   }, [user])
+
+  const handleThemeChange = (value: string) => {
+    setColorTheme(value)
+    localStorage.setItem("taskflow-color-theme", value)
+    document.documentElement.setAttribute("data-theme", value)
+  }
 
   const handleSave = () => {
     setSaved(true)
@@ -70,10 +81,11 @@ export function Settings({ user }: SettingsProps) {
           <div className={sectionHeader}>
             <div className="flex items-center gap-2">
               <Palette className="h-4 w-4 text-slate-400" />
-              <span className="text-sm font-semibold text-slate-800">Appearance</span>
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Appearance</span>
             </div>
           </div>
           <div className={sectionBody}>
+            {/* 
             <div className={rowBetween}>
               <div>
                 <p className={labelMain}>Theme</p>
@@ -88,13 +100,13 @@ export function Settings({ user }: SettingsProps) {
                 <Moon className="h-3.5 w-3.5 text-slate-400" />
               </div>
             </div>
-
-            <Separator className="bg-slate-50" />
+            <Separator className="bg-slate-100 dark:bg-slate-800" />
+            */}
 
             <div className="space-y-1.5">
               <Label className={labelMain}>Accent colour</Label>
-              <Select defaultValue="blue">
-                <SelectTrigger className="h-9 border-slate-200 w-48">
+              <Select value={colorTheme} onValueChange={handleThemeChange}>
+                <SelectTrigger className="h-9 border-slate-200 dark:border-slate-800 w-48 bg-white dark:bg-slate-900">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -113,7 +125,7 @@ export function Settings({ user }: SettingsProps) {
           <div className={sectionHeader}>
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-slate-400" />
-              <span className="text-sm font-semibold text-slate-800">Notifications</span>
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Notifications</span>
             </div>
           </div>
           <div className={sectionBody}>
@@ -133,7 +145,7 @@ export function Settings({ user }: SettingsProps) {
                     onCheckedChange={v => setNotifications(n => ({ ...n, [item.key]: v }))}
                   />
                 </div>
-                {i < arr.length - 1 && <Separator className="bg-slate-50 mt-5" />}
+                {i < arr.length - 1 && <Separator className="bg-slate-100 dark:bg-slate-800 mt-5" />}
               </div>
             ))}
           </div>
@@ -142,14 +154,14 @@ export function Settings({ user }: SettingsProps) {
         {/* Task preferences */}
         <div className={section}>
           <div className={sectionHeader}>
-            <span className="text-sm font-semibold text-slate-800">Task Preferences</span>
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Task Preferences</span>
           </div>
           <div className={sectionBody}>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className={labelMain}>Default priority</Label>
                 <Select value={preferences.defaultPriority} onValueChange={v => setPreferences(p => ({ ...p, defaultPriority: v }))}>
-                  <SelectTrigger className="h-9 border-slate-200"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
@@ -159,13 +171,13 @@ export function Settings({ user }: SettingsProps) {
               </div>
               <div className="space-y-1.5">
                 <Label className={labelMain}>Default assignee</Label>
-                <Input className="h-9 border-slate-200" placeholder="Your name…"
+                <Input className="h-9 border-slate-200 dark:border-slate-800" placeholder="Your name…"
                   value={preferences.defaultAssignee}
                   onChange={e => setPreferences(p => ({ ...p, defaultAssignee: e.target.value }))} />
               </div>
             </div>
 
-            <Separator className="bg-slate-50" />
+            <Separator className="bg-slate-100 dark:bg-slate-800" />
 
             <div className={rowBetween}>
               <div>
@@ -178,12 +190,12 @@ export function Settings({ user }: SettingsProps) {
               />
             </div>
 
-            <Separator className="bg-slate-50" />
+            <Separator className="bg-slate-100 dark:bg-slate-800" />
 
             <div className="space-y-1.5">
               <Label className={labelMain}>Timezone</Label>
               <Select value={preferences.timezone} onValueChange={v => setPreferences(p => ({ ...p, timezone: v }))}>
-                <SelectTrigger className="h-9 border-slate-200 w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 border-slate-200 dark:border-slate-800 w-full"><SelectValue /></SelectTrigger>
                 <SelectContent className="max-h-56">
                   {[
                     ["UTC-8", "Pacific (UTC-8)"], ["UTC-7", "Mountain (UTC-7)"],

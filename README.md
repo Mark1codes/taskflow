@@ -14,13 +14,19 @@ TaskFlow is a modern task management workspace built with Next.js, React, Supaba
 - **Authentication** with Supabase email/password and Google OAuth support.
 - **Task dashboard** with productivity summaries and workspace overview.
 - **Task creation** with title, description, priority, status, due date, assignee, and category fields.
+- **Sub-tasks and interactive checklists** to break down large tasks.
+- **Task dependencies (Blockers)** to lock tasks that cannot be started yet.
 - **Task list** with search, status filters, priority filters, refresh, update, and delete actions.
 - **Calendar view** for tasks with due dates.
 - **Kanban board** for visual workflow management.
+- **Focus Mode** with a built-in distraction-free timer for deep work.
+- **Time tracking** logged automatically from Focus Mode sessions directly to task cards.
+- **Real-time Team Activity Feed** to view a chronological timeline of workspace events.
+- **Dynamic Color Themes** to customize the workspace accent color (Indigo, Slate, Emerald, Violet).
 - **AI assistant** powered through a server-side OpenRouter API route.
 - **Smart suggestions** based on the user's real task data.
 - **Profile settings** with editable profile details, password update, preferences, and Supabase Storage avatar uploads.
-- **Dark mode support** inside the authenticated app experience.
+- **Dark mode support** inside the authenticated app experience (currently disabled for future enhancement).
 - **SEO foundation** with Next.js metadata, `robots.txt`, and `sitemap.xml`.
 - **Responsive UI** built for desktop and mobile layouts.
 

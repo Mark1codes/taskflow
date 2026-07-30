@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter, Calendar, User, MoreHorizontal, Trash2, CheckCircle2, RefreshCw, Plus, ArrowUpDown } from "lucide-react"
+import { Search, Filter, Calendar, User, MoreHorizontal, Trash2, CheckCircle2, RefreshCw, Plus, ArrowUpDown, Timer, ListChecks, Clock, Lock } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import supabase from '../utils/supabase' // used by fetchTasks for manual refresh
@@ -23,6 +23,9 @@ interface Task {
   user_id: string
   created_at: string
   updated_at: string
+  subtasks?: { id: string; title: string; completed: boolean }[]
+  time_spent_minutes?: number
+  blocked_by_id?: string
 }
 
 interface TaskListProps {
@@ -31,6 +34,7 @@ interface TaskListProps {
   onDeleteTask: (taskId: string) => void
   user: any
   isLoading?: boolean
+  onStartFocus?: (task: any) => void
 }
 
 const priorityConfig: Record<string, { label: string; class: string }> = {
@@ -47,7 +51,7 @@ const statusConfig: Record<string, { label: string; border: string; badge: strin
 
 const statusOrder = ["todo", "in-progress", "completed"]
 
-export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user, isLoading = false }: TaskListProps) {
+export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user, isLoading = false, onStartFocus }: TaskListProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -65,8 +69,19 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
     setRefreshing(true)
     setError("")
     try {
-      const { data, error: e } = await supabase
-        .from('task').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+      const name = user?.name || ''
+      let query = supabase
+        .from('task')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (name) {
+        query = query.or(`user_id.eq.${user.id},assignee.eq.${name}`)
+      } else {
+        query = query.eq('user_id', user.id)
+      }
+
+      const { data, error: e } = await query
       if (e) setError("Failed to fetch tasks: " + e.message)
       else setTasks(data || [])
     } catch { setError("An unexpected error occurred") }
@@ -93,6 +108,14 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
   const handleDelete = (taskId: string) => {
     setTasks(prev => prev.filter(t => t.id !== taskId))
     onDeleteTask(taskId)
+  }
+
+  const toggleSubtask = (taskId: string, subtaskId: string) => {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task || !task.subtasks) return
+    const newSubtasks = task.subtasks.map(s => s.id === subtaskId ? { ...s, completed: !s.completed } : s)
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, subtasks: newSubtasks } : t))
+    onUpdateTask(taskId, { subtasks: newSubtasks })
   }
 
   const fmt = (s: string) => {
@@ -185,33 +208,37 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
               const pc = priorityConfig[task.priority] ?? priorityConfig["medium"]
               const overdue = isOverdue(task.due_date) && task.status !== "completed"
               return (
-                <Card key={task.id} className={`border-slate-200/80 border-l-4 ${sc.border} bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900`}>
+                <Card key={task.id} className="group relative bg-white border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 dark:bg-slate-900 dark:border-slate-800">
                   <CardContent className="p-4 sm:p-5">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3.5">
                       {/* Status toggle */}
                       <button onClick={() => toggleStatus(task.id, task.status)}
-                        className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors
-                          ${task.status === "completed" ? "bg-emerald-500 border-emerald-500" :
-                            task.status === "in-progress" ? "border-blue-500" : "border-slate-300 hover:border-slate-400"}`}>
-                        {task.status === "completed" && (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-white" />
-                        )}
+                        className={`mt-0.5 w-5 h-5 flex items-center justify-center shrink-0 transition-all duration-200
+                          ${task.status === "completed" ? "bg-emerald-500 text-white" :
+                            task.status === "in-progress" ? "border-2 border-blue-500 rounded-full" : "border-2 border-slate-300 rounded-full hover:border-blue-400"}`}>
+                        {task.status === "completed" ? (
+                          <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center"><CheckCircle2 className="h-3.5 w-3.5 text-white" /></div>
+                        ) : null}
                       </button>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <h3 className={`text-sm font-semibold text-slate-900 ${task.status === "completed" ? "line-through text-slate-400" : ""}`}>
+                        <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
+                          <h3 className={`text-[15px] font-medium tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-1.5 ${task.status === "completed" ? "line-through text-slate-400 dark:text-slate-500" : ""}`}>
+                            {task.blocked_by_id && tasks.find(t => t.id === task.blocked_by_id && t.status !== 'completed') && (
+                              <Lock className="h-3.5 w-3.5 text-red-500" />
+                            )}
                             {task.title}
                           </h3>
-                          <Badge className={`text-xs border ${pc.class}`}>{pc.label}</Badge>
-                          <Badge className={`text-xs border ${sc.badge}`}>{sc.label}</Badge>
+                          {task.priority !== "medium" && (
+                            <Badge variant="outline" className={`text-[10px] uppercase tracking-wider px-1.5 py-0 border-transparent bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 ${task.priority === 'high' ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400' : ''}`}>{task.priority}</Badge>
+                          )}
                           {task.category && (
-                            <Badge variant="outline" className="text-xs text-slate-500 border-slate-200">{task.category}</Badge>
+                            <Badge variant="outline" className="text-[10px] uppercase tracking-wider px-1.5 py-0 border-slate-200 text-slate-500 bg-white dark:bg-transparent dark:border-slate-700 dark:text-slate-400">{task.category}</Badge>
                           )}
                         </div>
 
                         {task.description && (
-                          <p className="text-xs text-slate-500 mb-2 line-clamp-2">{task.description}</p>
+                          <p className="text-[13px] text-slate-500 dark:text-slate-400 mb-3 line-clamp-1 pr-8">{task.description}</p>
                         )}
 
                         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
@@ -227,7 +254,48 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                               {overdue && " · Overdue"}
                             </span>
                           )}
+                          {task.subtasks && task.subtasks.length > 0 && (
+                            <span className="flex items-center gap-1 text-blue-500">
+                              <ListChecks className="h-3 w-3" />
+                              {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                            </span>
+                          )}
+                          {task.time_spent_minutes ? (
+                            <span className="flex items-center gap-1 text-amber-500">
+                              <Clock className="h-3 w-3" />
+                              {task.time_spent_minutes}m
+                            </span>
+                          ) : null}
                         </div>
+                        
+                        {task.subtasks && task.subtasks.length > 0 && (
+                          <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-500 rounded-full transition-all duration-500" 
+                                  style={{ width: `${(task.subtasks.filter(s => s.completed).length / task.subtasks.length) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              {task.subtasks.map(st => (
+                                <button
+                                  key={st.id}
+                                  onClick={() => toggleSubtask(task.id, st.id)}
+                                  className="w-full flex items-start text-left gap-2 p-1.5 hover:bg-slate-50 rounded group transition-colors"
+                                >
+                                  <div className={`mt-0.5 shrink-0 flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${st.completed ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white group-hover:border-blue-400'}`}>
+                                    {st.completed && <CheckCircle2 className="h-2.5 w-2.5 text-white" />}
+                                  </div>
+                                  <span className={`text-xs ${st.completed ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
+                                    {st.title}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Actions */}
@@ -238,6 +306,11 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          {onStartFocus && task.status !== 'completed' && (
+                            <DropdownMenuItem onClick={() => onStartFocus(task)} className="gap-2 text-blue-600 focus:text-blue-700">
+                              <Timer className="h-3.5 w-3.5" /> Start Focus Mode
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => toggleStatus(task.id, task.status)} className="gap-2">
                             <ArrowUpDown className="h-3.5 w-3.5" /> Cycle status
                           </DropdownMenuItem>

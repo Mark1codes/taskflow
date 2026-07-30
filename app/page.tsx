@@ -7,6 +7,7 @@ import { SignUpPage } from "@/components/signup-page"
 import { TaskManagerApp } from "@/components/task-manager-app"
 import supabase from '../utils/supabase'
 import { getAvatarDisplayUrl } from "@/utils/avatar"
+import { Loader2 } from "lucide-react"
 
 type AuthState = "initializing" | "landing" | "login" | "signup" | "authenticated"
 
@@ -187,18 +188,14 @@ export default function Home() {
         // Block rendering entirely until session check resolves — prevents any flash
         return (
           <div className="min-h-screen flex flex-col items-center justify-center bg-[#f7f9fc]">
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-6">
               <div className="flex items-center gap-2.5">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 51 41" role="img" aria-label="TaskFlow" width="32" height="26">
                   <path d="M43 31L31 40H5L7 35L12 31H29L32 35L40 11L45 7H50L43 31ZM43 5L38 9H21L18 5L10 29L5 33H0L7 9L19 0H45L43 5ZM24 13H35L29 31L26 27H15L21 9L24 13Z" fill="#297AFF"/>
                 </svg>
-                <span className="text-lg font-semibold text-slate-900 tracking-tight">TaskFlow</span>
+                <span className="text-xl font-bold text-slate-900 tracking-tight">TaskFlow</span>
               </div>
-              <div className="flex gap-1.5 mt-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.3s]" />
-                <div className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.15s]" />
-                <div className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce" />
-              </div>
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600/80" />
             </div>
           </div>
         )
