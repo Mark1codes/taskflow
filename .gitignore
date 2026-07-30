@@ -22,6 +22,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local Codex/project notes
+.codex/
+SECURITY_PRIORITY_FIX_ORDER.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
