@@ -6,11 +6,34 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter, Calendar, User, MoreHorizontal, Trash2, CheckCircle2, RefreshCw, Plus, ArrowUpDown, Timer, ListChecks, Clock, Lock } from "lucide-react"
+import { Search, Filter, Calendar, User, MoreHorizontal, Trash2, CheckCircle2, RefreshCw, Plus, ArrowUpDown, Timer, ListChecks, Clock, Lock, Paperclip } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CompleteTaskDialog } from "./complete-task-dialog"
+import { TaskDetailModal } from "./task-detail-modal"
 import supabase from '@/utils/supabase' // used by fetchTasks for manual refresh
+
+function avatarColor(name: string) {
+  const colors = [
+    'bg-blue-500', 'bg-violet-500', 'bg-emerald-500',
+    'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-pink-500',
+  ]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return colors[Math.abs(hash) % colors.length]
+}
+
+function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' }) {
+  if (!name) return <div className={`flex items-center justify-center shrink-0 rounded-full bg-slate-200 ${size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'}`}><User className="h-3 w-3 text-slate-400" /></div>
+  const sz = size === 'sm' ? 'h-4 w-4 text-[8px]' : 'h-8 w-8 text-xs'
+  if (avatarUrl) return <img src={avatarUrl} alt={name} className={`${sz} rounded-full object-cover shrink-0`} />
+  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+  return (
+    <div className={`flex items-center justify-center shrink-0 rounded-full text-white font-medium ${sz} ${avatarColor(name)}`}>
+      {initials}
+    </div>
+  )
+}
 
 interface Task {
   id: string
@@ -28,6 +51,7 @@ interface Task {
   subtasks?: { id: string; title: string; completed: boolean }[]
   time_spent_minutes?: number
   blocked_by_id?: string
+  task_assignees?: { id: string; user_id: string; user_name: string; status: string }[]
 }
 
 interface TaskListProps {
@@ -61,8 +85,45 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState("")
   const [taskToComplete, setTaskToComplete] = useState<Task | null>(null)
+  const [viewingTask, setViewingTask] = useState<Task | null>(null)
+  const [attachmentsMap, setAttachmentsMap] = useState<Record<string, any[]>>({})
+  const [userMap, setUserMap] = useState<Record<string, {name: string; avatarUrl?: string}>>({})
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      try {
+        const res = await fetch('/api/users', {
+          headers: { Authorization: `Bearer ${session.access_token}` }
+        })
+        if (res.ok) {
+          const json = await res.json()
+          const map: Record<string, {name: string; avatarUrl?: string}> = {}
+          json.users?.forEach((u: any) => map[u.id] = { name: u.full_name, avatarUrl: u.avatar_url })
+          setUserMap(map)
+        }
+      } catch (err) {
+        console.error("Failed to fetch users for task list:", err)
+      }
+    }
+    fetchUsers()
+  }, [])
 
   useEffect(() => { setTasks(initialTasks) }, [initialTasks])
+
+  // Fetch attachments for all visible tasks whenever the task list changes
+  useEffect(() => {
+    const ids = initialTasks.map(t => t.id)
+    if (ids.length === 0) return
+    supabase.from('task_attachments').select('id,task_id,file_name,file_type,url').in('task_id', ids)
+      .then(({ data }) => {
+        if (!data) return
+        const map: Record<string, any[]> = {}
+        data.forEach(att => { if (!map[att.task_id]) map[att.task_id] = []; map[att.task_id].push(att) })
+        setAttachmentsMap(map)
+      })
+  }, [initialTasks])
 
   // Real-time updates are handled by the parent task-manager-app.tsx.
   // Tasks flow down as props to avoid duplicate Supabase channel subscriptions.
@@ -229,11 +290,16 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
               const pc = priorityConfig[task.priority] ?? priorityConfig["medium"]
               const overdue = isOverdue(task.due_date) && task.status !== "completed"
               return (
-                <Card key={task.id} className="group relative bg-white border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 dark:bg-slate-900 dark:border-slate-800">
+                <Card 
+                  key={task.id} 
+                  onClick={() => setViewingTask(task)}
+                  className="group relative bg-white border border-slate-200/60 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 dark:bg-slate-900 dark:border-slate-800 cursor-pointer"
+                >
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex items-start gap-3.5">
                       {/* Status toggle */}
-                      <button onClick={() => toggleStatus(task.id, task.status)}
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); toggleStatus(task.id, task.status); }}
                         className={`mt-0.5 w-5 h-5 flex items-center justify-center shrink-0 transition-all duration-200
                           ${task.status === "completed" ? "bg-emerald-500 text-white" :
                             task.status === "in-progress" ? "border-2 border-blue-500 rounded-full" : "border-2 border-slate-300 rounded-full hover:border-blue-400"}`}>
@@ -269,9 +335,24 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                         )}
 
                         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                          {task.assignee && (
+                          {task.task_assignees && task.task_assignees.length > 0 && (
                             <span className="flex items-center gap-1">
-                              <User className="h-3 w-3" /> {task.assignee}
+                              <span className="flex gap-1.5 items-center">
+                                {task.task_assignees.map(a => (
+                                  <span 
+                                    key={a.id} 
+                                    className={`px-1.5 py-0.5 rounded-full flex items-center gap-1.5 ${
+                                      a.status === 'accepted' ? 'text-slate-600 bg-slate-100' :
+                                      a.status === 'pending' ? 'text-blue-600 bg-blue-50' : 
+                                      'text-red-500 bg-red-50 line-through opacity-70'
+                                    }`}
+                                    title={a.status}
+                                  >
+                                    <UserAvatar name={a.user_name} avatarUrl={userMap[a.user_id]?.avatarUrl} />
+                                    {a.user_name}
+                                  </span>
+                                ))}
+                              </span>
                             </span>
                           )}
                           {task.due_date && (
@@ -293,8 +374,33 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                               {task.time_spent_minutes}m
                             </span>
                           ) : null}
+                          {attachmentsMap[task.id]?.length > 0 && (
+                            <span className="flex items-center gap-1 text-slate-500">
+                              <Paperclip className="h-3 w-3" />
+                              {attachmentsMap[task.id].length} {attachmentsMap[task.id].length === 1 ? 'file' : 'files'}
+                            </span>
+                          )}
                         </div>
                         
+                        {/* Attachment thumbnails */}
+                        {attachmentsMap[task.id]?.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+                            {attachmentsMap[task.id].map(att => (
+                              <a key={att.id} href={att.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                                className="group relative h-14 w-14 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden shrink-0 hover:border-blue-300 transition-colors">
+                                {att.file_type?.startsWith('image/') ? (
+                                  <img src={att.url} alt={att.file_name} className="h-full w-full object-cover" />
+                                ) : (
+                                  <div className="flex h-full flex-col items-center justify-center gap-0.5 p-1">
+                                    <Paperclip className="h-4 w-4 text-slate-400" />
+                                    <p className="text-[8px] text-slate-500 text-center leading-tight line-clamp-2">{att.file_name}</p>
+                                  </div>
+                                )}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+
                         {task.subtasks && task.subtasks.length > 0 && (
                           <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
                             <div className="flex items-center gap-2">
@@ -309,7 +415,7 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                               {task.subtasks.map(st => (
                                 <button
                                   key={st.id}
-                                  onClick={() => toggleSubtask(task.id, st.id)}
+                                  onClick={(e) => { e.stopPropagation(); toggleSubtask(task.id, st.id) }}
                                   className="w-full flex items-start text-left gap-2 p-1.5 hover:bg-slate-50 rounded group transition-colors"
                                 >
                                   <div className={`mt-0.5 shrink-0 flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${st.completed ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white group-hover:border-blue-400'}`}>
@@ -327,7 +433,7 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
 
                       {/* Actions */}
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-slate-400 hover:text-slate-600">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -372,6 +478,19 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
         onClose={() => setTaskToComplete(null)}
         onConfirm={handleConfirmComplete}
         taskTitle={taskToComplete?.title || ""}
+      />
+
+      <TaskDetailModal
+        isOpen={!!viewingTask}
+        task={viewingTask}
+        onClose={() => setViewingTask(null)}
+        onComplete={(id) => {
+          const t = tasks.find(x => x.id === id)
+          if (t) {
+            setViewingTask(null)
+            setTaskToComplete(t)
+          }
+        }}
       />
     </div>
   )

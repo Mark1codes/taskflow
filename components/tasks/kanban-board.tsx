@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, User, Calendar, Plus, Timer, ListChecks, Clock, Lock } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { TaskDetailModal } from "./task-detail-modal"
+import { useState } from "react"
 
 interface Task {
   id: string
@@ -40,6 +42,8 @@ const priorityConfig: Record<string, string> = {
 }
 
 export function KanbanBoard({ tasks, onUpdateTask, onStartFocus }: KanbanBoardProps) {
+  const [viewingTask, setViewingTask] = useState<Task | null>(null)
+
   const byStatus = (s: string) => tasks.filter(t => t.status === s)
 
   const move = (taskId: string, status: string) => onUpdateTask(taskId, { status })
@@ -91,7 +95,8 @@ export function KanbanBoard({ tasks, onUpdateTask, onStartFocus }: KanbanBoardPr
                       key={task.id}
                       draggable
                       onDragStart={e => onDragStart(e, task.id)}
-                      className="bg-white border border-slate-100 dark:bg-slate-900 dark:border-slate-800 rounded-lg p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow"
+                      onClick={() => setViewingTask(task)}
+                      className="bg-white border border-slate-100 dark:bg-slate-900 dark:border-slate-800 rounded-lg p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md hover:border-blue-300 transition-all"
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <h3 className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug flex-1">
@@ -101,7 +106,7 @@ export function KanbanBoard({ tasks, onUpdateTask, onStartFocus }: KanbanBoardPr
                           {task.title}
                         </h3>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
                             <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-slate-300 hover:text-slate-600">
                               <MoreHorizontal className="h-3.5 w-3.5" />
                             </Button>
@@ -176,6 +181,15 @@ export function KanbanBoard({ tasks, onUpdateTask, onStartFocus }: KanbanBoardPr
           })}
         </div>
       </div>
+      <TaskDetailModal
+        isOpen={!!viewingTask}
+        task={viewingTask}
+        onClose={() => setViewingTask(null)}
+        onComplete={(id) => {
+          move(id, "completed")
+          setViewingTask(null)
+        }}
+      />
     </div>
   )
 }

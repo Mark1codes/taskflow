@@ -26,6 +26,7 @@ import { ThemeProvider } from "@/components/layout/theme-provider"
 import { FocusMode } from "@/components/core/focus-mode"
 import { ActivityFeed } from "@/components/core/activity-feed"
 import { Inbox } from "@/components/tasks/inbox"
+import { InvitationsPage } from "@/components/tasks/invitations-page"
 import supabase from '@/utils/supabase'
 
 interface Task {
@@ -35,6 +36,8 @@ interface Task {
   priority: string
   due_date: string
   assignee?: string
+  assignee_id?: string
+  assignment_status?: string
   category: string
   created_at: string
   updated_at: string
@@ -43,6 +46,7 @@ interface Task {
   completion_note?: string
   subtasks?: { id: string; title: string; completed: boolean }[]
   time_spent_minutes?: number
+  task_assignees?: { id: string; user_id: string; user_name: string; status: string }[]
 }
 
 interface User {
@@ -64,11 +68,15 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   const [currentUser, setCurrentUser] = useState<User | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
   const [focusedTask, setFocusedTask] = useState<Task | null>(null)
+  // Persists the active AI session ID across page navigation
+  const [aiSessionId, setAiSessionId] = useState<string | null>(null)
+  const [pendingInvitations, setPendingInvitations] = useState<Task[]>([])
 
   useEffect(() => {
     if (initialUser) {
       setCurrentUser(initialUser)
-      fetchTasks(initialUser.id, initialUser.name)
+      fetchTasks(initialUser.id)
+      fetchPendingInvitations(initialUser.id)
     }
   }, [initialUser])
   // Load color theme
@@ -85,6 +93,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       "add-task":   "Add Task",
       kanban:       "Kanban Board",
       calendar:     "Calendar",
+      invitations:  "Invitations",
       "ai-assistant":   "AI Assistant",
       "ai-planner": "AI Work Planner",
       settings:     "Settings",
@@ -146,37 +155,96 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     }
   }, [currentUser?.id])
 
-  // Fetch tasks where current user is the creator OR the named assignee
-  const fetchTasks = async (userId: string, userName?: string) => {
+  // Fetch tasks where current user is the creator OR the named assignee (accepted only)
+  const fetchTasks = async (userId: string) => {
     try {
       setIsLoading(true)
-      const name = userName || currentUser?.name || ''
 
-      // Build OR filter: tasks I created OR tasks assigned to me by name
-      let query = supabase
+      // 1. Fetch tasks I own
+      const { data: ownedTasks, error: err1 } = await supabase
         .from('task')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .select('*, task_assignees(*)')
+        .eq('user_id', userId)
 
-      if (name) {
-        query = query.or(`user_id.eq.${userId},assignee.eq.${name}`)
-      } else {
-        query = query.eq('user_id', userId)
+      // 2. Fetch tasks assigned to me (accepted)
+      const { data: assignmentRefs } = await supabase
+        .from('task_assignees')
+        .select('task_id')
+        .eq('user_id', userId)
+        .eq('status', 'accepted')
+
+      let assignedTasks: any[] = []
+      if (assignmentRefs && assignmentRefs.length > 0) {
+        const ids = assignmentRefs.map(r => r.task_id)
+        const uniqueIds = ids.filter(id => !ownedTasks?.some(t => t.id === id))
+        if (uniqueIds.length > 0) {
+          const { data } = await supabase
+            .from('task')
+            .select('*, task_assignees(*)')
+            .in('id', uniqueIds)
+          assignedTasks = data || []
+        }
       }
 
-      const { data, error } = await query
+      if (err1) console.error('Error fetching tasks:', err1)
 
-      if (error) {
-        console.error('Error fetching tasks:', error)
-        setTasks([])
-      } else {
-        setTasks(data || [])
-      }
+      const allTasks = [...(ownedTasks || []), ...assignedTasks]
+      allTasks.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      
+      setTasks(allTasks)
     } catch (error) {
       console.error('Error fetching tasks:', error)
       setTasks([])
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Fetch tasks assigned to me that are still pending acceptance
+  const fetchPendingInvitations = async (userId: string) => {
+    const { data: refs } = await supabase
+      .from('task_assignees')
+      .select('task_id')
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      
+    if (!refs || refs.length === 0) {
+      setPendingInvitations([])
+      return
+    }
+
+    const { data } = await supabase
+      .from('task')
+      .select('*, task_assignees(*)')
+      .in('id', refs.map(r => r.task_id))
+      
+    setPendingInvitations(data || [])
+  }
+
+  const handleAcceptInvitation = async (taskId: string) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const res = await fetch('/api/tasks/respond-invitation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ taskId, action: 'accept' }),
+    })
+    if (res.ok) {
+      setPendingInvitations(prev => prev.filter(t => t.id !== taskId))
+      if (currentUser) fetchTasks(currentUser.id)
+    }
+  }
+
+  const handleRejectInvitation = async (taskId: string) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const res = await fetch('/api/tasks/respond-invitation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ taskId, action: 'reject' }),
+    })
+    if (res.ok) {
+      setPendingInvitations(prev => prev.filter(t => t.id !== taskId))
     }
   }
 
@@ -313,12 +381,21 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
         return <KanbanBoard tasks={tasks} onUpdateTask={updateTask} onStartFocus={setFocusedTask} />
       case "activity":
         return <ActivityFeed user={currentUser} />
+      case "invitations":
+        return (
+          <InvitationsPage
+            invitations={pendingInvitations}
+            onAccept={handleAcceptInvitation}
+            onReject={handleRejectInvitation}
+            onGoToDashboard={() => handleViewChange("dashboard")}
+          />
+        )
       case "settings":
         return <Settings user={currentUser} />
       case "profile":
         return <ProfilePage user={currentUser} onUpdateUser={handleUpdateUser} />
       case "ai-assistant":
-        return <AIAssistant />
+        return <AIAssistant tasks={tasks} user={currentUser} onTaskCreated={addTask} persistedSessionId={aiSessionId} onSessionChange={setAiSessionId} />
       case "smart-suggestions":
         return <AIWorkPlanner tasks={tasks} mode="suggestions" />
       default:
@@ -326,12 +403,16 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     }
   }
 
+  const inboxCount = tasks.filter(t => 
+    t.task_assignees?.some(a => a.user_id === currentUser?.id && a.status === 'accepted') && t.status !== 'completed'
+  ).length
+
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
     <div className="flex h-screen bg-slate-50 overflow-hidden dark:bg-slate-950">
       {/* Desktop sidebar */}
       <div className="hidden lg:block shrink-0">
-        <Sidebar activeView={activeView} onViewChange={handleViewChange} />
+        <Sidebar activeView={activeView} onViewChange={handleViewChange} invitationsCount={pendingInvitations.length} inboxCount={inboxCount} />
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -355,7 +436,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
                   <SheetTitle>Navigation Menu</SheetTitle>
                   <SheetDescription>Mobile sidebar menu</SheetDescription>
                 </SheetHeader>
-                <Sidebar activeView={activeView} onViewChange={handleViewChange} />
+                <Sidebar activeView={activeView} onViewChange={handleViewChange} invitationsCount={pendingInvitations.length} inboxCount={inboxCount} />
               </SheetContent>
             </Sheet>
 

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Plus, CheckCircle2, Sparkles, Wand2, Lightbulb, Search, X, User, Trash2, Link as LinkIcon } from "lucide-react"
+import { ArrowLeft, Plus, CheckCircle2, Sparkles, Wand2, Lightbulb, Search, X, User, Trash2, Link as LinkIcon, Paperclip, FileText } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 
@@ -20,7 +20,8 @@ interface AddTaskProps {
   tasks?: any[]
 }
 
-type AppUser = { id: string; full_name: string }
+type AppUser = { id: string; full_name: string; avatar_url?: string }
+interface PendingAttachment { id: string; file: File; preview?: string }
 
 // Generate a consistent pastel color from a string
 function avatarColor(name: string) {
@@ -33,13 +34,18 @@ function avatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length]
 }
 
-function UserAvatar({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md' }) {
-  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' }) {
   const sz = size === 'sm' ? 'h-6 w-6 text-[10px]' : 'h-8 w-8 text-xs'
+
+  if (avatarUrl) {
+    return <img src={avatarUrl} alt={name} className={`${sz} rounded-full object-cover shrink-0`} />
+  }
+
+  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
   return (
-    <span className={`${sz} ${avatarColor(name)} inline-flex items-center justify-center rounded-full font-semibold text-white shrink-0`}>
+    <div className={`flex items-center justify-center shrink-0 rounded-full text-white font-medium ${sz} ${avatarColor(name)}`}>
       {initials}
-    </span>
+    </div>
   )
 }
 
@@ -57,7 +63,7 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
   const [usersLoading, setUsersLoading] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [selectedUser, setSelectedUser] = useState<AppUser | null>(null)
+  const [selectedUsers, setSelectedUsers] = useState<AppUser[]>([])
   const pickerRef = useRef<HTMLDivElement>(null)
 
   // Subtasks state
@@ -74,6 +80,57 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
     setSubtasks(subtasks.filter(s => s.id !== id))
   }
 
+  // Attachments
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+  const attachmentInputRef = useRef<HTMLInputElement>(null)
+
+  const addFiles = (files: FileList | File[]) => {
+    const MAX = 10 * 1024 * 1024
+    const next: PendingAttachment[] = []
+    Array.from(files).forEach(file => {
+      if (file.size > MAX) return
+      const preview = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
+      next.push({ id: crypto.randomUUID(), file, preview })
+    })
+    setPendingAttachments(prev => [...prev, ...next])
+  }
+
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) addFiles(e.target.files)
+    e.target.value = ''
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (e.dataTransfer.files) addFiles(e.dataTransfer.files)
+  }
+
+  const removePendingAttachment = (id: string) => {
+    setPendingAttachments(prev => {
+      const att = prev.find(a => a.id === id)
+      if (att?.preview) URL.revokeObjectURL(att.preview)
+      return prev.filter(a => a.id !== id)
+    })
+  }
+
+  // Clipboard paste → attach image
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items
+      if (!items) return
+      const files: File[] = []
+      Array.from(items).forEach(item => {
+        if (item.kind === 'file') { const f = item.getAsFile(); if (f) files.push(f) }
+      })
+      if (files.length > 0) addFiles(files)
+    }
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Utility: update a single form field and clear error/success states
   const set = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -87,7 +144,7 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
       setUsersLoading(true)
       // Always add current user as the first option so "assign to myself" always works
       const selfEntry: AppUser | null = user?.id && user?.name
-        ? { id: user.id, full_name: user.name }
+        ? { id: user.id, full_name: user.name, avatar_url: user.avatar }
         : null
 
       try {
@@ -130,22 +187,43 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const selectAssignee = (u: AppUser) => {
-    setSelectedUser(u)
-    set('assignee', u.full_name)
-    setPickerOpen(false)
+  const toggleAssignee = (u: AppUser) => {
+    setSelectedUsers(prev => {
+      if (prev.some(p => p.id === u.id)) {
+        return prev.filter(p => p.id !== u.id)
+      }
+      return [...prev, u]
+    })
     setSearch('')
   }
 
-  const clearAssignee = () => {
-    setSelectedUser(null)
-    set('assignee', '')
+  const clearAssignees = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    setSelectedUsers([])
     setSearch('')
   }
 
   const filteredUsers = users.filter(u =>
     u.full_name.toLowerCase().includes(search.toLowerCase())
   )
+
+  const uploadAttachments = async (taskId: string) => {
+    for (const att of pendingAttachments) {
+      try {
+        const ext = att.file.name.split('.').pop() || 'bin'
+        const filePath = `${taskId}/${att.id}.${ext}`
+        const { error: uploadError } = await supabase.storage.from('task-attachments').upload(filePath, att.file)
+        if (uploadError) { console.error('Upload error:', uploadError.message); continue }
+        const { data: { publicUrl } } = supabase.storage.from('task-attachments').getPublicUrl(filePath)
+        await supabase.from('task_attachments').insert({
+          task_id: taskId, uploaded_by: user.id, file_name: att.file.name,
+          file_path: filePath, file_type: att.file.type || 'application/octet-stream',
+          file_size: att.file.size, url: publicUrl,
+        })
+        if (att.preview) URL.revokeObjectURL(att.preview)
+      } catch (err) { console.error('Attachment upload failed:', err) }
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -161,7 +239,6 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
         status:      formData.status,
         priority:    formData.priority,
         due_date:    formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
-        assignee:    formData.assignee.trim() || null,
         category:    formData.category.trim() || null,
         user_id:     user.id,
         subtasks:    subtasks,
@@ -172,10 +249,23 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
       if (insertError) {
         setError(`Failed to create task: ${insertError.message}`)
       } else {
+        if (selectedUsers.length > 0) {
+          const assigneesToInsert = selectedUsers.map(u => ({
+            task_id: data.id,
+            user_id: u.id,
+            user_name: u.full_name,
+            status: u.id === user.id ? 'accepted' : 'pending'
+          }))
+          await supabase.from('task_assignees').insert(assigneesToInsert)
+        }
+
+        if (pendingAttachments.length > 0) await uploadAttachments(data.id)
         setSuccess(true)
         onAddTask(data)
         setFormData({ title: "", description: "", status: "todo", priority: "medium", dueDate: "", assignee: "", category: "", blocked_by_id: "none" })
         setSubtasks([])
+        setSelectedUsers([])
+        setPendingAttachments([])
         setTimeout(() => onBack(), 1500)
       }
     } catch { setError("An unexpected error occurred. Please try again.") }
@@ -385,25 +475,35 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
                   <button
                     type="button"
                     onClick={() => setPickerOpen(v => !v)}
-                    className="flex h-10 w-full items-center gap-2.5 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 transition hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="flex min-h-[40px] w-full flex-wrap items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-700 transition hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   >
-                    {selectedUser ? (
+                    {selectedUsers.length > 0 ? (
                       <>
-                        <UserAvatar name={selectedUser.full_name} />
-                        <span className="flex-1 text-left font-medium text-slate-900">{selectedUser.full_name}</span>
+                        <div className="flex flex-1 flex-wrap gap-1.5">
+                          {selectedUsers.map(u => (
+                            <span key={u.id} className="flex items-center gap-1.5 rounded-full bg-slate-100 pl-1 pr-2 py-0.5 text-xs font-medium text-slate-700">
+                              <UserAvatar name={u.full_name} avatarUrl={u.avatar_url} />
+                              {u.full_name}
+                              <X 
+                                className="h-3 w-3 cursor-pointer text-slate-400 hover:text-slate-600 ml-0.5" 
+                                onClick={(e) => { e.stopPropagation(); toggleAssignee(u); }} 
+                              />
+                            </span>
+                          ))}
+                        </div>
                         <span
                           role="button"
-                          onClick={(e) => { e.stopPropagation(); clearAssignee() }}
-                          className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                          onClick={clearAssignees}
+                          className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 self-start mt-0.5"
                         >
                           <X className="h-3.5 w-3.5" />
                         </span>
                       </>
                     ) : (
-                      <>
+                      <div className="flex w-full items-center gap-2 px-1 py-0.5">
                         <User className="h-4 w-4 text-slate-400" />
-                        <span className="flex-1 text-left text-slate-400">Assign to someone…</span>
-                      </>
+                        <span className="flex-1 text-left text-slate-400">Assign to people…</span>
+                      </div>
                     )}
                   </button>
 
@@ -435,15 +535,15 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
                         )}
                         {filteredUsers.map(u => {
                           const isMe = u.id === user?.id
-                          const isSelected = selectedUser?.id === u.id
+                          const isSelected = selectedUsers.some(su => su.id === u.id)
                           return (
                             <li key={u.id}>
                               <button
                                 type="button"
-                                onClick={() => selectAssignee(u)}
+                                onClick={(e) => { e.stopPropagation(); toggleAssignee(u); }}
                                 className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50 ${isSelected ? 'bg-blue-50' : ''}`}
                               >
-                                <UserAvatar name={u.full_name} size="md" />
+                                <UserAvatar name={u.full_name} avatarUrl={u.avatar_url} size="md" />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-slate-900 flex items-center gap-2">
                                     {u.full_name}
@@ -452,7 +552,7 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
                                     )}
                                   </p>
                                   {isSelected && (
-                                    <p className="text-[11px] text-blue-500">Currently assigned</p>
+                                    <p className="text-[11px] text-blue-500">Selected</p>
                                   )}
                                 </div>
                                 {isSelected && (
@@ -466,6 +566,49 @@ export function AddTask({ onAddTask, onBack, user, tasks = [] }: AddTaskProps) {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Attachments */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
+                  <Paperclip className="h-3.5 w-3.5" />
+                  Attachments
+                  <span className="text-slate-400 font-normal text-xs">(optional · paste, drag &amp; drop, or click)</span>
+                </Label>
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  onClick={() => attachmentInputRef.current?.click()}
+                  className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-5 text-center transition-colors ${
+                    isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50/50'
+                  }`}
+                >
+                  <input ref={attachmentInputRef} type="file" multiple accept="image/*,.pdf,.docx,.doc,.txt,.xlsx,.pptx" className="hidden" onChange={handleFilePick} />
+                  <Paperclip className="h-6 w-6 text-slate-300 mb-1.5" />
+                  <p className="text-sm font-medium text-slate-500">Drop files, paste a screenshot, or click to upload</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Images, PDF, DOCX, TXT · Max 10MB each</p>
+                </div>
+                {pendingAttachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {pendingAttachments.map(att => (
+                      <div key={att.id} className="group relative h-16 w-16 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden shrink-0">
+                        {att.preview ? (
+                          <img src={att.preview} alt={att.file.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full flex-col items-center justify-center gap-0.5 p-1">
+                            <FileText className="h-5 w-5 text-slate-400" />
+                            <p className="text-[8px] text-slate-500 text-center leading-tight line-clamp-2">{att.file.name}</p>
+                          </div>
+                        )}
+                        <button type="button" onClick={(e) => { e.stopPropagation(); removePendingAttachment(att.id) }}
+                          className="absolute top-0.5 right-0.5 hidden group-hover:flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white">
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-2 border-t border-slate-100">

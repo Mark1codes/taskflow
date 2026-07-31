@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   // Fetch only safe, non-sensitive fields: id + full_name
   const { data, error } = await supabase
     .from('users')
-    .select('id, full_name')
+    .select('id, full_name, avatar_url')
     .order('full_name', { ascending: true })
 
   if (error) {

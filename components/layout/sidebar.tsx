@@ -3,7 +3,7 @@
 import {
   LayoutDashboard, Plus, CheckSquare, Calendar, Kanban, Activity,
   Settings, Menu, Bot, Sparkles, Zap,
-  ChevronLeft, Bell
+  ChevronLeft, Bell, UserPlus
 } from "lucide-react"
 import { BrandLogo } from "@/components/layout/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -13,17 +13,20 @@ import { useState } from "react"
 interface SidebarProps {
   activeView: string
   onViewChange: (view: string) => void
+  invitationsCount?: number
+  inboxCount?: number
 }
 
 const mainNav = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "add-task",  label: "Add Task",   icon: Plus },
-  { id: "tasks",     label: "Task List",  icon: CheckSquare },
-  { id: "calendar",  label: "Calendar",   icon: Calendar },
-  { id: "kanban",    label: "Kanban",     icon: Kanban },
-  { id: "activity",  label: "Activity",   icon: Activity },
-  { id: "settings",  label: "Settings",   icon: Settings },
-  { id: "inbox",     label: "Inbox",      icon: Bell },
+  { id: "dashboard",   label: "Dashboard",   icon: LayoutDashboard },
+  { id: "add-task",    label: "Add Task",    icon: Plus },
+  { id: "tasks",       label: "Task List",   icon: CheckSquare },
+  { id: "calendar",    label: "Calendar",    icon: Calendar },
+  { id: "kanban",      label: "Kanban",      icon: Kanban },
+  { id: "invitations", label: "Invitations", icon: UserPlus },
+  { id: "activity",    label: "Activity",    icon: Activity },
+  { id: "settings",    label: "Settings",    icon: Settings },
+  { id: "inbox",       label: "Inbox",       icon: Bell },
 ]
 
 const aiNav = [
@@ -31,12 +34,14 @@ const aiNav = [
   { id: "smart-suggestions",label: "Smart Suggestions", icon: Sparkles },
 ]
 
-function NavGroup({ label, items, activeView, onViewChange, collapsed }: {
+function NavGroup({ label, items, activeView, onViewChange, collapsed, invitationsCount = 0, inboxCount = 0 }: {
   label: string
   items: typeof mainNav
   activeView: string
   onViewChange: (v: string) => void
   collapsed: boolean
+  invitationsCount?: number
+  inboxCount?: number
 }) {
   return (
     <div className="mb-2">
@@ -60,8 +65,36 @@ function NavGroup({ label, items, activeView, onViewChange, collapsed }: {
                 : "text-slate-400 hover:text-white hover:bg-slate-800"
             )}
           >
-            <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-slate-500 group-hover:text-white")} />
-            {!collapsed && <span className="truncate">{item.label}</span>}
+            <div className="relative">
+              <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-slate-500 group-hover:text-white")} />
+              {item.id === "invitations" && invitationsCount > 0 && (
+                <span className={cn(
+                  "absolute flex items-center justify-center rounded-full bg-blue-500 text-white font-bold",
+                  collapsed ? "-top-1 -right-1 h-2 w-2" : "hidden"
+                )} />
+              )}
+              {item.id === "inbox" && inboxCount > 0 && (
+                <span className={cn(
+                  "absolute flex items-center justify-center rounded-full bg-blue-500 text-white font-bold",
+                  collapsed ? "-top-1 -right-1 h-2 w-2" : "hidden"
+                )} />
+              )}
+            </div>
+            {!collapsed && (
+              <div className="flex flex-1 items-center justify-between min-w-0">
+                <span className="truncate">{item.label}</span>
+                {item.id === "invitations" && invitationsCount > 0 && (
+                  <span className="flex h-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-bold text-white shrink-0">
+                    {invitationsCount}
+                  </span>
+                )}
+                {item.id === "inbox" && inboxCount > 0 && (
+                  <span className="flex h-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-bold text-white shrink-0">
+                    {inboxCount}
+                  </span>
+                )}
+              </div>
+            )}
           </button>
         )
       })}
@@ -69,7 +102,7 @@ function NavGroup({ label, items, activeView, onViewChange, collapsed }: {
   )
 }
 
-export function Sidebar({ activeView, onViewChange }: SidebarProps) {
+export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxCount = 0 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -100,7 +133,7 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-        <NavGroup label="Main" items={mainNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
+        <NavGroup label="Main" items={mainNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} invitationsCount={invitationsCount} inboxCount={inboxCount} />
         {!collapsed && <div className="border-t border-slate-800 my-2" />}
         <NavGroup label="AI" items={aiNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
       </nav>

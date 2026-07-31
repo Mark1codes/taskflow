@@ -61,21 +61,41 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { messages } = await req.json()
+  const { messages, taskContext, userName, fileContext } = await req.json()
 
   if (!messages || !Array.isArray(messages)) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400, headers: rateHeaders })
   }
 
+  // Use first name only for a natural, personal feel
+  const firstName = userName ? userName.trim().split(/\s+/)[0] : null
+
+  const taskSection = taskContext
+    ? `\n\nThe user's current tasks:\n${taskContext}`
+    : ''
+
+  const fileSection = fileContext
+    ? `\n\nThe user has uploaded a file for analysis. Here is its content:\n---\n${fileContext}\n---\nAnalyse or answer questions about this file as requested.`
+    : ''
+
+  const userSection = firstName ? ` The user's first name is ${firstName}. Address them by this name naturally.` : ''
+
   const systemInstruction = {
     role: 'system',
-    content: `You are an expert AI productivity assistant built into TaskFlow, a task management application.
-Your role is to help users manage their tasks, improve productivity, prioritize work, and optimize their schedules.
-Be concise, actionable, and friendly. When giving advice, tie it back to real task management strategies.
-If the user asks about specific tasks or data you don't have access to, acknowledge that and give general best-practice advice instead.`,
+    content: `You are an expert AI productivity assistant built into TaskFlow, a task management application.${userSection}
+Your role is to help users manage their tasks, improve productivity, prioritize work, optimize their schedules, and analyse uploaded documents.
+Be concise, actionable, warm, and friendly. Greet the user by their first name when they first reach out and use it occasionally to keep responses personal.
+Always reference the user's actual tasks when relevant. When analysing completion patterns, priorities, or schedules, base your answer on the task data provided.${taskSection}${fileSection}
+
+TASK CREATION RULE: When the user explicitly asks you to create, add, or insert a task, include a task JSON block at the very end of your response in EXACTLY this format (no markdown, no code fences):
+TASK_CREATE:{"title":"...","priority":"high|medium|low","status":"todo","category":"...","due_date":"YYYY-MM-DD or null","description":"..."}
+Only include ONE block per response. Only use it when the user clearly asks to create a task.`,
   }
 
-  const chatMessages = messages.map((msg: { type: string; content: string }) => ({
+  // Only send the last 10 messages to keep the payload lean and responses fast.
+  // The system prompt already contains task context, so full history is unnecessary.
+  const recentMessages = messages.slice(-10)
+  const chatMessages = recentMessages.map((msg: { type: string; content: string }) => ({
     role: msg.type === 'user' ? 'user' : 'assistant',
     content: msg.content,
   }))
@@ -90,17 +110,23 @@ If the user asks about specific tasks or data you don't have access to, acknowle
         'X-Title': 'TaskFlow',
       },
       body: JSON.stringify({
-        model: 'openrouter/free',
+        model: 'openrouter/auto',
         messages: [systemInstruction, ...chatMessages],
-        max_tokens: 512,
+        max_tokens: 768,
       }),
     })
 
     if (!response.ok) {
       const errText = await response.text()
       console.error('OpenRouter API error:', errText)
+      // Try to extract the human-readable message from OpenRouter's JSON error
+      let userMessage = 'The AI assistant could not complete that request.'
+      try {
+        const errJson = JSON.parse(errText)
+        if (errJson?.error?.message) userMessage = errJson.error.message
+      } catch { /* keep default */ }
       return NextResponse.json(
-        { error: 'The AI assistant could not complete that request.', details: errText },
+        { error: userMessage },
         { status: response.status, headers: rateHeaders }
       )
     }

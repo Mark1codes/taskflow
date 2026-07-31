@@ -1,41 +1,120 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Bot, Send, Sparkles, Lightbulb, TrendingUp, Clock, MessageSquare, AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  Bot, Send, Sparkles, Loader2, AlertCircle, Plus,
+  Trash2, History, Paperclip, FileText, MessageSquare
+} from "lucide-react"
+import supabase from "@/utils/supabase"
+
+interface Task {
+  id: string
+  title: string
+  status: string
+  priority: string
+  due_date?: string
+  assignee?: string
+  category?: string
+  description?: string
+  completion_note?: string
+}
+
+interface AIAssistantProps {
+  tasks?: Task[]
+  user?: { id: string; name: string; email: string } | null
+  onTaskCreated?: (task: any) => void
+  persistedSessionId?: string | null
+  onSessionChange?: (id: string | null) => void
+}
+
+interface Session {
+  id: string
+  title: string
+  created_at: string
+  updated_at: string
+}
 
 interface Message {
-  id: number
+  id: string
   type: "ai" | "user"
   content: string
-  timestamp: Date
+  created_at: string
 }
 
 function cleanAIText(text: string) {
   return text
+    .replace(/TASK_CREATE:\{[\s\S]*?\}\s*$/, '')
     .replace(/\*\*(.*?)\*\*/g, "$1")
     .replace(/__(.*?)__/g, "$1")
     .replace(/`([^`]+)`/g, "$1")
+    .trim()
 }
 
-export function AIAssistant() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      type: "ai",
-      content:
-        "Hello! I'm your AI assistant. I can help you with task management, productivity tips, prioritisation strategies, and project insights. How can I assist you today?",
-      timestamp: new Date(),
-    },
-  ])
+function parseTaskCreate(text: string): Record<string, string> | null {
+  const match = text.match(/TASK_CREATE:(\{[\s\S]*?\})\s*$/)
+  if (!match) return null
+  try {
+    return JSON.parse(match[1])
+  } catch {
+    return null
+  }
+}
+
+function TaskCreateCard({ taskData, onConfirm, onCancel }: { taskData: any; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2 space-y-3">
+      <div className="flex items-center gap-2 text-sm font-semibold">
+        <Sparkles className="w-4 h-4 text-primary" />
+        Task suggestion found
+      </div>
+      <div className="text-sm space-y-1 text-muted-foreground">
+        <p><strong>Title:</strong> {taskData.title}</p>
+        {taskData.priority && <p><strong>Priority:</strong> {taskData.priority}</p>}
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" onClick={onConfirm}>Confirm & Create</Button>
+        <Button size="sm" variant="ghost" onClick={onCancel}>Dismiss</Button>
+      </div>
+    </div>
+  )
+}
+
+export function AIAssistant({ tasks = [], user, onTaskCreated, persistedSessionId, onSessionChange }: AIAssistantProps) {
+  const firstName = user?.name?.trim().split(/\s+/)[0] || "there"
+
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(persistedSessionId ?? null)
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [attachedFile, setAttachedFile] = useState<{ name: string; text: string } | null>(null)
+  const [isParsingFile, setIsParsingFile] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [creatingTaskId, setCreatingTaskId] = useState<string | null>(null)
+
+  // Syncs session ID to parent so it survives navigation
+  const updateActiveSessionId = (id: string | null) => {
+    setActiveSessionId(id)
+    onSessionChange?.(id)
+  }
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const welcomeMessage: Message = {
+    id: "welcome",
+    type: "ai",
+    content: tasks.length > 0
+      ? `Hi ${firstName}! I have access to your ${tasks.length} task${tasks.length !== 1 ? "s" : ""} (${tasks.filter(t => t.status === "completed").length} completed, ${tasks.filter(t => t.status !== "completed").length} pending). Ask me anything — I can analyse patterns, suggest priorities, or help you plan your day!`
+      : `Hi ${firstName}! I'm your AI assistant. How can I help you today? You can also upload a PDF, DOCX, or TXT file for me to analyse.`,
+    created_at: new Date().toISOString(),
+  }
 
   const suggestions = [
     "Analyse my task completion patterns",
@@ -44,10 +123,129 @@ export function AIAssistant() {
     "Create a project timeline",
   ]
 
-  // Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+  }, [messages, isLoading])
+
+  const fetchSessions = useCallback(async () => {
+    if (!user?.id) return
+    setSessionsLoading(true)
+    try {
+      const { data } = await supabase
+        .from("ai_sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+      setSessions(data || [])
+    } finally {
+      setSessionsLoading(false)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    fetchSessions()
+  }, [fetchSessions])
+
+  // If returning to the page with an existing session, reload its messages
+  useEffect(() => {
+    if (persistedSessionId && !messages.length) {
+      loadSession(persistedSessionId)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Show welcome message when no active session
+  useEffect(() => {
+    if (!activeSessionId) {
+      setMessages([welcomeMessage])
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSessionId, tasks.length])
+
+  const loadSession = async (sessionId: string) => {
+    setError(null)
+    setAttachedFile(null)
+    const { data } = await supabase
+      .from("ai_messages")
+      .select("*")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: true })
+    setMessages(data || [])
+    updateActiveSessionId(sessionId)
+  }
+
+  const createSession = async (firstMessage: string): Promise<string | null> => {
+    const title = firstMessage.slice(0, 70) + (firstMessage.length > 70 ? "…" : "")
+    const { data } = await supabase
+      .from("ai_sessions")
+      .insert({ user_id: user!.id, title })
+      .select()
+      .single()
+    if (data) {
+      setSessions(prev => [data, ...prev])
+      updateActiveSessionId(data.id)
+      return data.id
+    }
+    return null
+  }
+
+  const saveMessage = async (sessionId: string, type: "user" | "ai", content: string) => {
+    await supabase.from("ai_messages").insert({ session_id: sessionId, type, content })
+    await supabase.from("ai_sessions").update({ updated_at: new Date().toISOString() }).eq("id", sessionId)
+  }
+
+  const deleteSession = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation()
+    await supabase.from("ai_sessions").delete().eq("id", sessionId)
+    setSessions(prev => prev.filter(s => s.id !== sessionId))
+    if (activeSessionId === sessionId) {
+      updateActiveSessionId(null)
+    }
+  }
+
+  const handleNewChat = () => {
+    updateActiveSessionId(null)
+    setAttachedFile(null)
+    setError(null)
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File too large. Maximum size is 10MB.")
+      return
+    }
+
+    setIsParsingFile(true)
+    setError(null)
+
+    try {
+      if (file.type === "text/plain" || file.name.endsWith(".txt")) {
+        const text = await file.text()
+        setAttachedFile({ name: file.name, text: text.slice(0, 8000) })
+      } else {
+        const formData = new FormData()
+        formData.append("file", file)
+        const res = await fetch("/api/parse-file", { method: "POST", body: formData })
+        const data = await res.json()
+        if (data.text) {
+          setAttachedFile({ name: file.name, text: data.text })
+          if (data.truncated) {
+            setError(`Note: File was truncated to 8,000 characters (original: ${data.originalLength.toLocaleString()} chars).`)
+          }
+        } else {
+          setError(data.error || "Could not parse file.")
+        }
+      }
+    } catch {
+      setError("Failed to process file.")
+    } finally {
+      setIsParsingFile(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
+  }
 
   const handleSendMessage = async (text?: string) => {
     const content = (text ?? inputMessage).trim()
@@ -56,24 +254,50 @@ export function AIAssistant() {
     setError(null)
     setInputMessage("")
 
+    const displayContent = attachedFile
+      ? `${content}\n\n📎 ${attachedFile.name}`
+      : content
+
     const userMessage: Message = {
-      id: messages.length + 1,
+      id: Date.now().toString(),
       type: "user",
-      content,
-      timestamp: new Date(),
+      content: displayContent,
+      created_at: new Date().toISOString(),
     }
 
-    const updatedMessages = [...messages, userMessage]
+    // Filter out the welcome message for sending to API (it's not a real DB message)
+    const priorMessages = messages.filter(m => m.id !== "welcome")
+    const updatedMessages = [...priorMessages, userMessage]
     setMessages(updatedMessages)
     setIsLoading(true)
 
+    // Create or use session
+    let sessionId = activeSessionId
+    if (!sessionId && user?.id) {
+      sessionId = await createSession(content)
+    }
+    if (sessionId) {
+      await saveMessage(sessionId, "user", displayContent)
+    }
+
+    const fileToSend = attachedFile
+    setAttachedFile(null)
+
     try {
+      const taskSummary = tasks.length > 0
+        ? tasks.map(t =>
+            `- [${t.status}] (${t.priority}) "${t.title}"${t.due_date ? ` due ${t.due_date}` : ""}${t.assignee ? ` → ${t.assignee}` : ""}${t.category ? ` [${t.category}]` : ""}${t.completion_note ? ` | Note: ${t.completion_note}` : ""}`
+          ).join("\n")
+        : null
+
       const res = await fetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // Send only content + role — exclude timestamps to keep payload lean
-          messages: updatedMessages.map((m) => ({ type: m.type, content: m.content })),
+          messages: updatedMessages.map(m => ({ type: m.type, content: m.content })),
+          taskContext: taskSummary,
+          userName: user?.name ?? null,
+          fileContext: fileToSend ? `File: "${fileToSend.name}"\n\n${fileToSend.text}` : null,
         }),
       })
 
@@ -83,12 +307,16 @@ export function AIAssistant() {
         setError(data.error ?? "Failed to get a response. Please try again.")
       } else {
         const aiMessage: Message = {
-          id: updatedMessages.length + 1,
+          id: (Date.now() + 1).toString(),
           type: "ai",
           content: data.reply,
-          timestamp: new Date(),
+          created_at: new Date().toISOString(),
         }
-        setMessages((prev) => [...prev, aiMessage])
+        setMessages(prev => [...prev, aiMessage])
+        if (sessionId) {
+          await saveMessage(sessionId, "ai", data.reply)
+          fetchSessions() // refresh sidebar order
+        }
       }
     } catch {
       setError("Network error. Please check your connection and try again.")
@@ -97,154 +325,256 @@ export function AIAssistant() {
     }
   }
 
-  const handleSuggestionClick = (suggestion: string) => {
-    handleSendMessage(suggestion)
+  const handleCreateTask = async (messageId: string, taskData: any) => {
+    if (!user?.id || creatingTaskId) return
+    setCreatingTaskId(messageId)
+    try {
+      const newTask = {
+        title: taskData.title || 'Untitled Task',
+        status: 'todo',
+        priority: taskData.priority || 'medium',
+        category: taskData.category || 'General',
+        description: taskData.description || null,
+        due_date: taskData.due_date && taskData.due_date !== 'null' ? taskData.due_date : null,
+        user_id: user.id,
+      }
+      const { data, error } = await supabase.from('task').insert(newTask).select().single()
+      if (error) {
+        setError('Failed to create task: ' + error.message)
+      } else if (data) {
+        onTaskCreated?.(data)
+        setMessages(prev => prev.map(m =>
+          m.id === messageId
+            ? { ...m, content: m.content.replace(/TASK_CREATE:\{[\s\S]*?\}\s*$/, '').trim() + '\n\n✅ Task created successfully!' }
+            : m
+        ))
+      }
+    } finally {
+      setCreatingTaskId(null)
+    }
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-[#f7f9fc]">
-      <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
+    <div className="h-full flex overflow-hidden bg-[#f7f9fc]">
+      {/* Sessions Sidebar */}
+      <div
+        className={`${isSidebarOpen ? "w-64" : "w-0"} transition-all duration-200 shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-hidden`}
+      >
+        <div className="p-3 border-b border-slate-100 shrink-0">
+          <Button
+            onClick={handleNewChat}
+            className="w-full h-9 gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+          >
+            <Plus className="h-4 w-4" />
+            New Chat
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+          {sessionsLoading ? (
+            <div className="py-8 flex justify-center"><Loader2 className="h-4 w-4 animate-spin text-slate-300" /></div>
+          ) : sessions.length === 0 ? (
+            <div className="py-8 text-center text-slate-400 text-xs">No past sessions yet</div>
+          ) : (
+            sessions.map(session => (
+              <div
+                key={session.id}
+                onClick={() => loadSession(session.id)}
+                className={`group flex items-start justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${
+                  activeSessionId === session.id
+                    ? "bg-blue-50 text-blue-700"
+                    : "hover:bg-slate-50 text-slate-700"
+                }`}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium truncate leading-snug">{session.title}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {new Date(session.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => deleteSession(e, session.id)}
+                  className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-opacity shrink-0 ml-1 mt-0.5"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end">
-          <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 shadow-[0_6px_16px_rgba(37,99,235,0.2)]">
-              <Bot className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Workspace intelligence</p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">AI Assistant</h1>
-              <p className="mt-1 text-sm text-slate-500">Turn your task context into a clear next step.</p>
+        <div className="h-14 border-b border-slate-200 bg-white px-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
+              title="Toggle history"
+            >
+              <History className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 shadow-sm">
+                <Bot className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900 leading-none">AI Assistant</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  {activeSessionId ? "Continuing session" : "New conversation"}
+                </p>
+              </div>
             </div>
           </div>
-          <Badge variant="outline" className="flex h-8 items-center gap-1 border-slate-200 bg-white px-3 text-xs font-medium text-slate-600">
+          <Badge variant="outline" className="text-xs border-slate-200 text-slate-500 gap-1">
             <Sparkles className="h-3 w-3 text-blue-600" />
-            <span>AI ready</span>
+            AI ready
           </Badge>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <Card className="cursor-pointer border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-md" onClick={() => handleSendMessage("Give me a productivity analysis and tips")}>
-            <CardContent className="flex items-start gap-3 p-4">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><TrendingUp className="h-4 w-4" /></span>
-              <div><h3 className="text-sm font-semibold text-slate-900">Productivity analysis</h3><p className="mt-1 text-xs leading-5 text-slate-500">Get insights on your work patterns</p></div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-md" onClick={() => handleSendMessage("Give me smart suggestions to boost my productivity")}>
-            <CardContent className="flex items-start gap-3 p-4">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600"><Lightbulb className="h-4 w-4" /></span>
-              <div><h3 className="text-sm font-semibold text-slate-900">Smart suggestions</h3><p className="mt-1 text-xs leading-5 text-slate-500">AI-powered task recommendations</p></div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-md" onClick={() => handleSendMessage("How can I optimise my daily schedule for maximum productivity?")}>
-            <CardContent className="flex items-start gap-3 p-4">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"><Clock className="h-4 w-4" /></span>
-              <div><h3 className="text-sm font-semibold text-slate-900">Time optimisation</h3><p className="mt-1 text-xs leading-5 text-slate-500">Optimise your schedule</p></div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Chat Interface */}
-        <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
-          <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-              <MessageSquare className="h-4 w-4 text-blue-600" />
-              <span>AI Chat</span>
-            </CardTitle>
-            <CardDescription>Ask me anything about your tasks and productivity</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 p-5 sm:p-6">
-            {/* Error banner */}
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Messages */}
-            <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  {message.type === "ai" && (
-                    <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600">
-                      <Bot className="h-4 w-4 text-white" />
-                    </div>
-                  )}
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.type === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "border border-slate-200 bg-slate-50 text-slate-800"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{cleanAIText(message.content)}</p>
-                    <p className="text-xs opacity-60 mt-1">
-                      {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Typing indicator */}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          {messages.map(message => {
+            const taskData = message.type === 'ai' ? parseTaskCreate(message.content) : null
+            const isCreated = message.content.includes('✅ Task created successfully!')
+            return (
+              <div
+                key={message.id}
+                className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {message.type === "ai" && (
+                  <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 shadow-sm">
                     <Bot className="h-4 w-4 text-white" />
                   </div>
-                  <div className="flex items-center space-x-1 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Thinking…</span>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Quick suggestions — only show when chat is short */}
-            {messages.length <= 2 && !isLoading && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Quick prompts</p>
-                <div className="flex flex-wrap gap-2">
-                  {suggestions.map((suggestion, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="border-slate-200 text-xs text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-                      disabled={isLoading}
-                    >
-                      {suggestion}
-                    </Button>
-                  ))}
+                )}
+                <div
+                  className={`max-w-[72%] px-4 py-2.5 rounded-2xl shadow-sm ${
+                    message.type === "user"
+                      ? "bg-blue-600 text-white rounded-tr-sm"
+                      : "bg-white border border-slate-200 text-slate-800 rounded-tl-sm"
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{cleanAIText(message.content)}</p>
+                  <p className="text-[10px] opacity-50 mt-1">
+                    {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                  {taskData && !isCreated && (
+                    <TaskCreateCard
+                      taskData={taskData}
+                      onConfirm={() => handleCreateTask(message.id, taskData)}
+                      onCancel={() => setMessages(prev => prev.map(m =>
+                        m.id === message.id
+                          ? { ...m, content: m.content.replace(/TASK_CREATE:\{[\s\S]*?\}\s*$/, '').trim() }
+                          : m
+                      ))}
+                    />
+                  )}
                 </div>
               </div>
-            )}
+            )
+          })}
 
-            {/* Input */}
-            <div className="flex space-x-2">
-              <Input
-                placeholder="Ask me anything about your tasks…"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                className="h-10 flex-1 border-slate-200 bg-slate-50 text-sm focus-visible:ring-blue-500"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={() => handleSendMessage()}
-                disabled={!inputMessage.trim() || isLoading}
-                className="h-10 w-10 bg-blue-600 hover:bg-blue-700"
-              >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              </Button>
+          {/* Typing indicator */}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 shadow-sm">
+                <Bot className="h-4 w-4 text-white" />
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:0ms]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:150ms]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:300ms]" />
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+
+          {/* Quick suggestions — show only on new chat */}
+          {!activeSessionId && messages.length <= 1 && !isLoading && (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Quick prompts</p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((suggestion, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSendMessage(suggestion)}
+                    disabled={isLoading}
+                    className="text-xs border border-slate-200 bg-white text-slate-600 px-3 py-1.5 rounded-full hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Error banner */}
+        {error && (
+          <div className="px-4 pb-2">
+            <Alert variant={error.startsWith("Note:") ? "default" : "destructive"} className="py-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-xs">{error}</AlertDescription>
+            </Alert>
+          </div>
+        )}
+
+        {/* Attached file indicator */}
+        {attachedFile && (
+          <div className="px-4 pb-2">
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">
+              <FileText className="h-3.5 w-3.5 shrink-0" />
+              <span className="flex-1 truncate font-medium">{attachedFile.name}</span>
+              <button onClick={() => setAttachedFile(null)} className="hover:text-blue-900 font-bold ml-1">✕</button>
+            </div>
+          </div>
+        )}
+
+        {/* Input area */}
+        <div className="border-t border-slate-200 bg-white p-4">
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,.pdf,.docx"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0 border-slate-200 hover:bg-slate-50"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isParsingFile || isLoading}
+              title="Attach file (PDF, DOCX, TXT)"
+            >
+              {isParsingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4 text-slate-500" />}
+            </Button>
+            <Input
+              placeholder={`Ask me anything, ${firstName}…`}
+              value={inputMessage}
+              onChange={e => setInputMessage(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
+              className="h-10 flex-1 border-slate-200 bg-slate-50 text-sm focus-visible:ring-blue-500"
+              disabled={isLoading}
+            />
+            <Button
+              onClick={() => handleSendMessage()}
+              disabled={!inputMessage.trim() || isLoading}
+              className="h-10 w-10 shrink-0 bg-blue-600 hover:bg-blue-700"
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2 text-center">
+            Supports PDF, DOCX, and TXT file uploads · Sessions saved to your account
+          </p>
+        </div>
       </div>
     </div>
   )

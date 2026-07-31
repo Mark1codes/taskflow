@@ -15,12 +15,9 @@ interface InboxProps {
 export function Inbox({ tasks, user, onUpdateTask }: InboxProps) {
   const [taskToComplete, setTaskToComplete] = useState<any>(null)
 
-  // Determine user's name for matching assignees
-  const userName = user?.name || user?.user_metadata?.full_name || user?.email
-
   // Filter tasks assigned to the current user that are not completed
   const assignedTasks = tasks.filter(t => 
-    t.assignee === userName && t.status !== 'completed'
+    t.task_assignees?.some((a: any) => a.user_id === user?.id && a.status === 'accepted') && t.status !== 'completed'
   )
 
   const handleConfirmComplete = async (note: string) => {
@@ -50,7 +47,7 @@ export function Inbox({ tasks, user, onUpdateTask }: InboxProps) {
               <Bell className="h-6 w-6 text-slate-950 dark:text-white" />
               Inbox
             </h1>
-            <p className="mt-1 text-sm text-slate-500">Tasks assigned specifically to you that need attention.</p>
+            <p className="mt-1 text-sm text-slate-500">Updates and alerts that need your attention.</p>
           </div>
           <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
             {assignedTasks.length} pending
@@ -64,7 +61,7 @@ export function Inbox({ tasks, user, onUpdateTask }: InboxProps) {
             </div>
             <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">Inbox Zero</h3>
             <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-              You're all caught up! There are no pending tasks assigned to you right now.
+              You're all caught up! There are no new notifications or alerts right now.
             </p>
           </div>
         ) : (
