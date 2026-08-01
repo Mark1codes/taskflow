@@ -188,17 +188,51 @@ export default function Home() {
         // Block rendering entirely until session check resolves — prevents any flash
         return (
           <div className="min-h-screen flex flex-col items-center justify-center bg-[#f7f9fc]">
-            <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-8">
+              {/* Logo */}
               <div className="flex items-center gap-2.5">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 51 41" role="img" aria-label="TaskFlow" width="32" height="26">
                   <path d="M43 31L31 40H5L7 35L12 31H29L32 35L40 11L45 7H50L43 31ZM43 5L38 9H21L18 5L10 29L5 33H0L7 9L19 0H45L43 5ZM24 13H35L29 31L26 27H15L21 9L24 13Z" fill="#297AFF"/>
                 </svg>
                 <span className="text-xl font-bold text-slate-900 tracking-tight">TaskFlow</span>
               </div>
-              <Loader2 className="h-5 w-5 animate-spin text-blue-600/80" />
+
+              {/* Animated progress bar */}
+              <div className="w-48 h-0.5 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 rounded-full"
+                  style={{
+                    animation: "taskflow-load 1.4s ease-in-out infinite",
+                  }}
+                />
+              </div>
+
+              {/* Pulsing dots */}
+              <div className="flex items-center gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="h-1.5 w-1.5 rounded-full bg-blue-400"
+                    style={{ animation: `taskflow-dot 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                  />
+                ))}
+              </div>
+
+              <style>{`
+                @keyframes taskflow-load {
+                  0% { transform: translateX(-100%); width: 40%; }
+                  50% { width: 60%; }
+                  100% { transform: translateX(300%); width: 40%; }
+                }
+                @keyframes taskflow-dot {
+                  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+                  40% { opacity: 1; transform: scale(1.2); }
+                }
+              `}</style>
             </div>
           </div>
         )
+
 
       case "landing":
         return <LandingPage onLogin={() => setAuthState("login")} onSignUp={() => setAuthState("signup")} />

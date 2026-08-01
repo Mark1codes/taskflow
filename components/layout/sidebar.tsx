@@ -3,7 +3,7 @@
 import {
   LayoutDashboard, Plus, CheckSquare, Calendar, Kanban, Activity,
   Settings, Menu, Bot, Sparkles, Zap,
-  ChevronLeft, Bell, UserPlus
+  ChevronLeft, Bell, UserPlus, Users
 } from "lucide-react"
 import { BrandLogo } from "@/components/layout/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -17,16 +17,26 @@ interface SidebarProps {
   inboxCount?: number
 }
 
-const mainNav = [
+const overviewNav = [
   { id: "dashboard",   label: "Dashboard",   icon: LayoutDashboard },
-  { id: "add-task",    label: "Add Task",    icon: Plus },
-  { id: "tasks",       label: "Task List",   icon: CheckSquare },
-  { id: "calendar",    label: "Calendar",    icon: Calendar },
-  { id: "kanban",      label: "Kanban",      icon: Kanban },
-  { id: "invitations", label: "Invitations", icon: UserPlus },
-  { id: "activity",    label: "Activity",    icon: Activity },
-  { id: "settings",    label: "Settings",    icon: Settings },
   { id: "inbox",       label: "Inbox",       icon: Bell },
+  { id: "activity",    label: "Activity",    icon: Activity },
+]
+
+const tasksNav = [
+  { id: "tasks",       label: "My Tasks",    icon: CheckSquare },
+  { id: "add-task",    label: "Add Task",    icon: Plus },
+  { id: "kanban",      label: "Board",       icon: Kanban },
+  { id: "calendar",    label: "Calendar",    icon: Calendar },
+]
+
+const teamNav = [
+  { id: "shared-tasks",label: "Shared with Me", icon: Users },
+  { id: "invitations", label: "Invitations", icon: UserPlus },
+]
+
+const settingsNav = [
+  { id: "settings",    label: "Settings",    icon: Settings },
 ]
 
 const aiNav = [
@@ -36,7 +46,7 @@ const aiNav = [
 
 function NavGroup({ label, items, activeView, onViewChange, collapsed, invitationsCount = 0, inboxCount = 0 }: {
   label: string
-  items: typeof mainNav
+  items: typeof overviewNav
   activeView: string
   onViewChange: (v: string) => void
   collapsed: boolean
@@ -133,9 +143,15 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-        <NavGroup label="Main" items={mainNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} invitationsCount={invitationsCount} inboxCount={inboxCount} />
+        <NavGroup label="Overview" items={overviewNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} inboxCount={inboxCount} />
+        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        <NavGroup label="Tasks" items={tasksNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
+        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        <NavGroup label="Team" items={teamNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} invitationsCount={invitationsCount} />
         {!collapsed && <div className="border-t border-slate-800 my-2" />}
         <NavGroup label="AI" items={aiNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
+        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        <NavGroup label="System" items={settingsNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
       </nav>
 
       {/* Bottom hint */}

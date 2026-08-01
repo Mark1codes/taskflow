@@ -1,4 +1,5 @@
 "use client"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -45,19 +46,20 @@ function avatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length]
 }
 
-function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' }) {
-  if (!name) return <div className={`flex items-center justify-center shrink-0 rounded-full bg-slate-200 ${size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'}`}><User className="h-3 w-3 text-slate-400" /></div>
-  const sz = size === 'sm' ? 'h-4 w-4 text-[8px]' : 'h-8 w-8 text-xs'
+function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg' }) {
+  let szClass = 'h-8 w-8 text-xs'
+  if (size === 'sm') szClass = 'h-6 w-6 text-[10px]'
+  if (size === 'lg') szClass = 'h-10 w-10 text-sm'
   
-  if (avatarUrl) {
-    return <img src={avatarUrl} alt={name} className={`${sz} rounded-full object-cover shrink-0`} />
-  }
-
-  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+  const initials = name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?'
+  
   return (
-    <div className={`flex items-center justify-center shrink-0 rounded-full text-white font-medium ${sz} ${avatarColor(name)}`}>
-      {initials}
-    </div>
+    <Avatar className={`${szClass} shrink-0 ring-2 ring-white dark:ring-slate-900`}>
+      <AvatarImage src={avatarUrl || undefined} alt={name || "User"} referrerPolicy="no-referrer" className="object-cover" />
+      <AvatarFallback className={`${avatarColor(name || "")} text-white font-medium`}>
+        {initials}
+      </AvatarFallback>
+    </Avatar>
   )
 }
 

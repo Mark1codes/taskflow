@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Dashboard } from "@/components/core/dashboard"
 import { TaskList } from "@/components/tasks/task-list"
+import { SharedTasks } from "@/components/tasks/shared-tasks"
 import { AddTask } from "@/components/tasks/add-task"
 import { Calendar } from "@/components/tasks/calendar-view"
 import { KanbanBoard } from "@/components/tasks/kanban-board"
@@ -232,6 +233,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     if (res.ok) {
       setPendingInvitations(prev => prev.filter(t => t.id !== taskId))
       if (currentUser) fetchTasks(currentUser.id)
+      setActiveView('shared-tasks')
     }
   }
 
@@ -375,10 +377,12 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
         return <AddTask tasks={tasks} onAddTask={addTask} onBack={() => setActiveView("tasks")} user={currentUser} />
       case "tasks":
         return <TaskList tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} onStartFocus={setFocusedTask} />
+      case "shared-tasks":
+        return <SharedTasks tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} onStartFocus={setFocusedTask} />
       case "calendar":
         return <Calendar tasks={getCalendarTasks()} onUpdateTask={updateTask} />
       case "kanban":
-        return <KanbanBoard tasks={tasks} onUpdateTask={updateTask} onStartFocus={setFocusedTask} />
+        return <KanbanBoard tasks={tasks} onUpdateTask={updateTask} onStartFocus={setFocusedTask} user={currentUser} />
       case "activity":
         return <ActivityFeed user={currentUser} />
       case "invitations":

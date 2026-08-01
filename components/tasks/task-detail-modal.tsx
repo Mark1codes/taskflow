@@ -1,4 +1,5 @@
 "use client"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 import { useState, useEffect } from "react"
 import { 
@@ -6,6 +7,7 @@ import {
   DialogDescription, DialogFooter, DialogClose 
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, User, FileText, CheckCircle2 } from "lucide-react"
 import supabase from '@/utils/supabase'
@@ -15,6 +17,8 @@ interface TaskDetailModalProps {
   isOpen: boolean
   onClose: () => void
   onComplete?: (taskId: string) => void
+  onUpdateTask?: (taskId: string, updates: any) => void
+  currentUser?: any
 }
 
 const priorityColors: Record<string, string> = {
@@ -33,20 +37,27 @@ function avatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length]
 }
 
-function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' }) {
-  if (!name) return <div className={`flex items-center justify-center shrink-0 rounded-full bg-slate-200 ${size === 'sm' ? 'h-5 w-5' : 'h-8 w-8'} `}><User className="h-3 w-3 text-slate-400" /></div>
-  const sz = size === 'sm' ? 'h-5 w-5 text-[9px]' : 'h-8 w-8 text-xs'
-  if (avatarUrl) return <img src={avatarUrl} alt={name} className={`${sz} rounded-full object-cover shrink-0`} />
-  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg' }) {
+  let szClass = 'h-8 w-8 text-xs'
+  if (size === 'sm') szClass = 'h-6 w-6 text-[10px]'
+  if (size === 'lg') szClass = 'h-10 w-10 text-sm'
+  
+  const initials = name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?'
+  
   return (
-    <div className={`flex items-center justify-center shrink-0 rounded-full text-white font-medium ${sz} ${avatarColor(name)}`}>
-      {initials}
-    </div>
+    <Avatar className={`${szClass} shrink-0 ring-2 ring-white dark:ring-slate-900`}>
+      <AvatarImage src={avatarUrl || undefined} alt={name || "User"} referrerPolicy="no-referrer" className="object-cover" />
+      <AvatarFallback className={`${avatarColor(name || "")} text-white font-medium`}>
+        {initials}
+      </AvatarFallback>
+    </Avatar>
   )
 }
 
-export function TaskDetailModal({ task, isOpen, onClose, onComplete }: TaskDetailModalProps) {
+export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTask, currentUser }: TaskDetailModalProps) {
   const [userMap, setUserMap] = useState<Record<string, {name: string; avatarUrl?: string}>>({})
+  const [replyText, setReplyText] = useState("")
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
   useEffect(() => {
     if (!isOpen || !task) return
@@ -71,6 +82,21 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete }: TaskDetai
   if (!task) return null
 
   const isCompleted = task.status === 'completed'
+  const isAssigner = currentUser && task.user_id === currentUser.id
+
+  const handleSubmitReply = async () => {
+    if (!replyText.trim() || !onUpdateTask) return
+    setIsSubmittingReply(true)
+    try {
+      await onUpdateTask(task.id, { completion_reply: replyText })
+      // Task will be updated via optimistic UI in the parent
+      setReplyText("")
+    } catch (err) {
+      console.error("Failed to submit reply", err)
+    } finally {
+      setIsSubmittingReply(false)
+    }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -165,11 +191,43 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete }: TaskDetai
 
           {/* Completion Note */}
           {isCompleted && task.completion_note && (
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2">Completion Note</h4>
-              <div className="text-sm text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800/50">
-                {task.completion_note}
+            <div className="space-y-3">
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" /> Completion Note
+                </h4>
+                <div className="text-sm text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800/50">
+                  {task.completion_note}
+                </div>
               </div>
+
+              {/* Reply Section */}
+              {task.completion_reply ? (
+                <div className="ml-6 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2">Assigner's Reply</h4>
+                  <div className="text-sm text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800/50">
+                    {task.completion_reply}
+                  </div>
+                </div>
+              ) : isAssigner && onUpdateTask ? (
+                <div className="ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-800">
+                  <Textarea 
+                    placeholder="Write a reply to the completion note..." 
+                    className="mb-2 text-sm resize-none bg-white dark:bg-slate-900"
+                    rows={2}
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                  />
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white" 
+                    onClick={handleSubmitReply}
+                    disabled={isSubmittingReply || !replyText.trim()}
+                  >
+                    {isSubmittingReply ? "Submitting..." : "Submit Reply"}
+                  </Button>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

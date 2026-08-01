@@ -27,6 +27,7 @@ interface KanbanBoardProps {
   tasks: Task[]
   onUpdateTask: (taskId: string, updates: any) => void
   onStartFocus?: (task: any) => void
+  user?: any
 }
 
 const columns = [
@@ -41,7 +42,7 @@ const priorityConfig: Record<string, string> = {
   low:    "bg-slate-50 text-slate-500 border-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
 }
 
-export function KanbanBoard({ tasks, onUpdateTask, onStartFocus }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onUpdateTask, onStartFocus, user }: KanbanBoardProps) {
   const [viewingTask, setViewingTask] = useState<Task | null>(null)
 
   const byStatus = (s: string) => tasks.filter(t => t.status === s)
@@ -189,6 +190,8 @@ export function KanbanBoard({ tasks, onUpdateTask, onStartFocus }: KanbanBoardPr
           move(id, "completed")
           setViewingTask(null)
         }}
+        onUpdateTask={onUpdateTask}
+        currentUser={user}
       />
     </div>
   )
