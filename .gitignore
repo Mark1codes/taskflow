@@ -32,3 +32,9 @@ next-env.d.ts
 
 # roadmaps
 NOTIFICATIONS_ROADMAP.md
+
+# local generated files and sql scripts
+state_management_guide.md
+add_completion_reply.sql
+fix_assignee_visibility.sql
+supabase/migrations/
