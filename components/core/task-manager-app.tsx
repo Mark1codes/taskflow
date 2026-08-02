@@ -11,6 +11,7 @@ import { KanbanBoard } from "@/components/tasks/kanban-board"
 import { Settings } from "@/components/core/settings"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,6 +73,14 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   // Persists the active AI session ID across page navigation
   const [aiSessionId, setAiSessionId] = useState<string | null>(null)
   const [pendingInvitations, setPendingInvitations] = useState<Task[]>([])
+  const [readInboxTaskIds, setReadInboxTaskIds] = useState<string[]>([])
+
+  useEffect(() => {
+    const saved = localStorage.getItem('read_inbox_task_ids')
+    if (saved) {
+      try { setReadInboxTaskIds(JSON.parse(saved)) } catch {}
+    }
+  }, [])
 
   useEffect(() => {
     if (initialUser) {
@@ -79,7 +88,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       fetchTasks(initialUser.id)
       fetchPendingInvitations(initialUser.id)
     }
-  }, [initialUser])
+  }, [initialUser?.id])
   // Load color theme
   useEffect(() => {
     const savedTheme = localStorage.getItem("taskflow-color-theme") || "blue"
@@ -407,9 +416,22 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     }
   }
 
-  const inboxCount = tasks.filter(t => 
+  const assignedTasks = tasks.filter(t => 
     t.task_assignees?.some(a => a.user_id === currentUser?.id && a.status === 'accepted') && t.status !== 'completed'
-  ).length
+  )
+
+  useEffect(() => {
+    if (activeView === 'inbox' && assignedTasks.length > 0) {
+      const ids = assignedTasks.map(t => t.id)
+      const newIds = Array.from(new Set([...readInboxTaskIds, ...ids]))
+      if (newIds.length !== readInboxTaskIds.length) {
+        setReadInboxTaskIds(newIds)
+        localStorage.setItem('read_inbox_task_ids', JSON.stringify(newIds))
+      }
+    }
+  }, [activeView, assignedTasks, readInboxTaskIds])
+
+  const inboxCount = assignedTasks.filter(t => !readInboxTaskIds.includes(t.id)).length
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
@@ -460,8 +482,10 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
               <DropdownMenuTrigger asChild>
                 <button className="relative h-8 w-8 rounded-full ring-2 ring-slate-200 hover:ring-blue-500 transition-all">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={currentUser.avatar || undefined} alt={currentUser.name} />
-                    <AvatarFallback className="text-xs bg-blue-600 text-white">{currentUser.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src={currentUser.avatar || undefined} alt={currentUser.name} referrerPolicy="no-referrer" className="object-cover" />
+                    <AvatarFallback className={currentUser.avatar ? "bg-slate-100 dark:bg-slate-800" : "text-xs bg-blue-600 text-white font-medium"}>
+                      {currentUser.avatar ? <Skeleton className="h-full w-full rounded-full" /> : currentUser.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>

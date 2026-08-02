@@ -112,7 +112,7 @@ Only include ONE block per response. Only use it when the user clearly asks to c
       body: JSON.stringify({
         model: 'openrouter/auto',
         messages: [systemInstruction, ...chatMessages],
-        max_tokens: 768,
+        max_tokens: 4096,
       }),
     })
 

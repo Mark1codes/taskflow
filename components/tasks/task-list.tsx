@@ -1,5 +1,6 @@
 "use client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,7 @@ function avatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length]
 }
 
-function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg' }) {
+function UserAvatar({ name, avatarUrl, size = 'sm', isLoading = false }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg'; isLoading?: boolean }) {
   let szClass = 'h-8 w-8 text-xs'
   if (size === 'sm') szClass = 'h-6 w-6 text-[10px]'
   if (size === 'lg') szClass = 'h-10 w-10 text-sm'
@@ -34,8 +35,8 @@ function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?
   return (
     <Avatar className={`${szClass} shrink-0 ring-2 ring-white dark:ring-slate-900`}>
       <AvatarImage src={avatarUrl || undefined} alt={name || "User"} referrerPolicy="no-referrer" className="object-cover" />
-      <AvatarFallback className={`${avatarColor(name || "")} text-white font-medium`}>
-        {initials}
+      <AvatarFallback className={avatarUrl || isLoading ? "bg-slate-100 dark:bg-slate-800" : `${avatarColor(name || "")} text-white font-medium`}>
+        {avatarUrl || isLoading ? <Skeleton className="h-full w-full rounded-full" /> : initials}
       </AvatarFallback>
     </Avatar>
   )
@@ -94,6 +95,7 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
   const [viewingTask, setViewingTask] = useState<Task | null>(null)
   const [attachmentsMap, setAttachmentsMap] = useState<Record<string, any[]>>({})
   const [userMap, setUserMap] = useState<Record<string, {name: string; avatarUrl?: string}>>({})
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true)
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -111,6 +113,8 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
         }
       } catch (err) {
         console.error("Failed to fetch users for task list:", err)
+      } finally {
+        setIsLoadingUsers(false)
       }
     }
     fetchUsers()
@@ -354,7 +358,7 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                                     }`}
                                     title={a.status}
                                   >
-                                    <UserAvatar name={a.user_name} avatarUrl={userMap[a.user_id]?.avatarUrl} />
+                                    <UserAvatar name={a.user_name} avatarUrl={a.user_id === user?.id ? user?.avatar : userMap[a.user_id]?.avatarUrl} isLoading={isLoadingUsers} />
                                     {a.user_name}
                                   </span>
                                 ))}

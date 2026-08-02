@@ -1,5 +1,6 @@
 "use client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 import { useState, useEffect } from "react"
 import { 
@@ -37,7 +38,7 @@ function avatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length]
 }
 
-function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg' }) {
+function UserAvatar({ name, avatarUrl, size = 'sm', isLoading = false }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg'; isLoading?: boolean }) {
   let szClass = 'h-8 w-8 text-xs'
   if (size === 'sm') szClass = 'h-6 w-6 text-[10px]'
   if (size === 'lg') szClass = 'h-10 w-10 text-sm'
@@ -47,8 +48,8 @@ function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?
   return (
     <Avatar className={`${szClass} shrink-0 ring-2 ring-white dark:ring-slate-900`}>
       <AvatarImage src={avatarUrl || undefined} alt={name || "User"} referrerPolicy="no-referrer" className="object-cover" />
-      <AvatarFallback className={`${avatarColor(name || "")} text-white font-medium`}>
-        {initials}
+      <AvatarFallback className={avatarUrl || isLoading ? "bg-slate-100 dark:bg-slate-800" : `${avatarColor(name || "")} text-white font-medium`}>
+        {avatarUrl || isLoading ? <Skeleton className="h-full w-full rounded-full" /> : initials}
       </AvatarFallback>
     </Avatar>
   )
@@ -56,6 +57,7 @@ function UserAvatar({ name, avatarUrl, size = 'sm' }: { name: string; avatarUrl?
 
 export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTask, currentUser }: TaskDetailModalProps) {
   const [userMap, setUserMap] = useState<Record<string, {name: string; avatarUrl?: string}>>({})
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true)
   const [replyText, setReplyText] = useState("")
   const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
@@ -74,6 +76,8 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTas
         }
       } catch (err) {
         console.error("Failed to fetch users:", err)
+      } finally {
+        setIsLoadingUsers(false)
       }
     }
     fetchUsers()
@@ -153,7 +157,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTas
                       'bg-red-50 border-red-200 text-red-600 line-through opacity-70 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'
                     }`}
                   >
-                    <UserAvatar name={a.user_name} avatarUrl={userMap[a.user_id]?.avatarUrl} size="sm" />
+                    <UserAvatar name={a.user_name} avatarUrl={a.user_id === currentUser?.id ? currentUser?.avatar : userMap[a.user_id]?.avatarUrl} size="sm" isLoading={isLoadingUsers} />
                     <span className="font-medium">{a.user_name}</span>
                     {a.status === 'pending' && <span className="text-[10px] uppercase tracking-wide opacity-70 ml-1">(Pending)</span>}
                   </div>

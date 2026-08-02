@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { User, Mail, Calendar, MapPin, Phone, Camera, Save, Lock, Eye, EyeOff, Shield, Bell, Globe } from "lucide-react"
@@ -319,6 +320,9 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
         data: { avatar_url: data.publicUrl, avatar_path: filePath },
       })
       if (userError) throw new Error(userError.message)
+      
+      // Also update the public users table so the new avatar reflects in task lists and kanban boards
+      await supabase.from("users").update({ avatar_url: data.publicUrl }).eq("id", user.id)
 
       setAvatarSrc(displayUrl)
       onUpdateUser({ ...user, avatar: displayUrl })
@@ -439,8 +443,10 @@ export function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage key={avatarSrc} src={avatarSrc || undefined} alt={user.name} />
-                  <AvatarFallback className="text-2xl">{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarImage key={avatarSrc} src={avatarSrc || undefined} alt={user.name} referrerPolicy="no-referrer" className="object-cover" />
+                  <AvatarFallback className={avatarSrc ? "bg-slate-100 dark:bg-slate-800" : "text-2xl bg-blue-600 text-white font-medium"}>
+                    {avatarSrc ? <Skeleton className="h-full w-full rounded-full" /> : user.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <input ref={fileInputRef} id="profile-image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" onChange={handleAvatarUpload} />
                 <Button
