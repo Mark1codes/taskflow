@@ -18,9 +18,10 @@ interface InboxProps {
   tasks: any[]
   user: any
   onUpdateTask: (taskId: string, updates: any) => Promise<void> | void
+  onViewTask: (task: any) => void
 }
 
-export function Inbox({ tasks, user }: InboxProps) {
+export function Inbox({ tasks, user, onUpdateTask, onViewTask }: InboxProps) {
   const [userMap, setUserMap] = useState<Record<string, {name: string; avatarUrl?: string}>>({})
   const [isLoadingUsers, setIsLoadingUsers] = useState(true)
 
@@ -163,7 +164,7 @@ export function Inbox({ tasks, user }: InboxProps) {
               const initials = actorName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
               
               return (
-                <div key={notification.key} className="flex gap-3 p-4 border-b border-slate-100 dark:border-slate-800/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                <div key={notification.key} onClick={() => onViewTask(task)} className="flex gap-3 p-4 border-b border-slate-100 dark:border-slate-800/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors cursor-pointer">
                   <Avatar className="h-8 w-8 shrink-0 ring-1 ring-slate-100 dark:ring-slate-800">
                     <AvatarImage src={actorAvatar || undefined} alt={actorName} referrerPolicy="no-referrer" className="object-cover" />
                     <AvatarFallback className={actorAvatar ? "bg-slate-100 dark:bg-slate-800" : `${avatarColor(actorName)} text-white text-[10px] font-medium`}>

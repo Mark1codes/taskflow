@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, User, FileText, CheckCircle2 } from "lucide-react"
 import supabase from '@/utils/supabase'
+import { TaskComments } from "./task-comments"
 
 interface TaskDetailModalProps {
   task: any | null
@@ -197,72 +198,11 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTas
             </div>
           )}
 
-          {/* Completion Note */}
-          {isCompleted && (
-            <div className="space-y-3">
-              {task.completion_note ? (
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" /> Completion Note{completedByName ? ` from ${completedByName}` : ""}
-                  </h4>
-                  <div className="text-sm text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800/50 whitespace-pre-wrap">
-                    {task.completion_note}
-                  </div>
-                </div>
-              ) : canInteract ? (
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" /> Add Completion Note
-                  </h4>
-                  <Textarea 
-                    placeholder="Add a note about completing this task..." 
-                    className="mb-2 text-sm resize-none bg-white dark:bg-slate-900"
-                    rows={2}
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                  />
-                  <Button 
-                    size="sm" 
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white" 
-                    onClick={handleSubmitNoteOrReply}
-                    disabled={isSubmittingReply || !replyText.trim()}
-                  >
-                    {isSubmittingReply ? "Saving..." : "Save Note"}
-                  </Button>
-                </div>
-              ) : null}
-
-              {/* Reply Section */}
-              {task.completion_note && (
-                task.completion_reply ? (
-                  <div className="ml-6 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2">Reply</h4>
-                    <div className="text-sm text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800/50 whitespace-pre-wrap">
-                      {task.completion_reply}
-                    </div>
-                  </div>
-                ) : canInteract ? (
-                  <div className="ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-800">
-                    <Textarea 
-                      placeholder="Write a reply..." 
-                      className="mb-2 text-sm resize-none bg-white dark:bg-slate-900"
-                      rows={2}
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                    />
-                    <Button 
-                      size="sm" 
-                      className="bg-blue-600 hover:bg-blue-700 text-white" 
-                      onClick={handleSubmitNoteOrReply}
-                      disabled={isSubmittingReply || !replyText.trim()}
-                    >
-                      {isSubmittingReply ? "Submitting..." : "Submit Reply"}
-                    </Button>
-                  </div>
-                ) : null
-              )}
-            </div>
-          )}
+          {/* Task Conversation & Attachments */}
+          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Activity & Comments</h4>
+            <TaskComments taskId={task.id} currentUser={currentUser} />
+          </div>
         </div>
 
         <DialogFooter className="mt-6 flex gap-2 sm:justify-end">

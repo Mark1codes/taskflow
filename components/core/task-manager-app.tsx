@@ -74,10 +74,16 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   const [currentUser, setCurrentUser] = useState<User | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
   const [focusedTask, setFocusedTask] = useState<Task | null>(null)
-  // Persists the active AI session ID across page navigation
   const [aiSessionId, setAiSessionId] = useState<string | null>(null)
   const [pendingInvitations, setPendingInvitations] = useState<Task[]>([])
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const [readInboxTaskIds, setReadInboxTaskIds] = useState<string[]>([])
+
+  const handleViewTaskFromInbox = (task: Task) => {
+    const isShared = task.user_id !== currentUser?.id || (task.task_assignees?.length || 0) > 0;
+    setActiveView(isShared ? "shared-tasks" : "tasks");
+    setOpenTaskId(task.id);
+  }
 
   useEffect(() => {
     const saved = localStorage.getItem('read_inbox_task_ids')
@@ -131,16 +137,16 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
           event: '*',
           schema: 'public',
           table: 'task',
-          filter: `user_id=eq.${currentUser.id}`
+          // No filter here so we receive updates for shared tasks too
         },
         (payload: any) => {
           console.log('Real-time update:', payload)
           
           switch (payload.eventType) {
             case 'INSERT':
-              if (payload.new) {
+              // Only auto-insert if we are the owner. Otherwise, wait for the assignee trigger.
+              if (payload.new && payload.new.user_id === currentUser.id) {
                 setTasks(prev => {
-                  // Avoid duplicates
                   const exists = prev.some(task => task.id === payload.new.id)
                   if (exists) return prev
                   return [payload.new as Task, ...prev]
@@ -149,9 +155,19 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
               break
             case 'UPDATE':
               if (payload.new) {
-                setTasks(prev => prev.map(task => 
-                  task.id === payload.new.id ? payload.new as Task : task
-                ))
+                setTasks(prev => {
+                  // Only update if we already have this task in our UI (either as owner or assignee)
+                  const exists = prev.some(task => task.id === payload.new.id)
+                  if (!exists) return prev
+                  
+                  return prev.map(task => {
+                    if (task.id === payload.new.id) {
+                      // Preserve the task_assignees data which isn't in the flat task payload
+                      return { ...task, ...payload.new } as Task
+                    }
+                    return task
+                  })
+                })
               }
               break
             case 'DELETE':
@@ -423,13 +439,13 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       case "dashboard":
         return <Dashboard tasks={tasks} isLoading={isLoading} />
       case "inbox":
-        return <Inbox tasks={tasks} user={currentUser} onUpdateTask={updateTask} />
+        return <Inbox tasks={tasks} user={currentUser} onUpdateTask={updateTask} onViewTask={handleViewTaskFromInbox} />
       case "add-task":
         return <AddTask tasks={tasks} onAddTask={addTask} onBack={() => setActiveView("tasks")} user={currentUser} />
       case "tasks":
-        return <TaskList tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} onStartFocus={setFocusedTask} />
+        return <TaskList tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} onStartFocus={setFocusedTask} openTaskId={openTaskId} onClearOpenTask={() => setOpenTaskId(null)} />
       case "shared-tasks":
-        return <SharedTasks tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} onStartFocus={setFocusedTask} />
+        return <SharedTasks tasks={tasks} onUpdateTask={updateTask} onDeleteTask={deleteTask} user={currentUser} isLoading={isLoading} onStartFocus={setFocusedTask} openTaskId={openTaskId} onClearOpenTask={() => setOpenTaskId(null)} />
       case "calendar":
         return <Calendar tasks={getCalendarTasks()} onUpdateTask={updateTask} />
       case "kanban":

@@ -10,9 +10,11 @@ interface SharedTasksProps {
   user: any
   isLoading?: boolean
   onStartFocus?: (task: any) => void
+  openTaskId?: string | null
+  onClearOpenTask?: () => void
 }
 
-export function SharedTasks({ tasks, onUpdateTask, onDeleteTask, user, isLoading, onStartFocus }: SharedTasksProps) {
+export function SharedTasks({ tasks, onUpdateTask, onDeleteTask, user, isLoading, onStartFocus, openTaskId, onClearOpenTask }: SharedTasksProps) {
   // Filter tasks where the current user is an accepted assignee BUT NOT the creator
   const sharedTasks = tasks.filter(t => 
     t.user_id !== user?.id && 
@@ -76,7 +78,6 @@ export function SharedTasks({ tasks, onUpdateTask, onDeleteTask, user, isLoading
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Tasks assigned to you by other team members</p>
       </div>
-      {/* We reuse TaskList for the heavy lifting but pass the filtered shared tasks */}
       <TaskList 
         tasks={sharedTasks} 
         onUpdateTask={onUpdateTask} 
@@ -84,6 +85,8 @@ export function SharedTasks({ tasks, onUpdateTask, onDeleteTask, user, isLoading
         user={user} 
         isLoading={isLoading} 
         onStartFocus={onStartFocus} 
+        openTaskId={openTaskId}
+        onClearOpenTask={onClearOpenTask}
       />
     </div>
   )

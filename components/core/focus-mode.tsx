@@ -75,7 +75,7 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#080d15] text-white animate-in fade-in duration-500">
       <button 
-        onClick={() => onClose(Math.floor(totalSecondsSpent / 60))}
+        onClick={() => onClose(totalSecondsSpent / 60)}
         className="absolute right-6 top-6 rounded-full p-2 text-white/50 hover:bg-white/10 hover:text-white transition"
       >
         <X className="h-6 w-6" />
@@ -90,13 +90,13 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-7 rounded-full bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white border">
-                  {focusTimeSetting / 60}m <ChevronDown className="ml-1 h-3 w-3" />
+                  {focusTimeSetting / 60 >= 60 ? `${focusTimeSetting / 60 / 60} hr${focusTimeSetting / 60 / 60 > 1 ? 's' : ''}` : `${focusTimeSetting / 60}m`} <ChevronDown className="ml-1 h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="bg-[#0f172a] border-white/10 text-slate-300">
                 {[15, 25, 45, 60, 90, 120].map(min => (
                   <DropdownMenuItem key={min} onClick={() => handleSettingChange(min)} className="hover:bg-white/10 focus:bg-white/10 focus:text-white cursor-pointer">
-                    {min} minutes
+                    {min >= 60 ? `${min / 60} hr${min / 60 > 1 ? 's' : ''}` : `${min} minutes`}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -154,7 +154,7 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
         </Button>
         <Button
           onClick={() => {
-            const minutes = Math.floor(totalSecondsSpent / 60)
+            const minutes = totalSecondsSpent / 60
             onComplete(minutes)
             onClose(minutes)
           }}

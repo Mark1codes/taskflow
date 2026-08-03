@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CompleteTaskDialog } from "./complete-task-dialog"
 import { TaskDetailModal } from "./task-detail-modal"
+import { EditTaskModal } from "./edit-task-modal"
 import supabase from '@/utils/supabase' // used by fetchTasks for manual refresh
 
 function avatarColor(name: string) {
@@ -72,6 +73,8 @@ interface TaskListProps {
   user: any
   isLoading?: boolean
   onStartFocus?: (task: any) => void
+  openTaskId?: string | null
+  onClearOpenTask?: () => void
 }
 
 const priorityConfig: Record<string, { label: string; class: string }> = {
@@ -88,7 +91,7 @@ const statusConfig: Record<string, { label: string; border: string; badge: strin
 
 const statusOrder = ["todo", "in-progress", "completed"]
 
-export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user, isLoading = false, onStartFocus }: TaskListProps) {
+export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user, isLoading = false, onStartFocus, openTaskId, onClearOpenTask }: TaskListProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -97,6 +100,17 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
   const [error, setError] = useState("")
   const [taskToComplete, setTaskToComplete] = useState<Task | null>(null)
   const [viewingTask, setViewingTask] = useState<Task | null>(null)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+
+  useEffect(() => {
+    if (openTaskId && tasks.length > 0) {
+      const task = tasks.find(t => t.id === openTaskId)
+      if (task) {
+        setViewingTask(task)
+        if (onClearOpenTask) onClearOpenTask()
+      }
+    }
+  }, [openTaskId, tasks, onClearOpenTask])
   const [attachmentsMap, setAttachmentsMap] = useState<Record<string, any[]>>({})
   const [userMap, setUserMap] = useState<Record<string, {name: string; avatarUrl?: string}>>({})
   const [isLoadingUsers, setIsLoadingUsers] = useState(true)
@@ -464,6 +478,9 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                               <Timer className="h-3.5 w-3.5" /> Start Focus Mode
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingTask(task); }} className="gap-2 text-blue-600 focus:text-blue-700">
+                            <ListChecks className="h-3.5 w-3.5" /> Edit task
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); toggleStatus(task.id, task.status); }} className="gap-2">
                             <ArrowUpDown className="h-3.5 w-3.5" /> Cycle status
                           </DropdownMenuItem>
@@ -498,6 +515,17 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
         onClose={() => setTaskToComplete(null)}
         onConfirm={handleConfirmComplete}
         taskTitle={taskToComplete?.title || ""}
+      />
+
+      <EditTaskModal
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        task={editingTask}
+        currentUser={user}
+        onSave={async (taskId, updates) => {
+          await onUpdateTask(taskId, updates)
+          setEditingTask(null)
+        }}
       />
 
       <TaskDetailModal

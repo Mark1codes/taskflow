@@ -100,12 +100,14 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
   }
 
   const totalTimeSpent = tasks.reduce((acc, t) => acc + (t.time_spent_minutes || 0), 0)
-  const totalTimeHours = (totalTimeSpent / 60).toFixed(1)
+  const formattedTimeTracked = totalTimeSpent < 60 
+    ? `${totalTimeSpent.toFixed(1)}m` 
+    : `${(totalTimeSpent / 60).toFixed(1)}h`
 
   const kpis = [
     { label: "Total Tasks",      value: total,      sub: `${todo} to do`,          icon: CheckCircle2,   accent: "text-slate-600",  bg: "bg-slate-50" },
     { label: "In Progress",      value: inProgress, sub: "Active now",              icon: Target,         accent: "text-blue-600",   bg: "bg-blue-50"  },
-    { label: "Time Tracked",     value: `${totalTimeHours}h`, sub: "Total focus time",  icon: Clock,          accent: "text-indigo-600", bg: "bg-indigo-50"},
+    { label: "Time Tracked",     value: formattedTimeTracked, sub: "Total focus time",  icon: Clock,          accent: "text-indigo-600", bg: "bg-indigo-50"},
     { label: "Overdue",          value: overdue,    sub: "Need attention",          icon: AlertTriangle,  accent: "text-red-600",    bg: "bg-red-50"   },
   ]
 
