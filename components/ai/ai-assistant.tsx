@@ -83,8 +83,134 @@ function TaskCreateCard({ taskData, onConfirm, onCancel }: { taskData: any; onCo
   )
 }
 
+function AIOnboardingScreen({ onComplete }: { onComplete: () => void }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center bg-[#f7f9fc] dark:bg-slate-950 p-6 overflow-y-auto">
+      <div className="max-w-2xl w-full mx-auto text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        
+        {/* Animated Illustration Container */}
+        <div className="relative h-64 w-64 mx-auto">
+          <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <svg viewBox="0 0 200 200" className="w-full h-full relative z-10" xmlns="http://www.w3.org/2000/svg">
+            <style>
+              {`
+                @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+                @keyframes float-delay { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+                @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0; } 50% { opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
+                .anim-float { animation: float 6s ease-in-out infinite; }
+                .anim-float-delay { animation: float-delay 6s ease-in-out infinite; animation-delay: 2s; }
+                .anim-pulse-ring { animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+              `}
+            </style>
+            
+            {/* Background elements */}
+            <circle cx="100" cy="100" r="45" fill="none" stroke="currentColor" className="text-blue-200 dark:text-blue-900" strokeWidth="1" strokeDasharray="4 4" />
+            <circle cx="100" cy="100" r="65" fill="none" stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeWidth="1" strokeDasharray="2 6" />
+            
+            {/* Pulsing ring */}
+            <circle cx="100" cy="100" r="30" fill="none" stroke="currentColor" className="text-blue-400 anim-pulse-ring" strokeWidth="2" />
+            
+            <g className="anim-float">
+              {/* Central AI Node */}
+              <circle cx="100" cy="100" r="28" fill="currentColor" className="text-white dark:text-slate-800 drop-shadow-xl" />
+              <circle cx="100" cy="100" r="26" fill="none" stroke="currentColor" className="text-blue-100 dark:text-blue-900/50" strokeWidth="2" />
+              <path d="M92 90h16v10H92z" fill="currentColor" className="text-blue-500" />
+              <path d="M85 105h30v4H85z" fill="currentColor" className="text-blue-400" />
+              <circle cx="95" cy="95" r="2" fill="white" />
+              <circle cx="105" cy="95" r="2" fill="white" />
+            </g>
+
+            <g className="anim-float-delay">
+              {/* Floating Task / File Cards */}
+              <rect x="30" y="50" width="40" height="30" rx="6" fill="currentColor" className="text-white dark:text-slate-800 drop-shadow-md" />
+              <rect x="34" y="56" width="20" height="4" rx="2" fill="currentColor" className="text-blue-400" />
+              <rect x="34" y="64" width="30" height="4" rx="2" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+              
+              <rect x="135" y="115" width="40" height="30" rx="6" fill="currentColor" className="text-white dark:text-slate-800 drop-shadow-md" />
+              <rect x="139" y="121" width="15" height="4" rx="2" fill="currentColor" className="text-emerald-400" />
+              <rect x="139" y="129" width="32" height="4" rx="2" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+            </g>
+
+            {/* Connecting lines */}
+            <path d="M65 75 L80 85" stroke="currentColor" className="text-blue-200 dark:text-blue-800" strokeWidth="2" strokeDasharray="3 3" />
+            <path d="M135 125 L115 110" stroke="currentColor" className="text-blue-200 dark:text-blue-800" strokeWidth="2" strokeDasharray="3 3" />
+            
+            {/* Sparkles */}
+            <path d="M150 40 L153 48 L161 51 L153 54 L150 62 L147 54 L139 51 L147 48 Z" fill="currentColor" className="text-amber-400 animate-pulse" />
+            <path d="M40 140 L42 145 L47 147 L42 149 L40 154 L38 149 L33 147 L38 145 Z" fill="currentColor" className="text-blue-400 animate-pulse" style={{ animationDelay: '1.2s' }} />
+          </svg>
+        </div>
+
+        {/* Header Text */}
+        <div className="space-y-4">
+          <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 px-3 py-1">
+            <Sparkles className="w-3.5 h-3.5 mr-2 inline" /> Introducing
+          </Badge>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Meet your TaskFlow AI
+          </h1>
+          <p className="text-lg text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+            Your personal productivity sidekick. From analyzing documents to prioritizing your day, the assistant helps you stay focused on what matters most.
+          </p>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 text-left">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-10 w-10 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-xl flex items-center justify-center mb-4">
+              <MessageSquare className="h-5 w-5" />
+            </div>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Smart Conversations</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Ask questions about your tasks, request schedule optimizations, or brainstorm ideas instantly.</p>
+          </div>
+          
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-10 w-10 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
+              <FileText className="h-5 w-5" />
+            </div>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Document Processing</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Upload PDF, DOCX, or TXT files. The AI can summarize content or extract action items.</p>
+          </div>
+          
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-10 w-10 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-xl flex items-center justify-center mb-4">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Task Automation</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">The assistant can automatically detect tasks in your conversation and draft them for you.</p>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="pt-8">
+          <Button 
+            onClick={onComplete} 
+            size="lg" 
+            className="w-full sm:w-auto px-8 h-12 text-base rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20"
+          >
+            Get Started with AI
+          </Button>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
 export function AIAssistant({ tasks = [], user, onTaskCreated, persistedSessionId, onSessionChange }: AIAssistantProps) {
   const firstName = user?.name?.trim().split(/\s+/)[0] || "there"
+
+  const [hasOnboarded, setHasOnboarded] = useState<boolean | null>(null)
+  
+  useEffect(() => {
+    const onboarded = localStorage.getItem('taskflow_ai_onboarded')
+    setHasOnboarded(onboarded === 'true')
+  }, [])
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('taskflow_ai_onboarded', 'true')
+    setHasOnboarded(true)
+  }
 
   const [sessions, setSessions] = useState<Session[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(persistedSessionId ?? null)
@@ -354,8 +480,16 @@ export function AIAssistant({ tasks = [], user, onTaskCreated, persistedSessionI
     }
   }
 
+  if (hasOnboarded === null) {
+    return <div className="h-full bg-[#f7f9fc] dark:bg-slate-950" />
+  }
+
+  if (hasOnboarded === false) {
+    return <AIOnboardingScreen onComplete={handleOnboardingComplete} />
+  }
+
   return (
-    <div className="h-full flex overflow-hidden bg-[#f7f9fc]">
+    <div className="h-full flex overflow-hidden bg-[#f7f9fc] dark:bg-slate-950">
       {/* Sessions Sidebar */}
       <div
         className={`${isSidebarOpen ? "w-64" : "w-0"} transition-all duration-200 shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-hidden`}

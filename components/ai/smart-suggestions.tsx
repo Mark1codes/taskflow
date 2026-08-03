@@ -174,7 +174,37 @@ export function SmartSuggestions({ mode = "suggestions" }: SmartSuggestionsProps
 
         {/* Suggestions List */}
         <div className="space-y-4">
-          {suggestions.map((suggestion) => {
+          {suggestions.length === 0 ? (
+            <div className="p-16 text-center flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <div className="relative h-48 w-48 mb-8 mt-4">
+                <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+                <svg viewBox="0 0 200 200" className="w-full h-full relative z-10" xmlns="http://www.w3.org/2000/svg">
+                  <style>
+                    {`
+                      @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+                      @keyframes pulseLight { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+                      .anim-float { animation: float 6s ease-in-out infinite; }
+                      .anim-pulse { animation: pulseLight 3s ease-in-out infinite; }
+                    `}
+                  </style>
+                  <g className="anim-float">
+                    <rect x="45" y="45" width="110" height="110" rx="24" fill="currentColor" className="text-white dark:text-slate-800 drop-shadow-xl" />
+                    <rect x="47" y="47" width="106" height="106" rx="22" fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-700" strokeWidth="2" />
+                    <circle cx="100" cy="90" r="24" fill="currentColor" className="text-blue-50 dark:text-blue-900/30" />
+                    <path d="M100 75 L108 85 L120 85 L110 95 L112 107 L100 100 L88 107 L90 95 L80 85 L92 85 Z" fill="currentColor" className="text-blue-500 anim-pulse" />
+                    <rect x="75" y="125" width="50" height="6" rx="3" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+                  </g>
+                  <path d="M165 35 L168 43 L176 46 L168 49 L165 57 L162 49 L154 46 L162 43 Z" fill="currentColor" className="text-amber-400 animate-pulse" />
+                  <path d="M30 140 L32 146 L38 148 L32 150 L30 156 L28 150 L22 148 L28 146 Z" fill="currentColor" className="text-indigo-400 animate-pulse" style={{ animationDelay: '1s' }} />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">No active suggestions</h3>
+              <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto text-base">
+                You've cleared all your AI suggestions! Keep working on tasks to generate more intelligent insights.
+              </p>
+            </div>
+          ) : (
+            suggestions.map((suggestion) => {
             const Icon = suggestion.icon
             return (
               <Card key={suggestion.id} className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-md">
@@ -205,7 +235,7 @@ export function SmartSuggestions({ mode = "suggestions" }: SmartSuggestionsProps
                 </CardContent>
               </Card>
             )
-          })}
+          }))}
         </div>
 
         {/* AI Insights */}

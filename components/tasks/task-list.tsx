@@ -460,14 +460,14 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           {onStartFocus && task.status !== 'completed' && (
-                            <DropdownMenuItem onClick={() => onStartFocus(task)} className="gap-2 text-blue-600 focus:text-blue-700">
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStartFocus(task); }} className="gap-2 text-blue-600 focus:text-blue-700">
                               <Timer className="h-3.5 w-3.5" /> Start Focus Mode
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem onClick={() => toggleStatus(task.id, task.status)} className="gap-2">
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); toggleStatus(task.id, task.status); }} className="gap-2">
                             <ArrowUpDown className="h-3.5 w-3.5" /> Cycle status
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(task.id)} className="gap-2 text-red-500 focus:text-red-600">
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }} className="gap-2 text-red-500 focus:text-red-600">
                             <Trash2 className="h-3.5 w-3.5" /> Delete task
                           </DropdownMenuItem>
                         </DropdownMenuContent>

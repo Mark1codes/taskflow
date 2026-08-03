@@ -134,14 +134,59 @@ export function ActivityFeed({ user }: ActivityFeedProps) {
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           {isLoading && activities.length === 0 ? (
-            <div className="p-12 flex flex-col items-center justify-center text-slate-400">
-              <RefreshCw className="h-6 w-6 animate-spin mb-4" />
-              <p>Loading activity...</p>
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="p-4 sm:p-5 flex items-start gap-4 animate-pulse">
+                  <div className="mt-0.5 h-10 w-10 shrink-0 rounded-full bg-slate-200 dark:bg-slate-800" />
+                  <div className="flex-1 space-y-2 py-1">
+                    <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-3 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : activities.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">
-              <Activity className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>No recent activity found.</p>
+            <div className="p-16 text-center flex flex-col items-center justify-center dark:bg-slate-950/50">
+              <div className="relative h-48 w-48 mb-8 mt-4">
+                <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+                <svg viewBox="0 0 200 200" className="w-full h-full relative z-10" xmlns="http://www.w3.org/2000/svg">
+                  <style>
+                    {`
+                      @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+                      @keyframes slideRight { 0% { opacity: 0; transform: translateX(-10px); } 100% { opacity: 1; transform: translateX(0); } }
+                      .anim-float { animation: float 6s ease-in-out infinite; }
+                      .anim-slide-1 { animation: slideRight 0.5s ease-out forwards; animation-delay: 0.2s; opacity: 0; }
+                      .anim-slide-2 { animation: slideRight 0.5s ease-out forwards; animation-delay: 0.4s; opacity: 0; }
+                      .anim-slide-3 { animation: slideRight 0.5s ease-out forwards; animation-delay: 0.6s; opacity: 0; }
+                    `}
+                  </style>
+                  <g className="anim-float">
+                    <rect x="40" y="40" width="120" height="120" rx="16" fill="currentColor" className="text-white dark:text-slate-800 drop-shadow-xl" />
+                    <rect x="42" y="42" width="116" height="116" rx="14" fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-700" strokeWidth="2" />
+                    
+                    <g className="anim-slide-1">
+                      <circle cx="65" cy="70" r="8" fill="currentColor" className="text-blue-500" />
+                      <rect x="85" y="67" width="55" height="6" rx="3" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+                    </g>
+                    
+                    <g className="anim-slide-2">
+                      <circle cx="65" cy="100" r="8" fill="currentColor" className="text-emerald-500" />
+                      <rect x="85" y="97" width="40" height="6" rx="3" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+                    </g>
+                    
+                    <g className="anim-slide-3">
+                      <circle cx="65" cy="130" r="8" fill="currentColor" className="text-amber-500" />
+                      <rect x="85" y="127" width="65" height="6" rx="3" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+                    </g>
+                  </g>
+                  <path d="M165 35 L168 43 L176 46 L168 49 L165 57 L162 49 L154 46 L162 43 Z" fill="currentColor" className="text-amber-400 animate-pulse" />
+                  <path d="M25 140 L27 146 L33 148 L27 150 L25 156 L23 150 L17 148 L23 146 Z" fill="currentColor" className="text-indigo-400 animate-pulse" style={{ animationDelay: '1s' }} />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">No recent activity</h3>
+              <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto text-base">
+                Looks like things are quiet right now. Check back later for updates on your workspace.
+              </p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">

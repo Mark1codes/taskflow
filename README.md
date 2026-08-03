@@ -11,22 +11,23 @@ TaskFlow is a modern task management workspace built with Next.js, React, Supaba
 ## Features
 
 - **SaaS landing page** with dropdown-driven product, solution, and resource detail views.
-- **Authentication** with Supabase email/password and Google OAuth support.
 - **Task dashboard** with productivity summaries and workspace overview.
 - **Task creation** with title, description, priority, status, due date, assignee, and category fields.
+- **Collaborative Workflows** for sending task invitations, accepting shared tasks, and exchanging secure completion notes and replies.
 - **Sub-tasks and interactive checklists** to break down large tasks.
 - **Task dependencies (Blockers)** to lock tasks that cannot be started yet.
 - **Task list** with search, status filters, priority filters, refresh, update, and delete actions.
 - **Calendar view** for tasks with due dates.
 - **Kanban board** for visual workflow management.
-- **Focus Mode** with a built-in distraction-free timer for deep work.
+- **Focus Mode** with a customizable distraction-free timer (15m, 25m, 1h, 2h) for deep work.
 - **Time tracking** logged automatically from Focus Mode sessions directly to task cards.
 - **Real-time Team Activity Feed** to view a chronological timeline of workspace events.
 - **Dynamic Color Themes** to customize the workspace accent color (Indigo, Slate, Emerald, Violet).
-- **AI assistant** powered through a server-side OpenRouter API route.
+- **AI assistant** powered through a server-side OpenRouter API route, featuring a dedicated onboarding experience and task analysis capabilities.
 - **Smart suggestions** based on the user's real task data.
+- **Premium Empty States & Loading Skeletons** utilizing animated SVG illustrations and smooth loaders across the platform for a highly polished UI.
 - **Profile settings** with editable profile details, password update, preferences, and Supabase Storage avatar uploads.
-- **Dark mode support** inside the authenticated app experience (currently disabled for future enhancement).
+- **Dark mode support** inside the authenticated app experience.
 - **SEO foundation** with Next.js metadata, `robots.txt`, and `sitemap.xml`.
 - **Responsive UI** built for desktop and mobile layouts.
 
@@ -57,17 +58,37 @@ TaskFlow/
 |   |-- robots.ts               # SEO robots rules
 |   `-- sitemap.ts              # Public sitemap
 |-- components/
-|   |-- landing-page.tsx        # Public SaaS landing page
-|   |-- task-manager-app.tsx    # Authenticated app shell
-|   |-- dashboard.tsx           # Dashboard overview
-|   |-- add-task.tsx            # Task creation
-|   |-- task-list.tsx           # Searchable task list
-|   |-- calendar-view.tsx       # Calendar task view
-|   |-- kanban-board.tsx        # Kanban workflow view
-|   |-- ai-assistant.tsx        # AI chat interface
-|   |-- ai-work-planner.tsx     # AI task analysis/suggestions
-|   |-- profile-page.tsx        # Profile and avatar settings
-|   `-- ui/                     # Reusable UI primitives
+|   |-- ai/
+|   |   |-- ai-assistant.tsx    # AI chat & onboarding interface
+|   |   |-- ai-work-planner.tsx # AI task analysis
+|   |   `-- smart-suggestions.tsx # AI-generated task suggestions
+|   |-- auth/
+|   |   |-- login-page.tsx      # User authentication login
+|   |   `-- signup-page.tsx     # User registration
+|   |-- core/
+|   |   |-- landing-page.tsx    # Public SaaS landing page
+|   |   |-- task-manager-app.tsx# Authenticated app shell
+|   |   |-- dashboard.tsx       # Dashboard overview
+|   |   |-- activity-feed.tsx   # Real-time workspace activity
+|   |   |-- focus-mode.tsx      # Productivity timer integration
+|   |   |-- profile-page.tsx    # Profile and avatar settings
+|   |   `-- settings.tsx        # App preferences
+|   |-- layout/
+|   |   |-- sidebar.tsx         # Main app navigation
+|   |   |-- brand-logo.tsx      # TaskFlow branding
+|   |   `-- theme-provider.tsx  # Next-themes wrapper
+|   |-- tasks/
+|   |   |-- add-task.tsx        # Task creation
+|   |   |-- task-list.tsx       # Searchable task list
+|   |   |-- calendar-view.tsx   # Calendar task view
+|   |   |-- kanban-board.tsx    # Kanban workflow view
+|   |   |-- inbox.tsx           # Notification and task inbox
+|   |   |-- invitations-page.tsx# Task sharing invitations
+|   |   |-- shared-tasks.tsx    # Tasks shared with the user
+|   |   |-- task-detail-modal.tsx# Task editing and notes
+|   |   |-- complete-task-dialog.tsx # Completion workflow
+|   |   `-- task-invitations.tsx # Inline task invites
+|   `-- ui/                     # Reusable shadcn/ui components
 |-- supabase/
 |   `-- migrations/             # Database schema and RLS policies
 |-- utils/

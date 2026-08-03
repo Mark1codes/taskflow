@@ -5,11 +5,13 @@ import { LandingPage } from "@/components/core/landing-page"
 import { LoginPage } from "@/components/auth/login-page"
 import { SignUpPage } from "@/components/auth/signup-page"
 import { TaskManagerApp } from "@/components/core/task-manager-app"
+import { ForgotPasswordPage } from "@/components/auth/forgot-password-page"
+import { ResetPasswordPage } from "@/components/auth/reset-password-page"
 import supabase from '../utils/supabase'
 import { getAvatarDisplayUrl } from "@/utils/avatar"
 import { Loader2 } from "lucide-react"
 
-type AuthState = "initializing" | "landing" | "login" | "signup" | "authenticated"
+type AuthState = "initializing" | "landing" | "login" | "signup" | "authenticated" | "forgot-password" | "reset-password"
 
 export default function Home() {
   const [authState, setAuthState] = useState<AuthState>("initializing")
@@ -24,6 +26,8 @@ export default function Home() {
       login:        "Sign In — TaskFlow",
       signup:       "Create Account — TaskFlow",
       authenticated: "TaskFlow",
+      "forgot-password": "Forgot Password — TaskFlow",
+      "reset-password": "Reset Password — TaskFlow",
     }
     document.title = titles[authState] ?? "TaskFlow"
   }, [authState])
@@ -39,7 +43,9 @@ export default function Home() {
     }
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthState("reset-password")
+      } else if (event === 'SIGNED_IN' && session?.user) {
         const userData = await createUserData(session.user)
         setUser(userData)
         setAuthState("authenticated")
@@ -243,6 +249,7 @@ export default function Home() {
             onLogin={handleLogin}
             onSignUp={() => setAuthState("signup")}
             onBack={() => setAuthState("landing")}
+            onForgotPassword={() => setAuthState("forgot-password")}
           />
         )
 
@@ -254,6 +261,12 @@ export default function Home() {
             onBack={() => setAuthState("landing")}
           />
         )
+
+      case "forgot-password":
+        return <ForgotPasswordPage onBack={() => setAuthState("login")} />
+
+      case "reset-password":
+        return <ResetPasswordPage onSuccess={() => setAuthState("login")} />
 
       case "authenticated":
         return <TaskManagerApp user={user} onLogout={handleLogout} />

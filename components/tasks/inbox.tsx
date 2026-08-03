@@ -103,12 +103,31 @@ export function Inbox({ tasks, user }: InboxProps) {
         </div>
 
         {notifications.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center shadow-sm">
-            <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-16 text-center shadow-sm flex flex-col items-center justify-center">
+            <div className="relative h-48 w-48 mb-8">
+              <div className="absolute inset-0 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full blur-3xl animate-pulse"></div>
+              <svg viewBox="0 0 200 200" className="w-full h-full relative z-10" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                  {`
+                    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+                    @keyframes dash { 0% { stroke-dasharray: 0 100; opacity: 0; } 30% { stroke-dasharray: 100 100; opacity: 1; } 100% { stroke-dasharray: 100 100; opacity: 1; } }
+                    .anim-float { animation: float 6s ease-in-out infinite; }
+                    .anim-dash { animation: dash 4s ease-in-out infinite; }
+                  `}
+                </style>
+                <g className="anim-float">
+                  <rect x="50" y="70" width="100" height="70" rx="12" fill="currentColor" className="text-white dark:text-slate-800 drop-shadow-xl" />
+                  <rect x="52" y="72" width="96" height="66" rx="10" fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-700" strokeWidth="2" />
+                  <path d="M50 85 L100 115 L150 85" stroke="currentColor" className="text-slate-100 dark:text-slate-700" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="100" cy="110" r="20" fill="currentColor" className="text-emerald-500 drop-shadow-md" />
+                  <path d="M92 110L98 116L110 104" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" className="anim-dash" />
+                </g>
+                <path d="M160 40 L163 48 L171 51 L163 54 L160 62 L157 54 L149 51 L157 48 Z" fill="currentColor" className="text-emerald-400 animate-pulse" />
+                <path d="M40 140 L42 145 L47 147 L42 149 L40 154 L38 149 L33 147 L38 145 Z" fill="currentColor" className="text-blue-400 animate-pulse" style={{ animationDelay: '1.2s' }} />
+              </svg>
             </div>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">Inbox Zero</h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+            <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">Inbox Zero</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto text-base leading-relaxed">
               You're all caught up! There are no new notifications or alerts right now.
             </p>
           </div>

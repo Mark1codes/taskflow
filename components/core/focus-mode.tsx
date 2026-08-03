@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Play, Pause, Square, CheckCircle2, X } from "lucide-react"
+import { Play, Pause, Square, CheckCircle2, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface FocusModeProps {
   task: any
@@ -11,13 +12,22 @@ interface FocusModeProps {
 }
 
 export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
-  const FOCUS_TIME = 25 * 60 // 25 minutes in seconds
+  const [focusTimeSetting, setFocusTimeSetting] = useState(25 * 60)
   const BREAK_TIME = 5 * 60 // 5 minutes in seconds
 
-  const [timeLeft, setTimeLeft] = useState(FOCUS_TIME)
+  const [timeLeft, setTimeLeft] = useState(focusTimeSetting)
   const [isActive, setIsActive] = useState(false)
   const [mode, setMode] = useState<'focus' | 'break'>('focus')
   const [totalSecondsSpent, setTotalSecondsSpent] = useState(0)
+
+  const handleSettingChange = (minutes: number) => {
+    const seconds = minutes * 60
+    setFocusTimeSetting(seconds)
+    if (mode === 'focus') {
+      setTimeLeft(seconds)
+      setIsActive(false)
+    }
+  }
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -40,16 +50,16 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
         setTimeLeft(BREAK_TIME)
       } else {
         setMode('focus')
-        setTimeLeft(FOCUS_TIME)
+        setTimeLeft(focusTimeSetting)
       }
     }
     return () => clearInterval(interval)
-  }, [isActive, timeLeft, mode])
+  }, [isActive, timeLeft, mode, focusTimeSetting])
 
   const toggleTimer = () => setIsActive(!isActive)
   const stopTimer = () => {
     setIsActive(false)
-    setTimeLeft(mode === 'focus' ? FOCUS_TIME : BREAK_TIME)
+    setTimeLeft(mode === 'focus' ? focusTimeSetting : BREAK_TIME)
   }
 
   const formatTime = (seconds: number) => {
@@ -59,7 +69,7 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
   }
 
   const progress = mode === 'focus' 
-    ? ((FOCUS_TIME - timeLeft) / FOCUS_TIME) * 100 
+    ? ((focusTimeSetting - timeLeft) / focusTimeSetting) * 100 
     : ((BREAK_TIME - timeLeft) / BREAK_TIME) * 100
 
   return (
@@ -72,9 +82,27 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
       </button>
 
       <div className="mb-12 text-center max-w-lg px-6">
-        <span className="inline-block rounded-full bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-400 mb-6 border border-blue-500/20">
-          {mode === 'focus' ? 'Deep Work Mode' : 'Take a Break'}
-        </span>
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <span className="inline-block rounded-full bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-400 border border-blue-500/20">
+            {mode === 'focus' ? 'Deep Work Mode' : 'Take a Break'}
+          </span>
+          {mode === 'focus' && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-7 rounded-full bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white border">
+                  {focusTimeSetting / 60}m <ChevronDown className="ml-1 h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="bg-[#0f172a] border-white/10 text-slate-300">
+                {[15, 25, 45, 60, 90, 120].map(min => (
+                  <DropdownMenuItem key={min} onClick={() => handleSettingChange(min)} className="hover:bg-white/10 focus:bg-white/10 focus:text-white cursor-pointer">
+                    {min} minutes
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           {task.title}
         </h2>

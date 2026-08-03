@@ -16,6 +16,7 @@ interface LoginPageProps {
   onLogin: (userData: any) => void
   onSignUp: () => void
   onBack: () => void
+  onForgotPassword: () => void
 }
 
 {/* TODO: Google OAuth — re-enable when Google provider is configured in Supabase
@@ -23,7 +24,7 @@ function GoogleIcon() {
   return <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.565 24 12.255 24z"/><path fill="#FBBC05" d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 0 0 0 10.76l3.98-3.09z"/><path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.69 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
 }
 */}
-export function LoginPage({ onLogin, onSignUp, onBack }: LoginPageProps) {
+export function LoginPage({ onLogin, onSignUp, onBack, onForgotPassword }: LoginPageProps) {
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -69,7 +70,7 @@ export function LoginPage({ onLogin, onSignUp, onBack }: LoginPageProps) {
           {error && <Alert variant="destructive" className="mb-5"><AlertDescription>{error}</AlertDescription></Alert>}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2"><Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-slate-500">Email address</Label><div className="relative"><Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input id="email" type="email" placeholder="name@example.com" value={formData.email} onChange={e => handleChange("email", e.target.value)} className="h-12 rounded-md border-slate-200 bg-white pl-10 text-sm shadow-sm focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/15" required /></div></div>
-            <div className="space-y-2"><div className="flex items-center justify-between"><Label htmlFor="password" className="text-xs font-medium uppercase tracking-wider text-slate-500">Password</Label><Button type="button" variant="link" className="h-auto p-0 text-xs font-medium text-blue-600">Forgot password?</Button></div><div className="relative"><Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={formData.password} onChange={e => handleChange("password", e.target.value)} className="h-12 rounded-md border-slate-200 bg-white pl-10 pr-10 text-sm shadow-sm focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/15" required /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
+            <div className="space-y-2"><div className="flex items-center justify-between"><Label htmlFor="password" className="text-xs font-medium uppercase tracking-wider text-slate-500">Password</Label><Button type="button" variant="link" className="h-auto p-0 text-xs font-medium text-blue-600" onClick={onForgotPassword}>Forgot password?</Button></div><div className="relative"><Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={formData.password} onChange={e => handleChange("password", e.target.value)} className="h-12 rounded-md border-slate-200 bg-white pl-10 pr-10 text-sm shadow-sm focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/15" required /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
             <Button type="submit" className="h-12 w-full rounded-md bg-blue-600 text-sm font-medium text-white shadow-[0_8px_20px_rgba(41,122,255,0.18)] hover:bg-blue-700" disabled={isLoading}>{isLoading ? <span className="flex items-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />Signing in…</span> : <span className="flex items-center justify-center gap-2">Sign in <ArrowUpRight className="h-4 w-4" /></span>}</Button>
           </form>
           {/* TODO: Google OAuth UI — re-enable when Google provider is configured in Supabase

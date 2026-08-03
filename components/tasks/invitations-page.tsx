@@ -104,16 +104,57 @@ export function InvitationsPage({ invitations, onAccept, onReject, onGoToDashboa
   if (invitations.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50/50 dark:bg-slate-950/50 min-h-[400px]">
-        <div className="h-20 w-20 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-full flex items-center justify-center mb-6 shadow-sm border border-blue-100 dark:border-blue-800/50">
-          <UserPlus className="h-8 w-8" />
+        {/* Animated Illustration */}
+        <div className="relative h-56 w-56 mb-8 mt-4">
+          <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          
+          <svg viewBox="0 0 200 200" className="w-full h-full relative z-10" xmlns="http://www.w3.org/2000/svg">
+            <style>
+              {`
+                @keyframes float {
+                  0%, 100% { transform: translateY(0); }
+                  50% { transform: translateY(-12px); }
+                }
+                @keyframes dash {
+                  0% { stroke-dasharray: 0 100; stroke-dashoffset: 0; opacity: 0; }
+                  30% { stroke-dasharray: 100 100; stroke-dashoffset: 0; opacity: 1; }
+                  100% { stroke-dasharray: 100 100; stroke-dashoffset: 0; opacity: 1; }
+                }
+                .anim-float { animation: float 6s ease-in-out infinite; }
+                .anim-dash { animation: dash 4s ease-in-out infinite; }
+              `}
+            </style>
+            
+            <g className="anim-float">
+              {/* Background document card */}
+              <rect x="45" y="45" width="110" height="110" rx="20" fill="currentColor" className="text-white dark:text-slate-800 drop-shadow-xl" />
+              <rect x="47" y="47" width="106" height="106" rx="18" fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-700" strokeWidth="2" />
+              
+              {/* Decorative document lines */}
+              <circle cx="70" cy="75" r="6" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+              <rect x="86" y="72" width="40" height="6" rx="3" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+              
+              <circle cx="70" cy="100" r="6" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+              <rect x="86" y="97" width="30" height="6" rx="3" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+              
+              <rect x="64" y="125" width="40" height="6" rx="3" fill="currentColor" className="text-slate-200 dark:text-slate-600" />
+              
+              {/* Big Checkmark badge overlapping */}
+              <circle cx="140" cy="120" r="28" fill="currentColor" className="text-emerald-500 drop-shadow-md" />
+              <path d="M128 120L136 128L152 112" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="anim-dash" />
+            </g>
+            
+            {/* Floating Sparkles */}
+            <path d="M170 30 L173 40 L183 43 L173 46 L170 56 L167 46 L157 43 L167 40 Z" fill="currentColor" className="text-amber-400 animate-pulse" />
+            <path d="M30 140 L32 146 L38 148 L32 150 L30 156 L28 150 L22 148 L28 146 Z" fill="currentColor" className="text-blue-400 animate-pulse" style={{ animationDelay: '1.5s' }} />
+            <path d="M40 40 L42 44 L46 45 L42 46 L40 50 L38 46 L34 45 L38 44 Z" fill="currentColor" className="text-emerald-400 animate-pulse" style={{ animationDelay: '0.7s' }} />
+          </svg>
         </div>
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">You're all caught up!</h2>
-        <p className="text-slate-500 dark:text-slate-400 text-center max-w-sm mb-8">
+
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">You're all caught up!</h2>
+        <p className="text-slate-500 dark:text-slate-400 text-center max-w-sm text-sm sm:text-base leading-relaxed">
           You don't have any pending task invitations right now. When someone assigns a task to you, it will appear here.
         </p>
-        <Button onClick={onGoToDashboard} className="gap-2">
-          <LayoutDashboard className="h-4 w-4" /> Go to Dashboard
-        </Button>
       </div>
     )
   }
