@@ -87,17 +87,20 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTas
 
   const isCompleted = task.status === 'completed'
   const isAssigner = currentUser && task.user_id === currentUser.id
+  const isAssignee = currentUser && task.task_assignees?.some((a: any) => a.user_id === currentUser.id && a.status === 'accepted')
+  const canInteract = Boolean((isAssigner || isAssignee) && onUpdateTask)
   const completedByName = task.completed_by_name || (task.completed_by_id ? userMap[task.completed_by_id]?.name : null)
 
-  const handleSubmitReply = async () => {
+  const handleSubmitNoteOrReply = async () => {
     if (!replyText.trim() || !onUpdateTask) return
     setIsSubmittingReply(true)
     try {
-      await onUpdateTask(task.id, { completion_reply: replyText })
+      const updateField = task.completion_note ? { completion_reply: replyText } : { completion_note: replyText }
+      await onUpdateTask(task.id, updateField)
       // Task will be updated via optimistic UI in the parent
       setReplyText("")
     } catch (err) {
-      console.error("Failed to submit reply", err)
+      console.error("Failed to submit note or reply", err)
     } finally {
       setIsSubmittingReply(false)
     }
@@ -195,29 +198,24 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTas
           )}
 
           {/* Completion Note */}
-          {isCompleted && task.completion_note && (
+          {isCompleted && (
             <div className="space-y-3">
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Completion Note{completedByName ? ` from ${completedByName}` : ""}
-                </h4>
-                <div className="text-sm text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800/50">
-                  {task.completion_note}
-                </div>
-              </div>
-
-              {/* Reply Section */}
-              {task.completion_reply ? (
-                <div className="ml-6 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2">Assigner's Reply</h4>
-                  <div className="text-sm text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800/50">
-                    {task.completion_reply}
+              {task.completion_note ? (
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" /> Completion Note{completedByName ? ` from ${completedByName}` : ""}
+                  </h4>
+                  <div className="text-sm text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800/50 whitespace-pre-wrap">
+                    {task.completion_note}
                   </div>
                 </div>
-              ) : isAssigner && onUpdateTask ? (
-                <div className="ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-800">
+              ) : canInteract ? (
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" /> Add Completion Note
+                  </h4>
                   <Textarea 
-                    placeholder="Write a reply to the completion note..." 
+                    placeholder="Add a note about completing this task..." 
                     className="mb-2 text-sm resize-none bg-white dark:bg-slate-900"
                     rows={2}
                     value={replyText}
@@ -225,14 +223,44 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTas
                   />
                   <Button 
                     size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white" 
-                    onClick={handleSubmitReply}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white" 
+                    onClick={handleSubmitNoteOrReply}
                     disabled={isSubmittingReply || !replyText.trim()}
                   >
-                    {isSubmittingReply ? "Submitting..." : "Submit Reply"}
+                    {isSubmittingReply ? "Saving..." : "Save Note"}
                   </Button>
                 </div>
               ) : null}
+
+              {/* Reply Section */}
+              {task.completion_note && (
+                task.completion_reply ? (
+                  <div className="ml-6 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2">Reply</h4>
+                    <div className="text-sm text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800/50 whitespace-pre-wrap">
+                      {task.completion_reply}
+                    </div>
+                  </div>
+                ) : canInteract ? (
+                  <div className="ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-800">
+                    <Textarea 
+                      placeholder="Write a reply..." 
+                      className="mb-2 text-sm resize-none bg-white dark:bg-slate-900"
+                      rows={2}
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                    />
+                    <Button 
+                      size="sm" 
+                      className="bg-blue-600 hover:bg-blue-700 text-white" 
+                      onClick={handleSubmitNoteOrReply}
+                      disabled={isSubmittingReply || !replyText.trim()}
+                    >
+                      {isSubmittingReply ? "Submitting..." : "Submit Reply"}
+                    </Button>
+                  </div>
+                ) : null
+              )}
             </div>
           )}
         </div>
