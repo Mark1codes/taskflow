@@ -55,6 +55,10 @@ interface Task {
   created_at: string
   updated_at: string
   completion_note?: string
+  completion_reply?: string
+  completed_by_id?: string
+  completed_by_name?: string
+  completed_at?: string
   subtasks?: { id: string; title: string; completed: boolean }[]
   time_spent_minutes?: number
   blocked_by_id?: string
@@ -121,6 +125,12 @@ export function TaskList({ tasks: initialTasks, onUpdateTask, onDeleteTask, user
   }, [])
 
   useEffect(() => { setTasks(initialTasks) }, [initialTasks])
+
+  useEffect(() => {
+    if (!viewingTask) return
+    const latest = initialTasks.find(t => t.id === viewingTask.id)
+    if (latest) setViewingTask(latest)
+  }, [initialTasks, viewingTask?.id])
 
   // Fetch attachments for all visible tasks whenever the task list changes
   useEffect(() => {

@@ -46,6 +46,10 @@ interface Task {
   user_id: string
   description?: string
   completion_note?: string
+  completion_reply?: string
+  completed_by_id?: string
+  completed_by_name?: string
+  completed_at?: string
   subtasks?: { id: string; title: string; completed: boolean }[]
   time_spent_minutes?: number
   task_assignees?: { id: string; user_id: string; user_name: string; status: string }[]
@@ -113,9 +117,9 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     document.title = `${pageName} — TaskFlow`
   }, [activeView])
 
-  // Set up real-time subscription for tasks
-  // Note: Supabase realtime doesn't support OR filters, so we listen to all task
-  // changes for the user's own tasks and handle assigned tasks client-side on refresh.
+  // Set up real-time subscription for tasks.
+  // Own tasks update live for assigners. Shared tasks are also refreshed when
+  // assignment rows change so assignee/assigner views do not drift apart.
   useEffect(() => {
     if (!currentUser?.id) return
 
@@ -160,8 +164,26 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
       )
       .subscribe()
 
+    const assigneeChannel = supabase
+      .channel('task_assignee_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'task_assignees',
+          filter: `user_id=eq.${currentUser.id}`
+        },
+        () => {
+          void fetchTasks(currentUser.id)
+          void fetchPendingInvitations(currentUser.id)
+        }
+      )
+      .subscribe()
+
     return () => {
       supabase.removeChannel(channel)
+      supabase.removeChannel(assigneeChannel)
     }
   }, [currentUser?.id])
 
@@ -275,21 +297,41 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
     if (!currentUser) return
     try {
+      const existingTask = tasks.find(task => task.id === taskId)
+      const now = new Date().toISOString()
+      const enrichedUpdates: Partial<Task> = {
+        ...updates,
+        updated_at: now,
+      }
+
+      if (updates.status === 'completed') {
+        enrichedUpdates.completed_by_id = currentUser.id
+        enrichedUpdates.completed_by_name = currentUser.name
+        enrichedUpdates.completed_at = now
+      }
+
       // Optimistic update - update UI immediately
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === taskId 
-            ? { ...task, ...updates, updated_at: new Date().toISOString() }
+            ? { ...task, ...enrichedUpdates }
             : task
         )
       )
 
       // Then sync with database
-      const { error } = await supabase
+      let query = supabase
         .from('task')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(enrichedUpdates)
         .eq('id', taskId)
-        .eq('user_id', currentUser.id) // Ensure user can only update their own tasks
+
+      // Owners can update their own tasks. Accepted assignees can update shared
+      // task progress fields when Supabase RLS allows it.
+      if (existingTask?.user_id === currentUser.id) {
+        query = query.eq('user_id', currentUser.id)
+      }
+
+      const { error } = await query
 
       if (error) {
         console.error("Error updating task:", error)
@@ -416,22 +458,34 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     }
   }
 
-  const assignedTasks = tasks.filter(t => 
-    t.task_assignees?.some(a => a.user_id === currentUser?.id && a.status === 'accepted') && t.status !== 'completed'
-  )
+  const inboxNotificationKeys = tasks
+    .filter(t =>
+      (
+        t.user_id !== currentUser?.id &&
+        t.task_assignees?.some(a => a.user_id === currentUser?.id && a.status === 'accepted') &&
+        t.status !== 'completed'
+      ) ||
+      (
+        t.user_id === currentUser?.id &&
+        t.status === 'completed' &&
+        t.completed_by_id &&
+        t.completed_by_id !== currentUser?.id
+      )
+    )
+    .map(t => t.status === 'completed' ? `${t.id}:completed` : `${t.id}:assigned`)
+  const inboxNotificationKeySignature = inboxNotificationKeys.join('|')
 
   useEffect(() => {
-    if (activeView === 'inbox' && assignedTasks.length > 0) {
-      const ids = assignedTasks.map(t => t.id)
-      const newIds = Array.from(new Set([...readInboxTaskIds, ...ids]))
+    if (activeView === 'inbox' && inboxNotificationKeys.length > 0) {
+      const newIds = Array.from(new Set([...readInboxTaskIds, ...inboxNotificationKeys]))
       if (newIds.length !== readInboxTaskIds.length) {
         setReadInboxTaskIds(newIds)
         localStorage.setItem('read_inbox_task_ids', JSON.stringify(newIds))
       }
     }
-  }, [activeView, assignedTasks, readInboxTaskIds])
+  }, [activeView, inboxNotificationKeySignature, readInboxTaskIds])
 
-  const inboxCount = assignedTasks.filter(t => !readInboxTaskIds.includes(t.id)).length
+  const inboxCount = inboxNotificationKeys.filter(id => !readInboxTaskIds.includes(id)).length
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>

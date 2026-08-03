@@ -87,6 +87,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTas
 
   const isCompleted = task.status === 'completed'
   const isAssigner = currentUser && task.user_id === currentUser.id
+  const completedByName = task.completed_by_name || (task.completed_by_id ? userMap[task.completed_by_id]?.name : null)
 
   const handleSubmitReply = async () => {
     if (!replyText.trim() || !onUpdateTask) return
@@ -198,7 +199,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onComplete, onUpdateTas
             <div className="space-y-3">
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Completion Note
+                  <CheckCircle2 className="h-4 w-4" /> Completion Note{completedByName ? ` from ${completedByName}` : ""}
                 </h4>
                 <div className="text-sm text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800/50">
                   {task.completion_note}

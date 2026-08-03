@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { CheckCircle2, Bell, Clock, User, FileText } from "lucide-react"
+import { CheckCircle2, Bell, Clock, FileText } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import supabase from "@/utils/supabase"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -45,10 +45,39 @@ export function Inbox({ tasks, user }: InboxProps) {
     fetchUsers()
   }, [])
 
-  // Filter tasks assigned to the current user that are not completed
-  const assignedTasks = tasks.filter(t => 
-    t.task_assignees?.some((a: any) => a.user_id === user?.id && a.status === 'accepted') && t.status !== 'completed'
-  )
+  const notifications = tasks
+    .map((task) => {
+      const isAcceptedAssignee = task.task_assignees?.some((a: any) => a.user_id === user?.id && a.status === 'accepted')
+
+      if (task.user_id !== user?.id && isAcceptedAssignee && task.status !== 'completed') {
+        return {
+          key: `${task.id}:assigned`,
+          type: 'assigned' as const,
+          task,
+          actorId: task.user_id,
+          fallbackActorName: 'Someone',
+        }
+      }
+
+      if (task.user_id === user?.id && task.status === 'completed' && task.completed_by_id && task.completed_by_id !== user?.id) {
+        return {
+          key: `${task.id}:completed`,
+          type: 'completed' as const,
+          task,
+          actorId: task.completed_by_id,
+          fallbackActorName: task.completed_by_name || 'Assignee',
+        }
+      }
+
+      return null
+    })
+    .filter(Boolean) as Array<{
+      key: string
+      type: 'assigned' | 'completed'
+      task: any
+      actorId?: string
+      fallbackActorName: string
+    }>
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -73,7 +102,7 @@ export function Inbox({ tasks, user }: InboxProps) {
           </div>
         </div>
 
-        {assignedTasks.length === 0 ? (
+        {notifications.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center shadow-sm">
             <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="h-8 w-8 text-emerald-500" />
@@ -85,7 +114,7 @@ export function Inbox({ tasks, user }: InboxProps) {
           </div>
         ) : isLoadingUsers ? (
           <div className="flex flex-col border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm">
-            {[1, 2, 3].slice(0, assignedTasks.length || 3).map((_, i) => (
+            {[1, 2, 3].slice(0, notifications.length || 3).map((_, i) => (
               <div key={i} className="flex gap-3 p-4 border-b border-slate-100 dark:border-slate-800/50 last:border-0">
                 <Skeleton className="h-8 w-8 rounded-full shrink-0" />
                 <div className="flex-1 space-y-3 py-1">
@@ -103,25 +132,30 @@ export function Inbox({ tasks, user }: InboxProps) {
           </div>
         ) : (
           <div className="flex flex-col border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm">
-            {assignedTasks.map((task) => {
-              const isCurrentUserAssigner = task.user_id === user?.id
-              const assigner = isCurrentUserAssigner ? { name: user.name, avatarUrl: user.avatar } : userMap[task.user_id]
-              const assignerName = assigner?.name || "Someone"
-              const assignerAvatar = assigner?.avatarUrl
-              const initials = assignerName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+            {notifications.map((notification) => {
+              const { task } = notification
+              const actor = notification.actorId === user?.id
+                ? { name: user.name, avatarUrl: user.avatar }
+                : notification.actorId
+                  ? userMap[notification.actorId]
+                  : undefined
+              const actorName = actor?.name || notification.fallbackActorName
+              const actorAvatar = actor?.avatarUrl
+              const initials = actorName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
               
               return (
-                <div key={task.id} className="flex gap-3 p-4 border-b border-slate-100 dark:border-slate-800/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                <div key={notification.key} className="flex gap-3 p-4 border-b border-slate-100 dark:border-slate-800/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                   <Avatar className="h-8 w-8 shrink-0 ring-1 ring-slate-100 dark:ring-slate-800">
-                    <AvatarImage src={assignerAvatar || undefined} alt={assignerName} referrerPolicy="no-referrer" className="object-cover" />
-                    <AvatarFallback className={assignerAvatar ? "bg-slate-100 dark:bg-slate-800" : `${avatarColor(assignerName)} text-white text-[10px] font-medium`}>
-                      {assignerAvatar ? <Skeleton className="h-full w-full rounded-full" /> : initials}
+                    <AvatarImage src={actorAvatar || undefined} alt={actorName} referrerPolicy="no-referrer" className="object-cover" />
+                    <AvatarFallback className={actorAvatar ? "bg-slate-100 dark:bg-slate-800" : `${avatarColor(actorName)} text-white text-[10px] font-medium`}>
+                      {actorAvatar ? <Skeleton className="h-full w-full rounded-full" /> : initials}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1 min-w-0">
                     <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 leading-tight mt-1">
-                      <span className="font-semibold text-slate-900 dark:text-slate-100">{assignerName}</span> assigned you a task
+                      <span className="font-semibold text-slate-900 dark:text-slate-100">{actorName}</span>{" "}
+                      {notification.type === 'completed' ? 'completed your task' : 'assigned you a task'}
                     </div>
                     
                     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 bg-white dark:bg-slate-900/50 flex flex-col gap-2">
@@ -131,6 +165,11 @@ export function Inbox({ tasks, user }: InboxProps) {
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-2 pl-6">
+                        {notification.type === 'completed' && (
+                          <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                            completed
+                          </span>
+                        )}
                         <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded uppercase tracking-wider">
                           {task.priority}
                         </span>
