@@ -58,6 +58,13 @@ export default function Home() {
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
+        
+        // Prevent redirecting to dashboard if we are in the password recovery flow
+        if (window.location.hash.includes("type=recovery")) {
+          setAuthState("reset-password")
+          return
+        }
+
         if (session?.user) {
           const userData = await createUserData(session.user)
           setUser(userData)
