@@ -70,10 +70,16 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
 
   const fetchUsers = async () => {
     try {
-      const { data } = await supabase.from('users').select('id, full_name, avatar_url')
-      if (data) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      
+      const res = await fetch('/api/users', {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      })
+      if (res.ok) {
+        const json = await res.json()
         const map: Record<string, any> = {}
-        data.forEach(u => {
+        json.users?.forEach((u: any) => {
           map[u.id] = { name: u.full_name, avatarUrl: u.avatar_url }
         })
         setUserMap(map)
@@ -200,6 +206,18 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
             const isMe = comment.user_id === currentUser?.id
             const avatarUrl = isMe ? currentUser?.avatar : userMap[comment.user_id]?.avatarUrl
             const commentName = userMap[comment.user_id]?.name || comment.user_name
+            
+            // Safely parse attachments if Supabase returned them as a JSON string
+            let parsedAttachments: Attachment[] = []
+            if (comment.attachments) {
+              if (Array.isArray(comment.attachments)) {
+                parsedAttachments = comment.attachments
+              } else if (typeof comment.attachments === 'string') {
+                try {
+                  parsedAttachments = JSON.parse(comment.attachments)
+                } catch(e) {}
+              }
+            }
 
             return (
               <div key={comment.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
@@ -228,9 +246,9 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
                     {comment.content}
                     
                     {/* Render Attachments */}
-                    {comment.attachments && comment.attachments.length > 0 && (
+                    {parsedAttachments.length > 0 && (
                       <div className="mt-2 space-y-2">
-                        {comment.attachments.map((att, idx) => (
+                        {parsedAttachments.map((att, idx) => (
                           <a 
                             key={idx} 
                             href={att.url} 
