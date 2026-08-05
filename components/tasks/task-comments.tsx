@@ -164,7 +164,7 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
         setIsUploading(false)
       }
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('task_comments')
         .insert({
           task_id: taskId,
@@ -173,8 +173,19 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
           content: newComment.trim(),
           attachments: uploadedFiles
         })
+        .select('*')
+        .single()
         
       if (error) throw error
+      
+      // Optimistic update: show the comment and attachment immediately!
+      if (data) {
+        setComments(prev => {
+          // Prevent duplicates if Realtime fires extremely fast
+          if (prev.some(c => c.id === data.id)) return prev;
+          return [...prev, data];
+        });
+      }
       
       setNewComment("")
       setAttachments([])

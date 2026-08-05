@@ -1,6 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const RATE_LIMIT_WINDOW_MS = 60_000
+const RATE_LIMIT_MAX_REQUESTS = Number(process.env.PARSE_RATE_LIMIT_MAX ?? 10)
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>()
+
+function checkRateLimit(clientKey: string) {
+  const now = Date.now()
+  const current = rateLimitStore.get(clientKey)
+  if (!current || current.resetAt <= now) {
+    const fresh = { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS }
+    rateLimitStore.set(clientKey, fresh)
+    return { allowed: true }
+  }
+  if (current.count >= RATE_LIMIT_MAX_REQUESTS) return { allowed: false }
+  current.count += 1
+  return { allowed: true }
+}
 
 export async function POST(req: NextRequest) {
+  // 1. Authenticate Request
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '')
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+    { auth: { persistSession: false }, global: { headers: { Authorization: `Bearer ${token}` } } }
+  )
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 2. Rate Limit
+  const limit = checkRateLimit(user.id)
+  if (!limit.allowed) {
+    return NextResponse.json({ error: 'Too many parse requests. Please wait.' }, { status: 429 })
+  }
+
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null

@@ -17,23 +17,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ users: cache.users })
   }
 
-  // Use service role if available (skips RLS and token validation overhead)
+  // Always validate the caller's token first to prevent broken access control
+  const anonClient = createClient(SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_KEY!, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  })
+
+  const { data: { user }, error: authError } = await anonClient.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Once authenticated, we can optionally use the service role to read user metadata that might be restricted by RLS
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const queryClient = serviceKey
     ? createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false } })
-    : (() => {
-        // No service role — validate token first
-        return createClient(SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_KEY!, {
-          auth: { persistSession: false },
-          global: { headers: { Authorization: `Bearer ${token}` } },
-        })
-      })()
-
-  // If no service role key, validate the token
-  if (!serviceKey) {
-    const { data: { user }, error: authError } = await queryClient.auth.getUser()
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+    : anonClient
 
   const { data, error } = await queryClient
     .from('users')

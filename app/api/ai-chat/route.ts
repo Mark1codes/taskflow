@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
@@ -9,11 +10,6 @@ type RateLimitEntry = { count: number; resetAt: number }
 
 // A lightweight in-memory limiter for the current server instance.
 const rateLimitStore = new Map<string, RateLimitEntry>()
-
-function getClientKey(req: NextRequest) {
-  const forwardedFor = req.headers.get('x-forwarded-for')
-  return forwardedFor?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown-client'
-}
 
 function checkRateLimit(clientKey: string) {
   const now = Date.now()
@@ -34,7 +30,25 @@ function checkRateLimit(clientKey: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const limit = checkRateLimit(getClientKey(req))
+  // 1. Authenticate Request
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '')
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+    { auth: { persistSession: false }, global: { headers: { Authorization: `Bearer ${token}` } } }
+  )
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 2. Rate Limit based on authenticated user ID
+  const limit = checkRateLimit(user.id)
   const rateHeaders = {
     'X-RateLimit-Limit': String(RATE_LIMIT_MAX_REQUESTS),
     'X-RateLimit-Remaining': String(limit.remaining),
@@ -61,10 +75,16 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { messages, taskContext, userName, fileContext } = await req.json()
+  const body = await req.json()
+  const { messages, taskContext, userName, fileContext } = body
 
-  if (!messages || !Array.isArray(messages)) {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400, headers: rateHeaders })
+  // 3. Strict Payload Validation (OWASP A04)
+  if (!messages || !Array.isArray(messages) || messages.length > 50) {
+    return NextResponse.json({ error: 'Invalid or oversized message history' }, { status: 400, headers: rateHeaders })
+  }
+  
+  if (JSON.stringify(body).length > 200000) { // Approx 200KB max payload
+    return NextResponse.json({ error: 'Payload too large' }, { status: 413, headers: rateHeaders })
   }
 
   // Use first name only for a natural, personal feel

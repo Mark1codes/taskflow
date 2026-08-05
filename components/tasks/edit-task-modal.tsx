@@ -59,7 +59,34 @@ export function EditTaskModal({ isOpen, onClose, task, currentUser, onSave }: Ed
   const [selectedUsers, setSelectedUsers] = useState<AppUser[]>([])
   const pickerRef = useRef<HTMLDivElement>(null)
 
-  // Initialize state when task changes
+  // Fetch users for the picker
+  useEffect(() => {
+    if (isOpen) {
+      const fetchUsers = async () => {
+        setUsersLoading(true)
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) return
+          
+          const res = await fetch('/api/users', {
+            headers: { Authorization: `Bearer ${session.access_token}` }
+          })
+          
+          if (res.ok) {
+            const json = await res.json()
+            setUsers(json.users as AppUser[])
+          }
+        } catch (err) {
+          console.error("Error fetching users for edit modal:", err)
+        } finally {
+          setUsersLoading(false)
+        }
+      }
+      fetchUsers()
+    }
+  }, [isOpen])
+
+  // Initialize state when task changes OR users finish loading
   useEffect(() => {
     if (task && isOpen) {
       setTitle(task.title || "")
@@ -68,31 +95,23 @@ export function EditTaskModal({ isOpen, onClose, task, currentUser, onSave }: Ed
       setCategory(task.category || "Work")
       setDueDate(task.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : "")
       
-      // Populate assignees from existing task
+      // Populate assignees from existing task, mapping against fetched users to get avatar URLs
       if (task.task_assignees) {
-        const existingAssignees = task.task_assignees.map((a: any) => ({
-          id: a.user_id,
-          full_name: a.user_name,
-        }))
+        const existingAssignees = task.task_assignees.map((a: any) => {
+          // Try to find the user in the fully loaded users list to get their avatar
+          const matchedUser = users.find(u => u.id === a.user_id)
+          return {
+            id: a.user_id,
+            full_name: a.user_name,
+            avatar_url: matchedUser?.avatar_url
+          }
+        })
         setSelectedUsers(existingAssignees)
       } else {
         setSelectedUsers([])
       }
     }
-  }, [task, isOpen])
-
-  // Fetch users for the picker
-  useEffect(() => {
-    if (isOpen) {
-      const fetchUsers = async () => {
-        setUsersLoading(true)
-        const { data, error } = await supabase.from('users').select('id, full_name, avatar_url')
-        if (data && !error) setUsers(data as AppUser[])
-        setUsersLoading(false)
-      }
-      fetchUsers()
-    }
-  }, [isOpen])
+  }, [task, isOpen, users])
 
   // Click outside to close picker
   useEffect(() => {
