@@ -32,11 +32,11 @@ export function ResetPasswordPage({ onSuccess }: ResetPasswordPageProps) {
       return
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.")
-      setIsLoading(false)
-      return
-    }
+    if (password.length < 8) { setError("Password must be at least 8 characters"); setIsLoading(false); return }
+    if (!/[A-Z]/.test(password)) { setError("Password must include at least one uppercase letter"); setIsLoading(false); return }
+    if (!/[a-z]/.test(password)) { setError("Password must include at least one lowercase letter"); setIsLoading(false); return }
+    if (!/[0-9]/.test(password)) { setError("Password must include at least one number"); setIsLoading(false); return }
+    if (!/[^A-Za-z0-9]/.test(password)) { setError("Password must include at least one special character (e.g. !@#$)"); setIsLoading(false); return }
     
     try {
       const { error: updateError } = await supabase.auth.updateUser({
@@ -98,7 +98,7 @@ export function ResetPasswordPage({ onSuccess }: ResetPasswordPageProps) {
                 <Input 
                   id="password" 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="••••••••" 
+                  placeholder="Min 8 chars, A-z, 0-9, !@#" 
                   value={password} 
                   onChange={e => {setPassword(e.target.value); setError("")}} 
                   className="h-12 rounded-md border-slate-200 bg-white pl-10 pr-10 text-sm shadow-sm focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/15" 
@@ -108,6 +108,19 @@ export function ResetPasswordPage({ onSuccess }: ResetPasswordPageProps) {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {password && (
+                <div className="flex gap-1 pt-1">
+                  {[
+                    password.length >= 8,
+                    /[A-Z]/.test(password),
+                    /[a-z]/.test(password),
+                    /[0-9]/.test(password),
+                    /[^A-Za-z0-9]/.test(password)
+                  ].map((met, i) => (
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${met ? "bg-emerald-500" : "bg-slate-200"}`} />
+                  ))}
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
