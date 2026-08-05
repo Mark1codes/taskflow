@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { Play, Pause, Square, CheckCircle2, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
 
 interface FocusModeProps {
   task: any
@@ -75,7 +76,7 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#080d15] text-white animate-in fade-in duration-500">
       <button 
-        onClick={() => onClose(totalSecondsSpent / 60)}
+        onClick={() => onClose(Math.ceil(totalSecondsSpent / 60))}
         className="absolute right-6 top-6 rounded-full p-2 text-white/50 hover:bg-white/10 hover:text-white transition"
       >
         <X className="h-6 w-6" />
@@ -87,20 +88,40 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
             {mode === 'focus' ? 'Deep Work Mode' : 'Take a Break'}
           </span>
           {mode === 'focus' && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="h-7 rounded-full bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white border">
-                  {focusTimeSetting / 60 >= 60 ? `${focusTimeSetting / 60 / 60} hr${focusTimeSetting / 60 / 60 > 1 ? 's' : ''}` : `${focusTimeSetting / 60}m`} <ChevronDown className="ml-1 h-3 w-3" />
+                  {focusTimeSetting / 60 >= 60 ? `${Math.floor(focusTimeSetting / 60 / 60)} hr${focusTimeSetting / 60 / 60 >= 2 ? 's' : ''} ${(focusTimeSetting / 60) % 60 > 0 ? (focusTimeSetting / 60) % 60 + 'm' : ''}` : `${focusTimeSetting / 60}m`} <ChevronDown className="ml-1 h-3 w-3" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="bg-[#0f172a] border-white/10 text-slate-300">
-                {[15, 25, 45, 60, 90, 120].map(min => (
-                  <DropdownMenuItem key={min} onClick={() => handleSettingChange(min)} className="hover:bg-white/10 focus:bg-white/10 focus:text-white cursor-pointer">
-                    {min >= 60 ? `${min / 60} hr${min / 60 > 1 ? 's' : ''}` : `${min} minutes`}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </PopoverTrigger>
+              <PopoverContent align="center" className="bg-[#0f172a] border-white/10 text-slate-300 w-56 p-3 shadow-2xl">
+                <div className="grid grid-cols-3 gap-1.5 mb-3">
+                  {[15, 25, 45, 60, 90, 120].map(min => (
+                    <Button 
+                      key={min} 
+                      variant="ghost" 
+                      onClick={() => handleSettingChange(min)} 
+                      className="h-8 text-xs hover:bg-white/10 focus:bg-white/10 focus:text-white cursor-pointer px-0"
+                    >
+                      {min >= 60 ? `${min / 60}h` : `${min}m`}
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 pt-3 border-t border-white/10">
+                  <Input 
+                    type="number" 
+                    placeholder="Custom min..." 
+                    className="h-8 bg-white/5 border-white/10 text-sm text-white"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = parseInt(e.currentTarget.value)
+                        if (val > 0) handleSettingChange(val)
+                      }
+                    }}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
         </div>
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -120,7 +141,7 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
           <circle 
             cx="50" cy="50" r="48" 
             fill="none" 
-            stroke={mode === 'focus' ? '#3b82f6' : '#10b981'} 
+            stroke={mode === 'focus' ? '#3b82f6' : '#373a39ff'} 
             strokeWidth="4" 
             strokeDasharray="301.59" 
             strokeDashoffset={301.59 - (progress / 100) * 301.59}
@@ -154,7 +175,7 @@ export function FocusMode({ task, onClose, onComplete }: FocusModeProps) {
         </Button>
         <Button
           onClick={() => {
-            const minutes = totalSecondsSpent / 60
+            const minutes = Math.ceil(totalSecondsSpent / 60)
             onComplete(minutes)
             onClose(minutes)
           }}

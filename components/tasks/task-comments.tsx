@@ -46,8 +46,13 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
   const [userMap, setUserMap] = useState<Record<string, {name: string; avatarUrl?: string}>>({})
 
   useEffect(() => {
-    fetchUsers()
-    fetchComments()
+    const loadInitialData = async () => {
+      setIsLoading(true)
+      await Promise.all([fetchUsers(), fetchComments()])
+      setIsLoading(false)
+    }
+    
+    loadInitialData()
     
     // Set up realtime subscription for comments
     const channel = supabase.channel(`comments_${taskId}`)
@@ -101,8 +106,6 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
       setComments(data || [])
     } catch (err) {
       console.error("Error fetching comments:", err)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -208,16 +211,22 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
             const commentName = userMap[comment.user_id]?.name || comment.user_name
             
             // Safely parse attachments if Supabase returned them as a JSON string
-            let parsedAttachments: Attachment[] = []
+            let parsedAttachments: any[] = []
             if (comment.attachments) {
               if (Array.isArray(comment.attachments)) {
                 parsedAttachments = comment.attachments
               } else if (typeof comment.attachments === 'string') {
                 try {
-                  parsedAttachments = JSON.parse(comment.attachments)
-                } catch(e) {}
+                  const parsed = JSON.parse(comment.attachments)
+                  parsedAttachments = Array.isArray(parsed) ? parsed : (typeof parsed === 'string' ? JSON.parse(parsed) : [])
+                } catch(e) {
+                  console.error("Failed to parse attachments", e)
+                }
               }
             }
+            
+            // Ensure parsedAttachments is always an array
+            if (!Array.isArray(parsedAttachments)) parsedAttachments = []
 
             return (
               <div key={comment.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
@@ -258,12 +267,12 @@ export function TaskComments({ taskId, currentUser }: TaskCommentsProps) {
                               isMe ? 'bg-blue-700/50 hover:bg-blue-700' : 'bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-700'
                             } transition-colors`}
                           >
-                            {att.type.startsWith('image/') ? (
+                            {(att.type || '').startsWith('image/') ? (
                               <ImageIcon className="w-4 h-4 shrink-0" />
                             ) : (
                               <FileText className="w-4 h-4 shrink-0" />
                             )}
-                            <span className="truncate max-w-[150px]">{att.name}</span>
+                            <span className="truncate max-w-[150px]">{att.name || 'Attachment'}</span>
                           </a>
                         ))}
                       </div>

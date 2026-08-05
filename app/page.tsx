@@ -13,8 +13,15 @@ import { Loader2 } from "lucide-react"
 
 type AuthState = "initializing" | "landing" | "login" | "signup" | "authenticated" | "forgot-password" | "reset-password"
 
+let isRecovering = false
+if (typeof window !== 'undefined') {
+  if (window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery")) {
+    isRecovering = true
+  }
+}
+
 export default function Home() {
-  const [authState, setAuthState] = useState<AuthState>("initializing")
+  const [authState, setAuthState] = useState<AuthState>(isRecovering ? "reset-password" : "initializing")
   const [user, setUser] = useState<any>(null)
   const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true)
 
@@ -43,9 +50,10 @@ export default function Home() {
     }
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || isRecovering) {
+        isRecovering = true
         setAuthState("reset-password")
-      } else if (event === 'SIGNED_IN' && session?.user) {
+      } else if (event === 'SIGNED_IN' && session?.user && !isRecovering) {
         const userData = await createUserData(session.user)
         setUser(userData)
         setAuthState("authenticated")
@@ -60,12 +68,13 @@ export default function Home() {
         const { data: { session } } = await supabase.auth.getSession()
         
         // Prevent redirecting to dashboard if we are in the password recovery flow
-        if (window.location.hash.includes("type=recovery")) {
+        if (isRecovering || window.location.hash.includes("type=recovery")) {
+          isRecovering = true
           setAuthState("reset-password")
           return
         }
 
-        if (session?.user) {
+        if (session?.user && !isRecovering) {
           const userData = await createUserData(session.user)
           setUser(userData)
           setAuthState("authenticated")
