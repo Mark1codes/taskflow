@@ -14,6 +14,23 @@ function avatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length]
 }
 
+function formatTimeAgo(dateString: string) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  
+  if (diffInSeconds < 60) return 'Just now'
+  const diffInMinutes = Math.floor(diffInSeconds / 60)
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+  const diffInHours = Math.floor(diffInMinutes / 60)
+  if (diffInHours < 24) return `${diffInHours}h ago`
+  const diffInDays = Math.floor(diffInHours / 24)
+  if (diffInDays < 7) return `${diffInDays}d ago`
+  
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined })
+}
+
 interface InboxProps {
   tasks: any[]
   user: any
@@ -57,6 +74,7 @@ export function Inbox({ tasks, user, onUpdateTask, onViewTask }: InboxProps) {
           task,
           actorId: task.user_id,
           fallbackActorName: 'Someone',
+          timestamp: task.updated_at || task.created_at
         }
       }
 
@@ -67,6 +85,7 @@ export function Inbox({ tasks, user, onUpdateTask, onViewTask }: InboxProps) {
           task,
           actorId: task.completed_by_id,
           fallbackActorName: task.completed_by_name || 'Assignee',
+          timestamp: task.completed_at || task.updated_at
         }
       }
 
@@ -78,7 +97,14 @@ export function Inbox({ tasks, user, onUpdateTask, onViewTask }: InboxProps) {
       task: any
       actorId?: string
       fallbackActorName: string
+      timestamp?: string
     }>
+    
+  // Sort notifications by timestamp (newest first)
+  notifications.sort((a, b) => {
+    if (!a.timestamp || !b.timestamp) return 0;
+    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+  });
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -173,9 +199,16 @@ export function Inbox({ tasks, user, onUpdateTask, onViewTask }: InboxProps) {
                   </Avatar>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 leading-tight mt-1">
-                      <span className="font-semibold text-slate-900 dark:text-slate-100">{actorName}</span>{" "}
-                      {notification.type === 'completed' ? 'completed your task' : 'assigned you a task'}
+                    <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 leading-tight mt-1 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{actorName}</span>{" "}
+                        {notification.type === 'completed' ? 'completed your task' : 'assigned you a task'}
+                      </div>
+                      {notification.timestamp && (
+                        <span className="text-xs text-slate-400 font-normal shrink-0 ml-4">
+                          {formatTimeAgo(notification.timestamp)}
+                        </span>
+                      )}
                     </div>
                     
                     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 bg-white dark:bg-slate-900/50 flex flex-col gap-2">

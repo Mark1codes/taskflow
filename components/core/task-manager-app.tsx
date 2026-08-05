@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/layout/sidebar"
+import { BrandLogo } from "@/components/layout/brand-logo"
 import { Dashboard } from "@/components/core/dashboard"
 import { TaskList } from "@/components/tasks/task-list"
 import { SharedTasks } from "@/components/tasks/shared-tasks"
@@ -536,7 +537,12 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
               </SheetContent>
             </Sheet>
 
-            <h1 className="text-base font-semibold text-slate-900 dark:text-white">{viewLabel(activeView)}</h1>
+            <BrandLogo 
+              className="w-[100px] lg:hidden" 
+              markClassName="h-5 w-5 bg-blue-600" 
+              textClassName="text-sm text-slate-900 dark:text-white" 
+            />
+            <h1 className="text-base font-semibold text-slate-900 dark:text-white ml-2">{viewLabel(activeView)}</h1>
             {activeView === "calendar" && (
               <span className="hidden sm:inline text-xs text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full dark:border-slate-800">
                 {getCalendarTasks().length} scheduled
