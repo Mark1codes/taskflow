@@ -416,9 +416,15 @@ export function AIAssistant({ tasks = [], user, onTaskCreated, persistedSessionI
           ).join("\n")
         : null
 
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
       const res = await fetch("/api/ai-chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify({
           messages: updatedMessages.map(m => ({ type: m.type, content: m.content })),
           taskContext: taskSummary,

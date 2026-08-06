@@ -5,6 +5,7 @@ import { AlertCircle, ArrowUpRight, CheckCircle2, Clock3, Sparkles, Target } fro
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import supabase from "@/utils/supabase"
 
 interface PlannerTask {
   id: string
@@ -76,9 +77,15 @@ export function AIWorkPlanner({ tasks, mode }: AIWorkPlannerProps) {
       : `Analyze the user's real TaskFlow tasks below and provide three practical suggestions based only on this data. Mention the relevant task title for each suggestion. Do not invent tasks or claim access to data not provided. If there are no tasks, recommend creating the first task. Tasks: ${JSON.stringify(taskContext)}`
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
       const response = await fetch("/api/ai-chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify({ messages: [{ type: "user", content: prompt }] }),
       })
       const data = await response.json()
