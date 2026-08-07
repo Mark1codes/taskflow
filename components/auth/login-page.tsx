@@ -34,7 +34,7 @@ export function LoginPage({ onLogin, onSignUp, onBack, onForgotPassword }: Login
     e.preventDefault(); setIsLoading(true); setError("")
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email: formData.email, password: formData.password })
-      if (authError) { setError(authError.message); setIsLoading(false); return }
+      if (authError) { setError(authError.message === "Invalid login credentials" ? "Incorrect email or password. Please try again." : authError.message); setIsLoading(false); return }
       if (data.user) {
         const { data: profileData } = await supabase.from("users").select("full_name").eq("id", data.user.id).single()
         if (!profileData) await supabase.from("users").insert({ id: data.user.id, full_name: data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "User" })

@@ -159,6 +159,9 @@
   * {
     @apply border-border;
   }
+  html {
+    font-size: 87.5%; /* 14px base instead of 16px - Zooms out the entire UI by 12.5% */
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-geist), Arial, sans-serif;
