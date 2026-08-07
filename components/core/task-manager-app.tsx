@@ -86,6 +86,31 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     setOpenTaskId(task.id);
   }
 
+  // Sync activeView with URL hash so refreshes stay on the same page
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace("#", "")
+      if (hash) {
+        setActiveView(hash)
+      } else {
+        setActiveView("dashboard")
+      }
+    }
+    
+    handleHashChange() // Read initial hash on mount
+
+    window.addEventListener("hashchange", handleHashChange)
+    return () => window.removeEventListener("hashchange", handleHashChange)
+  }, [])
+
+  useEffect(() => {
+    const currentHash = window.location.hash.replace("#", "")
+    // Update hash when activeView changes (except if it's the default dashboard without a hash)
+    if (currentHash !== activeView && !(currentHash === "" && activeView === "dashboard")) {
+      window.location.hash = activeView
+    }
+  }, [activeView])
+
   useEffect(() => {
     const saved = localStorage.getItem('read_inbox_task_ids')
     if (saved) {

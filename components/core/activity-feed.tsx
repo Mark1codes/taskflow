@@ -4,12 +4,14 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, CheckCircle2, Plus, RefreshCw, User, Target, Timer } from "lucide-react"
 import supabase from '@/utils/supabase'
+import { getAvatarDisplayUrl } from "@/utils/avatar"
 
 interface ActivityEvent {
   id: string
   title: string
   action: 'created' | 'completed' | 'updated' | 'focused'
   user_name: string
+  avatar?: string
   timestamp: string
 }
 
@@ -27,58 +29,92 @@ export function ActivityFeed({ user }: ActivityFeedProps) {
       // Fetch the 20 most recently updated tasks
       const { data, error } = await supabase
         .from('task')
-        .select(`id, title, status, created_at, updated_at, assignee, user_id, time_spent_minutes`)
+        .select(`id, title, status, created_at, updated_at, assignee, user_id, time_spent_minutes, completed_by_name`)
         .order('updated_at', { ascending: false })
         .limit(20)
 
       if (error) throw error
 
+      // Fetch owner details for avatars and names
+      const userIds = Array.from(new Set(data.map(t => t.user_id).filter(Boolean)))
+      let usersData: any[] = []
+      if (userIds.length > 0) {
+        const { data: ud } = await supabase.from('users').select('id, full_name, avatar_url, avatar_path').in('id', userIds)
+        if (ud) usersData = ud
+      }
+
+      const userMap = new Map()
+      for (const u of usersData) {
+        const avatar = await getAvatarDisplayUrl(supabase, u.avatar_path, u.avatar_url || "")
+        userMap.set(u.id, { name: u.full_name, avatar })
+      }
+
       // Transform into a feed of events based on timestamps
       const events: ActivityEvent[] = []
       
-      const getActorName = (task: any, action: string) => {
+      const getActor = (task: any, action: string) => {
+        const owner = userMap.get(task.user_id) || { name: "A team member", avatar: undefined }
+        
+        if (action === 'completed' && task.completed_by_name) {
+          if (task.completed_by_name === user?.name) return { name: "Me", avatar: user?.avatar }
+          return { name: task.completed_by_name, avatar: undefined }
+        }
+        
         if (action === 'created') {
-          return task.user_id === user?.id ? "Me" : "A team member"
+          if (task.user_id === user?.id) return { name: "Me", avatar: user?.avatar }
+          return owner
         }
+        
         if (task.assignee) {
-          return task.assignee === user?.name ? "Me" : task.assignee
+          if (task.assignee === user?.name) return { name: "Me", avatar: user?.avatar }
+          return { name: task.assignee, avatar: undefined }
         }
-        return task.user_id === user?.id ? "Me" : "Someone"
+        
+        if (task.user_id === user?.id) return { name: "Me", avatar: user?.avatar }
+        return owner
       }
 
       data.forEach((task: any) => {
+        const isCreate = task.created_at === task.updated_at
         
-        // Did they just create it?
-        if (task.created_at === task.updated_at) {
+        if (isCreate) {
+          const actor = getActor(task, 'created')
           events.push({
             id: task.id + '-create',
             title: task.title,
             action: 'created',
-            user_name: getActorName(task, 'created'),
+            user_name: actor.name,
+            avatar: actor.avatar,
             timestamp: task.created_at
           })
         } else if (task.status === 'completed') {
+          const actor = getActor(task, 'completed')
           events.push({
             id: task.id + '-complete',
             title: task.title,
             action: 'completed',
-            user_name: getActorName(task, 'completed'),
+            user_name: actor.name,
+            avatar: actor.avatar,
             timestamp: task.updated_at
           })
         } else if (task.time_spent_minutes > 0) {
+          const actor = getActor(task, 'focused')
           events.push({
             id: task.id + '-focus',
             title: task.title,
             action: 'focused',
-            user_name: getActorName(task, 'focused'),
+            user_name: actor.name,
+            avatar: actor.avatar,
             timestamp: task.updated_at
           })
         } else {
+          const actor = getActor(task, 'updated')
           events.push({
             id: task.id + '-update',
             title: task.title,
             action: 'updated',
-            user_name: getActorName(task, 'updated'),
+            user_name: actor.name,
+            avatar: actor.avatar,
             timestamp: task.updated_at
           })
         }
@@ -195,8 +231,12 @@ export function ActivityFeed({ user }: ActivityFeedProps) {
                 const Icon = config.icon
                 return (
                   <div key={item.id} className="p-4 sm:p-5 flex items-start gap-4 hover:bg-slate-50 transition-colors">
-                    <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${config.bg}`}>
-                      <Icon className={`h-5 w-5 ${config.color}`} />
+                    <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full overflow-hidden ${config.bg}`}>
+                      {item.avatar ? (
+                        <img src={item.avatar} alt={item.user_name} className="h-full w-full object-cover" />
+                      ) : (
+                        <Icon className={`h-5 w-5 ${config.color}`} />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-900 leading-snug">
