@@ -28,6 +28,7 @@ import {
   Sparkles,
   Users,
   Zap,
+  SendHorizontal,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
@@ -309,7 +310,7 @@ function AIAssistantPreview() {
           <div className="flex items-center gap-2 rounded-xl bg-white/5 px-3.5 py-2">
             <span className="flex-1 text-[11px] text-slate-600">Ask me anything, Mark...</span>
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600">
-              <ArrowRight className="h-3 w-3 text-white" />
+              <SendHorizontal className="h-3 w-3 text-white" />
             </div>
           </div>
         </div>
