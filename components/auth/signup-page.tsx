@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import Link from "next/link"
 import supabase from "@/utils/supabase"
 import { useState } from "react"
 import { BrandLogo } from "@/components/layout/brand-logo"
@@ -87,7 +88,7 @@ export function SignUpPage({ onSignUp, onLogin, onBack }: SignUpPageProps) {
           <Button variant="outline" className="h-12 w-full rounded-md border-slate-200 bg-white text-sm font-medium text-slate-700 shadow-sm hover:border-slate-300 hover:text-slate-950" onClick={handleGoogleSignIn} disabled={isLoading}><GoogleIcon /> <span className="ml-2">Google</span></Button>
           */}
           <p className="mt-8 text-center text-sm text-slate-500">Already have a workspace? <button onClick={onLogin} className="font-medium text-blue-600 hover:text-blue-700">Sign in</button></p>
-          <p className="mt-10 text-center text-[11px] leading-5 text-slate-400">By creating an account, you agree to our Terms of Service and Privacy Policy.</p>
+          <p className="mt-10 text-center text-[11px] leading-5 text-slate-400">By creating an account, you agree to our <Link href="/terms" className="hover:text-slate-600 underline underline-offset-2 transition-colors">Terms of Service</Link> and <Link href="/privacy" className="hover:text-slate-600 underline underline-offset-2 transition-colors">Privacy Policy</Link>.</p>
           <div className="mt-5 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-slate-400"><Check className="h-3.5 w-3.5 text-emerald-500" /> No payment required</div>
         </div>
       </main>
