@@ -29,14 +29,17 @@ export function ActivityFeed({ user }: ActivityFeedProps) {
       // Fetch the 20 most recently updated tasks
       const { data, error } = await supabase
         .from('task')
-        .select(`id, title, status, created_at, updated_at, assignee, user_id, time_spent_minutes, completed_by_name`)
+        .select(`id, title, status, created_at, updated_at, assignee, user_id, time_spent_minutes, completed_by_name, completed_by_id`)
         .order('updated_at', { ascending: false })
         .limit(20)
 
       if (error) throw error
 
-      // Fetch owner details for avatars and names
-      const userIds = Array.from(new Set(data.map(t => t.user_id).filter(Boolean)))
+      // Fetch owner and completer details for avatars and names
+      const userIds = Array.from(new Set(
+        data.flatMap(t => [t.user_id, t.completed_by_id]).filter(Boolean)
+      ))
+      
       let usersData: any[] = []
       if (userIds.length > 0) {
         const { data: ud } = await supabase.from('users').select('id, full_name, avatar_url, avatar_path').in('id', userIds)
@@ -57,7 +60,9 @@ export function ActivityFeed({ user }: ActivityFeedProps) {
         
         if (action === 'completed' && task.completed_by_name) {
           if (task.completed_by_name === user?.name) return { name: "Me", avatar: user?.avatar }
-          return { name: task.completed_by_name, avatar: undefined }
+          
+          const completer = task.completed_by_id ? userMap.get(task.completed_by_id) : undefined
+          return { name: task.completed_by_name, avatar: completer?.avatar }
         }
         
         if (action === 'created') {
