@@ -23,6 +23,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet"
 import { LogOut, User, SettingsIcon, Menu } from "lucide-react"
 import { ProfilePage } from "@/components/core/profile-page"
+import { CommandPalette } from "@/components/core/command-palette"
 import { AIAssistant } from "@/components/ai/ai-assistant"
 import { AIWorkPlanner } from "@/components/ai/ai-work-planner"
 import { ThemeProvider } from "@/components/layout/theme-provider"
@@ -79,6 +80,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   const [pendingInvitations, setPendingInvitations] = useState<Task[]>([])
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const [readInboxTaskIds, setReadInboxTaskIds] = useState<string[]>([])
+  const [searchOpen, setSearchOpen] = useState(false)
 
   const handleViewTaskFromInbox = (task: Task) => {
     const isShared = task.user_id !== currentUser?.id || (task.task_assignees?.length || 0) > 0;
@@ -534,7 +536,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
     <div className="flex h-screen bg-slate-50 overflow-hidden dark:bg-slate-950">
       {/* Desktop sidebar */}
       <div className="hidden lg:block shrink-0">
-        <Sidebar activeView={activeView} onViewChange={handleViewChange} invitationsCount={pendingInvitations.length} inboxCount={inboxCount} />
+        <Sidebar activeView={activeView} onViewChange={handleViewChange} invitationsCount={pendingInvitations.length} inboxCount={inboxCount} onOpenSearch={() => setSearchOpen(true)} />
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -558,7 +560,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
                   <SheetTitle>Navigation Menu</SheetTitle>
                   <SheetDescription>Mobile sidebar menu</SheetDescription>
                 </SheetHeader>
-                <Sidebar activeView={activeView} onViewChange={handleViewChange} invitationsCount={pendingInvitations.length} inboxCount={inboxCount} />
+                <Sidebar activeView={activeView} onViewChange={handleViewChange} invitationsCount={pendingInvitations.length} inboxCount={inboxCount} onOpenSearch={() => setSearchOpen(true)} />
               </SheetContent>
             </Sheet>
 
@@ -634,6 +636,18 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
         }} 
       />
     )}
+
+    <CommandPalette 
+      open={searchOpen} 
+      setOpen={setSearchOpen} 
+      tasks={tasks}
+      onSelectTask={(taskId) => {
+        const isShared = tasks.find(t => t.id === taskId)?.user_id !== currentUser?.id
+        setActiveView(isShared ? "shared-tasks" : "tasks")
+        setOpenTaskId(taskId)
+      }}
+      onNavigate={handleViewChange}
+    />
     </ThemeProvider>
   )
 }

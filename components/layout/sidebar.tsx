@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Plus, CheckSquare, Calendar, Kanban, Activity,
   Settings, Menu, Bot, Sparkles, Zap,
   ChevronLeft, Bell, UserPlus, Users,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Search
 } from "lucide-react"
 import { BrandLogo } from "@/components/layout/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ interface SidebarProps {
   onViewChange: (view: string) => void
   invitationsCount?: number
   inboxCount?: number
+  onOpenSearch?: () => void
 }
 
 const overviewNav = [
@@ -113,7 +114,7 @@ function NavGroup({ label, items, activeView, onViewChange, collapsed, invitatio
   )
 }
 
-export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxCount = 0 }: SidebarProps) {
+export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxCount = 0, onOpenSearch }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -122,7 +123,7 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
       collapsed ? "w-16" : "w-60"
     )}>
       {/* Logo */}
-      <div className={cn("h-16 flex items-center px-4 border-b border-slate-800 shrink-0", collapsed ? "justify-center" : "")}>
+      <div className={cn("h-16 flex items-center px-4 shrink-0", collapsed ? "justify-center" : "")}>
         {!collapsed ? (
           <BrandLogo
             className="w-[136px]"
@@ -138,6 +139,28 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
             light
           />
         )}
+      </div>
+
+      {/* Search */}
+      <div className="px-3 pb-3 border-b border-slate-800 shrink-0">
+        <button
+          onClick={onOpenSearch}
+          title={collapsed ? "Search (Ctrl+K)" : undefined}
+          className={cn(
+            "w-full flex items-center rounded-md border border-slate-800/60 bg-slate-800/40 px-2 py-1.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-300 transition-colors focus:outline-none focus:ring-1 focus:ring-slate-500",
+            collapsed ? "justify-center" : "justify-between"
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>Search</span>}
+          </div>
+          {!collapsed && (
+            <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border border-slate-700 bg-slate-800/50 px-1.5 font-mono text-[10px] font-medium text-slate-400">
+              Ctrl K
+            </kbd>
+          )}
+        </button>
       </div>
 
       {/* Nav */}
