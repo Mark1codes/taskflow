@@ -136,6 +136,7 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
             className="w-7 h-7 overflow-hidden"
             markClassName="h-7 w-7 bg-blue-600"
             textClassName="hidden"
+            showText={false}
             light
           />
         )}
