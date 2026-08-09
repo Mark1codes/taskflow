@@ -6,7 +6,7 @@
 
 TaskFlow is a modern task management workspace built with Next.js, React, Supabase, and Tailwind CSS. It combines a polished SaaS-style landing page with an authenticated productivity dashboard for creating tasks, tracking progress, managing schedules, and using AI-assisted planning.
 
-**Live app:** [https://taskflowv1.vercel.app](https://taskflowv1.vercel.app)
+**Live app:** [https://taskflowai.pro/)
 
 ## Features
 
