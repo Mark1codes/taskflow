@@ -30,8 +30,8 @@ export default function TermsOfService() {
               <Link href="/privacy" className="hover:text-slate-900 transition-colors">Privacy Policy</Link>
             </nav>
           </div>
-          <Button asChild variant="outline" size="sm" className="hidden sm:flex h-9 border-slate-200 text-slate-600 hover:bg-slate-50">
-            <Link href="/"><ArrowLeft className="mr-2 h-4 w-4" /> Back to App</Link>
+          <Button asChild variant="outline" size="sm" className="hidden sm:flex h-9 w-9 p-0 border-slate-200 text-slate-600 hover:bg-slate-50">
+            <Link href="/?action=signup" aria-label="Back to Sign Up"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
         </div>
       </header>

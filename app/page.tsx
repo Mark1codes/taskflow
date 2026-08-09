@@ -98,13 +98,19 @@ export default function Home() {
           }
           window.history.replaceState({}, document.title, '/')
           setAuthState("landing")
+        } else if (window.location.search.includes("action=signup")) {
+          setAuthState("signup")
         } else {
           // No active session — show landing page
           setAuthState("landing")
         }
       } catch (error) {
         console.error("Session check error:", error)
-        setAuthState("landing")
+        if (window.location.search.includes("action=signup")) {
+          setAuthState("signup")
+        } else {
+          setAuthState("landing")
+        }
       }
     }
 
