@@ -3,7 +3,8 @@
 import {
   LayoutDashboard, Plus, CheckSquare, Calendar, Kanban, Activity,
   Settings, Menu, Bot, Sparkles, Zap,
-  ChevronLeft, Bell, UserPlus, Users
+  ChevronLeft, Bell, UserPlus, Users,
+  PanelLeftClose, PanelLeftOpen
 } from "lucide-react"
 import { BrandLogo } from "@/components/layout/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -121,24 +122,22 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
       collapsed ? "w-16" : "w-60"
     )}>
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800 shrink-0">
-        {!collapsed && (
+      <div className={cn("h-16 flex items-center px-4 border-b border-slate-800 shrink-0", collapsed ? "justify-center" : "")}>
+        {!collapsed ? (
           <BrandLogo
             className="w-[136px]"
             markClassName="h-7 w-7 bg-blue-600"
             textClassName="text-base text-white"
             light
           />
+        ) : (
+          <BrandLogo
+            className="w-7 h-7 overflow-hidden"
+            markClassName="h-7 w-7 bg-blue-600"
+            textClassName="hidden"
+            light
+          />
         )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className={cn(
-            "p-1.5 rounded-md text-slate-500 hover:text-white hover:bg-slate-800 transition-colors",
-            collapsed && "mx-auto"
-          )}
-        >
-          {collapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
       </div>
 
       {/* Nav */}
@@ -154,12 +153,27 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
         <NavGroup label="System" items={settingsNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
       </nav>
 
-      {/* Bottom hint */}
-      {!collapsed && (
-        <div className="p-3 border-t border-slate-800 shrink-0">
-          <div className="text-[10px] text-slate-600 text-center">TaskFlow v2.0</div>
-        </div>
-      )}
+      {/* Bottom Collapse Button */}
+      <div className="p-3 border-t border-slate-800 shrink-0">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 group",
+            "text-slate-400 hover:text-white hover:bg-slate-800",
+            collapsed && "justify-center px-0"
+          )}
+          title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-white" />
+          ) : (
+            <>
+              <PanelLeftClose className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-white" />
+              <span className="truncate">Collapse</span>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   )
 }
