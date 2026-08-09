@@ -148,7 +148,7 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
           onClick={onOpenSearch}
           title={collapsed ? "Search (Ctrl+K)" : undefined}
           className={cn(
-            "w-full flex items-center rounded-md border border-slate-800/60 bg-slate-800/40 px-2 py-1.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-300 transition-colors focus:outline-none focus:ring-1 focus:ring-slate-500",
+            "w-full flex items-center rounded-md bg-transparent px-2 py-1.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-300 transition-colors focus:outline-none focus:ring-1 focus:ring-slate-500",
             collapsed ? "justify-center" : "justify-between"
           )}
         >
