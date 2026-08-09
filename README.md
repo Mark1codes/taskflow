@@ -27,7 +27,6 @@ TaskFlow is a modern task management workspace built with Next.js, React, Supaba
 - **Smart suggestions** based on the user's real task data.
 - **Premium Empty States & Loading Skeletons** utilizing animated SVG illustrations and smooth loaders across the platform for a highly polished UI.
 - **Profile settings** with editable profile details, password update, preferences, and Supabase Storage avatar uploads.
-- **Dark mode support** inside the authenticated app experience.
 - **SEO foundation** with Next.js metadata, `robots.txt`, and `sitemap.xml`.
 - **Responsive UI** built for desktop and mobile layouts.
 
@@ -45,7 +44,7 @@ TaskFlow is a modern task management workspace built with Next.js, React, Supaba
 | File Storage | Supabase Storage |
 | AI | OpenRouter chat completions API |
 | Charts | Recharts |
-| Deployment | Vercel |
+| Deployment | Cloudflare |
 
 ## Project Structure
 
@@ -212,7 +211,7 @@ Public SEO currently focuses on the landing page. Authenticated dashboard conten
 
 The app is deployed on Vercel:
 
-[https://taskflowv1.vercel.app](https://taskflowv1.vercel.app)
+[https://taskflowai.pro/)
 
 Recommended production environment variable:
 
