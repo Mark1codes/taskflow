@@ -209,11 +209,11 @@ Public SEO currently focuses on the landing page. Authenticated dashboard conten
 
 ## Deployment
 
-The app is deployed on Vercel:
+The app is deployed on Cloudflare:
 
 [https://taskflowai.pro/)
 
-Recommended production environment variable:
+Recommended production environment variable in Vercel:
 
 ```env
 NEXT_PUBLIC_APP_URL=https://taskflowv1.vercel.app
