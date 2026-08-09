@@ -104,11 +104,13 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
     ? `${totalTimeSpent.toFixed(1)}m` 
     : `${(totalTimeSpent / 60).toFixed(1)}h`
 
+  const calcPercent = (val: number) => total > 0 ? `${Math.round((val / total) * 100)}%` : "0%"
+
   const kpis = [
-    { label: "Total Tasks",      value: total,      sub: `${todo} to do`,          icon: CheckCircle2,   accent: "text-slate-600",  bg: "bg-slate-50" },
-    { label: "In Progress",      value: inProgress, sub: "Active now",              icon: Target,         accent: "text-blue-600",   bg: "bg-blue-50"  },
-    { label: "Time Tracked",     value: formattedTimeTracked, sub: "Total focus time",  icon: Clock,          accent: "text-indigo-600", bg: "bg-indigo-50"},
-    { label: "Overdue",          value: overdue,    sub: "Need attention",          icon: AlertTriangle,  accent: "text-red-600",    bg: "bg-red-50"   },
+    { label: "Total Tasks",      value: total,      sub: `${todo} to do`,          icon: CheckCircle2,   accent: "text-slate-600",  bg: "bg-slate-50", percent: calcPercent(todo), barColor: "bg-slate-400" },
+    { label: "In Progress",      value: inProgress, sub: "Active now",              icon: Target,         accent: "text-blue-600",   bg: "bg-blue-50", percent: calcPercent(inProgress), barColor: "bg-blue-500" },
+    { label: "Time Tracked",     value: formattedTimeTracked, sub: "Total focus time",  icon: Clock,          accent: "text-indigo-600", bg: "bg-indigo-50", percent: totalTimeSpent > 0 ? "100%" : "0%", barColor: "bg-indigo-500" },
+    { label: "Overdue",          value: overdue,    sub: "Need attention",          icon: AlertTriangle,  accent: "text-red-600",    bg: "bg-red-50", percent: calcPercent(overdue), barColor: "bg-red-500" },
   ]
 
   const chartData = Array.from({ length: 7 }).map((_, i) => {
@@ -169,7 +171,9 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
                   </div>
                   <div className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white sm:text-3xl">{k.value}</div>
                   <div className="mt-3 text-xs text-slate-400">{k.sub}</div>
-                  <div className="mt-4 h-1 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${i === 0 ? "w-3/4 bg-slate-400" : i === 1 ? "w-1/2 bg-blue-500" : i === 2 ? "bg-emerald-500" : "w-1/4 bg-red-400"}`} style={i === 2 ? { width: `${rate}%` } : undefined} /></div>
+                  <div className="mt-4 h-1 overflow-hidden rounded-full bg-slate-100">
+                    <div className={`h-full rounded-full transition-all duration-500 ${k.barColor}`} style={{ width: k.percent }} />
+                  </div>
                 </CardContent>
               </Card>
             )
