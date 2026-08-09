@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
-  Bot, Send, Sparkles, Loader2, AlertCircle, Plus,
+  Bot, SendHorizontal, Sparkles, Loader2, AlertCircle, Plus,
   Trash2, History, Paperclip, FileText, MessageSquare
 } from "lucide-react"
 import supabase from "@/utils/supabase"
@@ -708,7 +708,7 @@ export function AIAssistant({ tasks = [], user, onTaskCreated, persistedSessionI
               disabled={!inputMessage.trim() || isLoading}
               className="h-10 w-10 shrink-0 bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizontal className="h-4 w-4" />}
             </Button>
           </div>
           <p className="text-[10px] text-slate-400 mt-2 text-center">
