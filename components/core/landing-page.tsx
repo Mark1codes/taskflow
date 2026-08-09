@@ -186,6 +186,137 @@ function WorkspacePreview() {
   )
 }
 
+function AIAssistantPreview() {
+  const [step, setStep] = useState(0)
+
+  useEffect(() => {
+    const sequence = [800, 2000, 3400, 4800, 6000]
+    const timers = sequence.map((delay, i) =>
+      setTimeout(() => setStep(i + 1), delay)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [])
+
+  useEffect(() => {
+    if (step >= 5) {
+      const t = setTimeout(() => setStep(0), 2500)
+      return () => clearTimeout(t)
+    }
+  }, [step])
+
+  const tasks = [
+    { label: "Design system & component library", priority: "High", time: "3 days" },
+    { label: "User research & stakeholder interviews", priority: "High", time: "2 days" },
+    { label: "Wireframes & low-fi prototyping", priority: "Medium", time: "4 days" },
+    { label: "Visual design & handoff to dev", priority: "Medium", time: "5 days" },
+  ]
+
+  return (
+    <div className="flex bg-[#0c121e]" style={{ height: '360px' }}>
+      <style>{`
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
+        .fade-up { animation: fadeUp 0.4s ease-out forwards; }
+        .typing-dot { animation: typingBounce 1.2s infinite; }
+      `}</style>
+
+      {/* Sidebar */}
+      <div className="w-[160px] shrink-0 border-r border-white/8 flex flex-col p-3 gap-2">
+        <button className="flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 py-1.5 text-[11px] font-medium text-white">
+          <span className="text-base leading-none">+</span> New Chat
+        </button>
+        <p className="px-1 pt-1 text-[9px] uppercase tracking-wider text-slate-600">Recent</p>
+        {["Website Redesign", "Prioritize my tasks", "Plan sprint goals", "Weekly wrap-up"].map((item, i) => (
+          <div key={item} className={`rounded-md px-2 py-1.5 text-[10px] leading-tight cursor-pointer truncate ${
+            i === 0 ? "bg-white/10 text-slate-200" : "text-slate-600"
+          }`}>
+            {item}
+          </div>
+        ))}
+      </div>
+
+      {/* Chat area */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Header */}
+        <div className="flex shrink-0 items-center justify-between border-b border-white/8 px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/20">
+              <Sparkles className="h-3 w-3 text-blue-400" />
+            </div>
+            <span className="text-xs font-medium text-slate-200">AI Assistant</span>
+          </div>
+          <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-medium">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" style={{ animation: 'pulse 2s infinite' }} />
+            AI Ready
+          </span>
+        </div>
+
+        {/* Messages */}
+        <div className="flex flex-1 flex-col gap-3 overflow-hidden px-4 py-3">
+
+          {/* User bubble */}
+          {step >= 1 && (
+            <div className="flex justify-end fade-up">
+              <div className="max-w-[76%] rounded-2xl rounded-tr-sm bg-blue-600 px-3.5 py-2 text-[11px] leading-relaxed text-white">
+                Break down my &ldquo;Website Redesign&rdquo; project into tasks
+              </div>
+            </div>
+          )}
+
+          {/* Typing indicator */}
+          {step === 1 && (
+            <div className="flex items-end gap-2 fade-up">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/20">
+                <Sparkles className="h-3 w-3 text-blue-400" />
+              </div>
+              <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-white/6 px-3.5 py-2.5">
+                {[0, 1, 2].map(i => (
+                  <span key={i} className="typing-dot h-1.5 w-1.5 rounded-full bg-slate-500 block" style={{ animationDelay: `${i * 0.2}s` }} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI response */}
+          {step >= 2 && (
+            <div className="flex items-start gap-2 fade-up">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/20 mt-0.5">
+                <Sparkles className="h-3 w-3 text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0 rounded-2xl rounded-tl-sm bg-white/6 px-3.5 py-2.5">
+                <p className="text-[11px] leading-relaxed text-slate-300 mb-2.5">
+                  I&rsquo;ve broken down your project into{" "}
+                  <span className="font-semibold text-blue-400">4 tasks</span>{" "}
+                  with time estimates and priority levels:
+                </p>
+                <div className="space-y-1.5">
+                  {tasks.slice(0, step >= 3 ? (step >= 4 ? (step >= 5 ? 4 : 3) : 2) : 1).map((task) => (
+                    <div key={task.label} className="flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-2 fade-up">
+                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${task.priority === "High" ? "bg-red-400" : "bg-amber-400"}`} />
+                      <span className="flex-1 text-[10px] text-slate-200 truncate">{task.label}</span>
+                      <span className="shrink-0 rounded bg-white/8 px-1.5 py-0.5 text-[9px] text-slate-500">{task.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input bar */}
+        <div className="shrink-0 border-t border-white/8 px-3 py-2.5">
+          <div className="flex items-center gap-2 rounded-xl bg-white/5 px-3.5 py-2">
+            <span className="flex-1 text-[11px] text-slate-600">Ask me anything, Mark...</span>
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600">
+              <ArrowRight className="h-3 w-3 text-white" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
@@ -325,16 +456,8 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
                   <div className="w-12" />
                 </div>
 
-                {/* Main image wrapper */}
-                <div className="relative bg-white">
-                  <img
-                    src="/ai-feature-preview.png"
-                    alt="TaskFlow AI Assistant Showcase"
-                    className="relative z-10 w-full h-auto object-cover"
-                  />
-                  {/* Subtle Glass reflection overlay */}
-                  <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-tr from-white/5 via-transparent to-white/10 opacity-30" />
-                </div>
+                {/* Live AI Assistant Preview */}
+                <AIAssistantPreview />
                 
               </div>
             </div>
