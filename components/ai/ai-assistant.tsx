@@ -85,7 +85,7 @@ function TaskCreateCard({ taskData, onConfirm, onCancel }: { taskData: any; onCo
 
 function AIOnboardingScreen({ onComplete }: { onComplete: () => void }) {
   return (
-    <div className="h-full flex flex-col items-center justify-center bg-[#f7f9fc] dark:bg-slate-950 p-6 overflow-y-auto">
+    <div className="h-full flex flex-col items-center justify-center bg-white p-6 overflow-y-auto">
       <div className="max-w-2xl w-full mx-auto text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         
         {/* Animated Illustration Container */}
@@ -487,7 +487,7 @@ export function AIAssistant({ tasks = [], user, onTaskCreated, persistedSessionI
   }
 
   if (hasOnboarded === null) {
-    return <div className="h-full bg-[#f7f9fc] dark:bg-slate-950" />
+    return <div className="h-full bg-white" />
   }
 
   if (hasOnboarded === false) {
@@ -495,7 +495,7 @@ export function AIAssistant({ tasks = [], user, onTaskCreated, persistedSessionI
   }
 
   return (
-    <div className="h-full flex overflow-hidden bg-[#f7f9fc] dark:bg-slate-950">
+    <div className="h-full flex overflow-hidden bg-white">
       {/* Sessions Sidebar */}
       <div
         className={`${isSidebarOpen ? "w-64" : "w-0"} transition-all duration-200 shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-hidden`}
