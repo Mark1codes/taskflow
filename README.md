@@ -123,10 +123,10 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 AI_RATE_LIMIT_MAX=10
 ```
 
-For production on Vercel, set:
+For production on Cloudflare, set:
 
 ```env
-NEXT_PUBLIC_APP_URL=https://taskflowv1.vercel.app
+NEXT_PUBLIC_APP_URL=https://taskflowai.pro
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
 OPENROUTER_API_KEY=your_openrouter_api_key
@@ -202,7 +202,7 @@ Public SEO currently focuses on the landing page. Authenticated dashboard conten
 ## Security Notes
 
 - Keep `.env.local` untracked.
-- Store production secrets in Vercel Environment Variables.
+- Store production secrets in Cloudflare Pages Environment Variables.
 - Rotate any API key that has been exposed in logs, screenshots, commits, or chat.
 - Keep Supabase Row Level Security policies scoped to `auth.uid()`.
 - Avoid using service-role keys in frontend code.
@@ -213,13 +213,13 @@ The app is deployed on Cloudflare:
 
 [https://taskflowai.pro/)
 
-Recommended production environment variable in Vercel:
+Recommended production environment variable in Cloudflare:
 
 ```env
-NEXT_PUBLIC_APP_URL=https://taskflowv1.vercel.app
+NEXT_PUBLIC_APP_URL=https://taskflowai.pro
 ```
 
-After changing environment variables in Vercel, redeploy the project.
+After changing environment variables in Cloudflare, redeploy the project.
 
 ## License
 
