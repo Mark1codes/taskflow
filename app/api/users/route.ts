@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 const AVATAR_BUCKET = 'avatars'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
-// Simple in-memory cache — avoids refetching on every dropdown open
+
 let cache: { users: any[]; expiresAt: number } | null = null
 const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
@@ -12,12 +12,12 @@ export async function GET(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Serve from cache if fresh
+
   if (cache && Date.now() < cache.expiresAt) {
     return NextResponse.json({ users: cache.users })
   }
 
-  // Always validate the caller's token first to prevent broken access control
+
   const anonClient = createClient(SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_KEY!, {
     auth: { persistSession: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Once authenticated, we can optionally use the service role to read user metadata that might be restricted by RLS
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const queryClient = serviceKey
     ? createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false } })
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
 
   const rows = data ?? []
 
-  // Separate storage paths from external URLs (Google OAuth etc.)
+  
   const marker = `/storage/v1/object/public/${AVATAR_BUCKET}/`
   const toSign: { index: number; path: string }[] = []
   const resolved: (string | null)[] = rows.map((u, i) => {
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
     return null // placeholder
   })
 
-  // Batch sign all storage paths in ONE call
+  
   if (toSign.length > 0) {
     const { data: signed } = await queryClient.storage
       .from(AVATAR_BUCKET)
