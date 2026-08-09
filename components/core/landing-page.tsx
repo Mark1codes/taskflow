@@ -240,8 +240,8 @@ export function LandingPage({ onLogin, onSignUp }: LandingPageProps) {
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3.5 py-1 text-xs font-semibold text-blue-600 backdrop-blur-sm">
                 <Sparkles className="h-3.5 w-3.5" /> Powered by Smart AI Assistance
               </div>
-              <h1 className="max-w-[720px] text-4xl font-semibold leading-[1.1] tracking-[-0.03em] text-slate-950 sm:text-5xl lg:text-[64px]">The AI-powered task manager<br />built for focus.</h1>
-              <p className="mt-7 max-w-lg text-lg leading-relaxed text-slate-500">Plan your work with intelligent AI guidance.<br />Stay aligned & move projects forward faster.</p>
+              <h1 className="max-w-[620px] text-5xl font-semibold leading-[0.98] tracking-[-0.065em] text-slate-950 sm:text-6xl lg:text-[72px]">The AI-powered task manager<br />built for focus.</h1>
+              <p className="mt-7 max-w-md text-lg leading-8 text-slate-500">Plan your work with intelligent AI guidance.<br />Stay aligned & move projects forward faster.</p>
               <div className="mt-9 flex items-center gap-4"><Button size="lg" onClick={onSignUp} className="h-12 rounded-md bg-blue-600 px-6 text-base font-medium text-white shadow-[0_8px_20px_rgba(41,122,255,0.22)] hover:bg-blue-700">Create workspace <ArrowRight className="ml-2 h-4 w-4" /></Button><button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })} className="hidden items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 sm:flex">See how it works <ArrowDown className="h-4 w-4" /></button></div>
             </div>
             <div className={`relative transition-all delay-150 duration-1000 ${isVisible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}><WorkspacePreview /></div>
