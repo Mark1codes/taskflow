@@ -144,7 +144,7 @@ export default function PrivacyPolicy() {
               <h2>7. Contact Us</h2>
               <p>
                 If you have questions or concerns about this Privacy Policy, please contact our Data Protection Officer at 
-                <a href="mailto:privacy@taskflow.example.com" className="font-medium text-blue-600 hover:text-blue-700 underline decoration-blue-200 underline-offset-4 ml-1">privacy@taskflow.example.com</a>.
+                <a href="mailto:privacy@taskflowai.pro" className="font-medium text-blue-600 hover:text-blue-700 underline decoration-blue-200 underline-offset-4 ml-1">privacy@taskflowai.pro</a>.
               </p>
             </section>
           </div>

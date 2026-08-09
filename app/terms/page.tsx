@@ -143,7 +143,7 @@ export default function TermsOfService() {
               <h2>7. Contact Us</h2>
               <p>
                 If you have any questions about these Terms, please contact us at 
-                <a href="mailto:support@taskflow.example.com" className="font-medium text-blue-600 hover:text-blue-700 underline decoration-blue-200 underline-offset-4 ml-1">support@taskflow.example.com</a>.
+                <a href="mailto:support@taskflowai.pro" className="font-medium text-blue-600 hover:text-blue-700 underline decoration-blue-200 underline-offset-4 ml-1">support@taskflowai.pro</a>.
               </p>
             </section>
           </div>
