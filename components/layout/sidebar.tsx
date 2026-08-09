@@ -184,17 +184,14 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 group",
             "text-slate-400 hover:text-white hover:bg-slate-800",
-            collapsed && "justify-center px-0"
+            collapsed ? "justify-center px-0" : ""
           )}
           title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
           {collapsed ? (
             <PanelLeftOpen className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-white" />
           ) : (
-            <>
-              <PanelLeftClose className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-white" />
-              <span className="truncate">Collapse</span>
-            </>
+            <PanelLeftClose className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-white" />
           )}
         </button>
       </div>
