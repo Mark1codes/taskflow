@@ -10,17 +10,18 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "TaskFlow - Focused Task Management for Productive Teams",
-    template: "%s | TaskFlow",
+    default: "TaskFlow AI - Intelligent Task Management & Productivity",
+    template: "%s | TaskFlow AI",
   },
   description:
-    "TaskFlow is a modern task management workspace for planning work, tracking priorities, and helping teams move projects forward with focus.",
+    "TaskFlow AI is a modern task management workspace powered by artificial intelligence. Plan work, track priorities, and help your team move projects forward with focus.",
   keywords: [
+    "TaskFlow AI",
     "TaskFlow",
-    "task management",
+    "AI task management",
+    "intelligent task manager",
     "project management",
     "team productivity",
-    "work planning",
     "AI productivity assistant",
     "kanban",
     "calendar tasks",
