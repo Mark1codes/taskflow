@@ -73,21 +73,21 @@ function NavGroup({ label, items, activeView, onViewChange, collapsed, invitatio
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 group",
               active
-                ? "bg-[#f2633f] text-white shadow-[0_8px_18px_rgba(242,99,63,0.22)]"
-                : "text-[#b6a49b] hover:text-white hover:bg-[#30241f]"
+                ? "bg-white/12 text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] ring-1 ring-white/10"
+                : "text-[#b6a49b] hover:text-white hover:bg-white/6"
             )}
           >
             <div className="relative">
-              <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-slate-500 group-hover:text-white")} />
+              <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-[#8f7b70] group-hover:text-white")} />
               {item.id === "invitations" && invitationsCount > 0 && (
                 <span className={cn(
-                  "absolute flex items-center justify-center rounded-full bg-blue-500 text-white font-bold",
+                  "absolute flex items-center justify-center rounded-full bg-[#f2633f] text-white font-bold",
                   collapsed ? "-top-1 -right-1 h-2 w-2" : "hidden"
                 )} />
               )}
               {item.id === "inbox" && inboxCount > 0 && (
                 <span className={cn(
-                  "absolute flex items-center justify-center rounded-full bg-blue-500 text-white font-bold",
+                  "absolute flex items-center justify-center rounded-full bg-[#f2633f] text-white font-bold",
                   collapsed ? "-top-1 -right-1 h-2 w-2" : "hidden"
                 )} />
               )}
@@ -96,12 +96,12 @@ function NavGroup({ label, items, activeView, onViewChange, collapsed, invitatio
               <div className="flex flex-1 items-center justify-between min-w-0">
                 <span className="truncate">{item.label}</span>
                 {item.id === "invitations" && invitationsCount > 0 && (
-                  <span className="flex h-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-bold text-white shrink-0">
+                  <span className="flex h-5 items-center justify-center rounded-full bg-[#f2633f] px-1.5 text-[10px] font-bold text-white shrink-0">
                     {invitationsCount}
                   </span>
                 )}
                 {item.id === "inbox" && inboxCount > 0 && (
-                  <span className="flex h-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-bold text-white shrink-0">
+                  <span className="flex h-5 items-center justify-center rounded-full bg-[#f2633f] px-1.5 text-[10px] font-bold text-white shrink-0">
                     {inboxCount}
                   </span>
                 )}
@@ -127,14 +127,14 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
         {!collapsed ? (
           <BrandLogo
             className="w-[136px]"
-            markClassName="h-7 w-7 bg-blue-600"
+            markClassName="h-7 w-7 bg-[#f2633f]"
             textClassName="text-base text-white"
             light
           />
         ) : (
           <BrandLogo
             className="w-7 h-7 overflow-hidden"
-            markClassName="h-7 w-7 bg-blue-600"
+            markClassName="h-7 w-7 bg-[#f2633f]"
             textClassName="hidden"
             showText={false}
             light
@@ -143,7 +143,7 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
       </div>
 
       {/* Search */}
-      <div className="px-3 pb-3 border-b border-slate-800 shrink-0">
+      <div className="px-3 pb-3 border-b border-white/10 shrink-0">
         <button
           onClick={onOpenSearch}
           title={collapsed ? "Search (Ctrl+K)" : undefined}
@@ -167,18 +167,18 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
         <NavGroup label="Overview" items={overviewNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} inboxCount={inboxCount} />
-        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        {!collapsed && <div className="border-t border-white/10 my-2" />}
         <NavGroup label="Tasks" items={tasksNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
-        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        {!collapsed && <div className="border-t border-white/10 my-2" />}
         <NavGroup label="Team" items={teamNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} invitationsCount={invitationsCount} />
-        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        {!collapsed && <div className="border-t border-white/10 my-2" />}
         <NavGroup label="AI" items={aiNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
-        {!collapsed && <div className="border-t border-slate-800 my-2" />}
+        {!collapsed && <div className="border-t border-white/10 my-2" />}
         <NavGroup label="System" items={settingsNav} activeView={activeView} onViewChange={onViewChange} collapsed={collapsed} />
       </nav>
 
       {/* Bottom Collapse Button */}
-      <div className="p-3 border-t border-slate-800 shrink-0">
+      <div className="p-3 border-t border-white/10 shrink-0">
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
@@ -189,9 +189,9 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
           title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
           {collapsed ? (
-            <PanelLeftOpen className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-white" />
+            <PanelLeftOpen className="h-4 w-4 shrink-0 text-[#8f7b70] group-hover:text-white" />
           ) : (
-            <PanelLeftClose className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-white" />
+            <PanelLeftClose className="h-4 w-4 shrink-0 text-[#8f7b70] group-hover:text-white" />
           )}
         </button>
       </div>

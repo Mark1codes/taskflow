@@ -47,10 +47,10 @@
     --radius: 0.75rem;
 
     /* Chart colours */
-    --chart-1: 221 83% 53%;
-    --chart-2: 160 60% 40%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 0 72% 51%;
+    --chart-1: 13 79% 55%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 160 60% 40%;
+    --chart-4: 38 92% 50%;
     --chart-5: 270 60% 55%;
   }
 
@@ -214,12 +214,12 @@
 
   /* Left-border status strip */
   .status-todo    { border-left: 3px solid #94A3B8; }
-  .status-progress { border-left: 3px solid #2563EB; }
+  .status-progress { border-left: 3px solid #f2633f; }
   .status-done    { border-left: 3px solid #16A34A; }
 
   /* Professional card hover */
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(24,24,32,0.08)];
   }
 
   /* Page-level enter animation for auth screen transitions */

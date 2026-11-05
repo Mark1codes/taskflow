@@ -129,7 +129,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
   }, [initialUser?.id])
   // Load color theme
   useEffect(() => {
-    const savedTheme = localStorage.getItem("taskflow-color-theme") || "blue"
+    const savedTheme = localStorage.getItem("taskflow-color-theme") || "default"
     document.documentElement.setAttribute("data-theme", savedTheme)
   }, [])
 
@@ -533,7 +533,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-    <div className="flex h-screen bg-[#f5f0e9] overflow-hidden dark:bg-[#171312]">
+    <div className="flex h-screen bg-[#f6f7fb] overflow-hidden dark:bg-[#101116]">
       {/* Desktop sidebar */}
       <div className="hidden lg:block shrink-0">
         <Sidebar activeView={activeView} onViewChange={handleViewChange} invitationsCount={pendingInvitations.length} inboxCount={inboxCount} onOpenSearch={() => setSearchOpen(true)} />
@@ -541,7 +541,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top header */}
-        <header className="h-16 border-b border-[#e4d9cf] bg-[#fbf8f3] px-4 sm:px-6 flex items-center justify-between shrink-0 dark:border-[#3a2d27] dark:bg-[#211a17]">
+        <header className="h-16 border-b border-slate-200/80 bg-white/90 px-4 sm:px-6 flex items-center justify-between shrink-0 backdrop-blur-xl dark:border-white/10 dark:bg-[#17181f]/90">
           <div className="flex items-center gap-3">
             {/* Mobile sidebar */}
             <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
@@ -579,7 +579,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="relative h-8 w-8 rounded-full ring-2 ring-slate-200 hover:ring-blue-500 transition-all">
+                <button className="relative h-8 w-8 rounded-full ring-2 ring-slate-200 hover:ring-[#f2633f] transition-all">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={currentUser.avatar || undefined} alt={currentUser.name} referrerPolicy="no-referrer" className="object-cover" />
                     <AvatarFallback className={currentUser.avatar ? "bg-slate-100 dark:bg-slate-800" : "text-xs bg-blue-600 text-white font-medium"}>
@@ -614,7 +614,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-hidden bg-slate-50 dark:bg-slate-950">{renderContent()}</main>
+        <main className="min-h-0 flex-1 overflow-hidden bg-[#f6f7fb] dark:bg-[#101116]">{renderContent()}</main>
       </div>
     </div>
     
