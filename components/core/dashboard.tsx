@@ -33,7 +33,7 @@ const priorityConfig: Record<string, { label: string; class: string }> = {
 
 const statusConfig: Record<string, { label: string; dot: string }> = {
   completed:   { label: "Completed",   dot: "bg-emerald-500" },
-  "in-progress": { label: "In Progress", dot: "bg-blue-500" },
+  "in-progress": { label: "In Progress", dot: "bg-[#fff0e9]0" },
   todo:        { label: "To Do",       dot: "bg-slate-400" },
 }
 
@@ -108,7 +108,7 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
 
   const kpis = [
     { label: "Total Tasks",      value: total,      sub: `${todo} to do`,          icon: CheckCircle2,   accent: "text-slate-600",  bg: "bg-slate-50", percent: calcPercent(todo), barColor: "bg-slate-400" },
-    { label: "In Progress",      value: inProgress, sub: "Active now",              icon: Target,         accent: "text-blue-600",   bg: "bg-blue-50", percent: calcPercent(inProgress), barColor: "bg-blue-500" },
+    { label: "In Progress",      value: inProgress, sub: "Active now",              icon: Target,         accent: "text-[#e34c2a]",   bg: "bg-[#fff0e9]", percent: calcPercent(inProgress), barColor: "bg-[#fff0e9]0" },
     { label: "Time Tracked",     value: formattedTimeTracked, sub: "Total focus time",  icon: Clock,          accent: "text-indigo-600", bg: "bg-indigo-50", percent: totalTimeSpent > 0 ? "100%" : "0%", barColor: "bg-indigo-500" },
     { label: "Overdue",          value: overdue,    sub: "Need attention",          icon: AlertTriangle,  accent: "text-red-600",    bg: "bg-red-50", percent: calcPercent(overdue), barColor: "bg-red-500" },
   ]
@@ -143,13 +143,13 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-[#f7f9fc] dark:bg-slate-950">
+    <div className="h-full overflow-y-auto bg-[#f5f0e9] dark:bg-[#171312]">
       <div className="mx-auto max-w-[1440px] space-y-6 p-4 sm:p-6 lg:p-8">
 
         {/* Header */}
         <div className="flex flex-col justify-between gap-4 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Workspace overview</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#e34c2a]">Workspace overview</p>
             <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Your workspace at a glance</h1>
             <p className="mt-1 text-sm text-slate-500">A clear view of what is moving, what is next, and what needs attention.</p>
           </div>
@@ -184,7 +184,7 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
         <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900">
           <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-              <Activity className="h-4 w-4 text-blue-600" />
+              <Activity className="h-4 w-4 text-[#e34c2a]" />
               Productivity Trend
             </CardTitle>
             <Badge variant="secondary" className="bg-slate-100 text-slate-600 font-normal hover:bg-slate-100">Last 7 days</Badge>
@@ -218,19 +218,19 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
         <Card className="border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.03)] dark:border-slate-800 dark:bg-slate-900">
           <CardContent className="p-5 sm:p-6">
             <div className="flex items-center justify-between mb-3">
-              <div><span className="flex items-center gap-2 text-sm font-semibold text-slate-950"><Target className="h-4 w-4 text-blue-600" /> Delivery health</span><p className="mt-1 text-xs text-slate-400">Your current workload at a glance</p></div>
+              <div><span className="flex items-center gap-2 text-sm font-semibold text-slate-950"><Target className="h-4 w-4 text-[#e34c2a]" /> Delivery health</span><p className="mt-1 text-xs text-slate-400">Your current workload at a glance</p></div>
               <span className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">{rate}%</span>
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full bg-blue-600 rounded-full transition-all duration-700"
+                className="h-full bg-[#e34c2a] rounded-full transition-all duration-700"
                 style={{ width: `${rate}%` }}
               />
             </div>
             <div className="mt-6 grid grid-cols-3 divide-x divide-slate-100">
               {[
                 { label: "To Do", count: todo, color: "bg-slate-400" },
-                { label: "In Progress", count: inProgress, color: "bg-blue-500" },
+                { label: "In Progress", count: inProgress, color: "bg-[#fff0e9]0" },
                 { label: "Completed", count: completed, color: "bg-emerald-500" },
               ].map(s => (
                 <div key={s.label} className="pl-4 first:pl-0">
@@ -241,7 +241,7 @@ export function Dashboard({ tasks, isLoading = false }: DashboardProps) {
             </div>
           </CardContent>
         </Card>
-        <Card className="relative overflow-hidden border-blue-100 bg-gradient-to-br from-blue-50/50 to-white text-slate-900 shadow-sm"><div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-500/5 blur-3xl" /><CardContent className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-6"><div><div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-medium text-blue-600"><Sparkles className="h-4 w-4" /> Focus signal</span><span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] text-blue-600">Live</span></div><h2 className="mt-8 max-w-xs text-xl font-semibold leading-tight tracking-[-0.03em]">{focusTasks.length > 0 ? "Keep the momentum going." : "Your next move starts here."}</h2><p className="mt-3 text-sm leading-6 text-slate-500">{focusTasks.length > 0 ? `${focusTasks.length} active ${focusTasks.length === 1 ? "task" : "tasks"} need your attention.` : "Create a task to give your day a clear direction."}</p></div><div className="mt-8 flex items-start flex-col border-t border-slate-100 pt-4 text-xs text-slate-500"><span className="truncate pr-3 font-medium text-slate-700">{focusTasks.length > 0 ? focusTasks[0].title : "No active tasks"}</span></div></CardContent></Card>
+        <Card className="relative overflow-hidden border-[#f4cdbd] bg-gradient-to-br from-[#fff0e9]/80 to-white text-slate-900 shadow-sm"><div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#fff0e9]0/5 blur-3xl" /><CardContent className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-6"><div><div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-medium text-[#e34c2a]"><Sparkles className="h-4 w-4" /> Focus signal</span><span className="rounded-full border border-blue-200 bg-[#fff0e9] px-2 py-1 text-[10px] text-[#e34c2a]">Live</span></div><h2 className="mt-8 max-w-xs text-xl font-semibold leading-tight tracking-[-0.03em]">{focusTasks.length > 0 ? "Keep the momentum going." : "Your next move starts here."}</h2><p className="mt-3 text-sm leading-6 text-slate-500">{focusTasks.length > 0 ? `${focusTasks.length} active ${focusTasks.length === 1 ? "task" : "tasks"} need your attention.` : "Create a task to give your day a clear direction."}</p></div><div className="mt-8 flex items-start flex-col border-t border-slate-100 pt-4 text-xs text-slate-500"><span className="truncate pr-3 font-medium text-slate-700">{focusTasks.length > 0 ? focusTasks[0].title : "No active tasks"}</span></div></CardContent></Card>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">

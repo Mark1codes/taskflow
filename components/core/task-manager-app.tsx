@@ -533,7 +533,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-    <div className="flex h-screen bg-slate-50 overflow-hidden dark:bg-slate-950">
+    <div className="flex h-screen bg-[#f5f0e9] overflow-hidden dark:bg-[#171312]">
       {/* Desktop sidebar */}
       <div className="hidden lg:block shrink-0">
         <Sidebar activeView={activeView} onViewChange={handleViewChange} invitationsCount={pendingInvitations.length} inboxCount={inboxCount} onOpenSearch={() => setSearchOpen(true)} />
@@ -541,7 +541,7 @@ export function TaskManagerApp({ user: initialUser, onLogout }: TaskManagerAppPr
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top header */}
-        <header className="h-16 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between shrink-0 dark:border-slate-800 dark:bg-slate-900">
+        <header className="h-16 border-b border-[#e4d9cf] bg-[#fbf8f3] px-4 sm:px-6 flex items-center justify-between shrink-0 dark:border-[#3a2d27] dark:bg-[#211a17]">
           <div className="flex items-center gap-3">
             {/* Mobile sidebar */}
             <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>

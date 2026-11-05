@@ -5,56 +5,46 @@
 @layer base {
   :root {
     /* Brand */
-    --brand: 221 83% 53%;           /* #2563EB */
-    --brand-dark: 221 83% 43%;      /* #1D4ED8 */
+    --brand: 13 79% 55%;           /* coral */
+    --brand-dark: 13 72% 43%;
 
-    /* Theme Engine (Default Indigo) */
-    --theme-50: #eff6ff;
-    --theme-100: #dbeafe;
-    --theme-200: #bfdbfe;
-    --theme-300: #93c5fd;
-    --theme-400: #60a5fa;
-    --theme-500: #3b82f6;
-    --theme-600: #2563eb;
-    --theme-700: #1d4ed8;
-    --theme-800: #1e40af;
-    --theme-900: #1e3a8a;
-    --theme-950: #172554;
+    /* Theme Engine (Default Coral) */
+    --theme-50: #fff7f3;
+    --theme-100: #ffe9df;
+    --theme-200: #ffd0bd;
+    --theme-300: #ffad8d;
+    --theme-400: #fb815d;
+    --theme-500: #f2633f;
+    --theme-600: #e34c2a;
+    --theme-700: #bd3820;
+    --theme-800: #982f1f;
+    --theme-900: #7c2b1f;
+    --theme-950: #43140f;
 
     /* Surfaces */
-    --background: 210 40% 98%;      /* #F8FAFC */
-    --foreground: 222 47% 11%;      /* #0F172A */
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --background: 35 33% 96%;
+    --foreground: 24 24% 13%;
+    --card: 38 40% 99%;
+    --card-foreground: 24 24% 13%;
+    --popover: 38 40% 99%;
+    --popover-foreground: 24 24% 13%;
 
-    /* Primary = brand indigo */
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary = decisive coral */
+    --primary: 13 79% 55%;
+    --primary-foreground: 38 40% 99%;
 
-    /* Secondary = slate */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-
-    /* Muted */
-    --muted: 214 32% 91%;
-    --muted-foreground: 215 16% 47%;
-
-    /* Accent */
-    --accent: 210 40% 94%;
-    --accent-foreground: 222 47% 11%;
-
-    /* Destructive */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Border / Input */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
-
-    --radius: 0.5rem;
+    --secondary: 34 25% 91%;
+    --secondary-foreground: 24 24% 13%;
+    --muted: 34 25% 91%;
+    --muted-foreground: 25 10% 43%;
+    --accent: 25 100% 94%;
+    --accent-foreground: 13 55% 28%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 38 40% 99%;
+    --border: 31 20% 86%;
+    --input: 31 20% 86%;
+    --ring: 13 79% 55%;
+    --radius: 0.75rem;
 
     /* Chart colours */
     --chart-1: 221 83% 53%;

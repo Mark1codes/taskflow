@@ -73,8 +73,8 @@ function NavGroup({ label, items, activeView, onViewChange, collapsed, invitatio
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 group",
               active
-                ? "bg-blue-600 text-white"
-                : "text-slate-400 hover:text-white hover:bg-slate-800"
+                ? "bg-[#f2633f] text-white shadow-[0_8px_18px_rgba(242,99,63,0.22)]"
+                : "text-[#b6a49b] hover:text-white hover:bg-[#30241f]"
             )}
           >
             <div className="relative">
@@ -119,7 +119,7 @@ export function Sidebar({ activeView, onViewChange, invitationsCount = 0, inboxC
 
   return (
     <div className={cn(
-      "flex flex-col h-full bg-slate-900 border-r border-slate-800 transition-all duration-300",
+      "flex flex-col h-full bg-[#201a17] border-r border-[#3a2d27] transition-all duration-300",
       collapsed ? "w-16" : "w-60"
     )}>
       {/* Logo */}
